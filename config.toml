@@ -1,5 +1,6 @@
 # The URL the site will be built for
 base_url = "https://alias-studio.github.io"
+title = "AliasJeff"
 
 # Whether to automatically compile all Sass files in the sass directory
 compile_sass = true
@@ -7,10 +8,37 @@ compile_sass = true
 # Whether to build a search index to be used later on by a JavaScript library
 build_search_index = true
 
+theme = "apollo"
+taxonomies = [{ name = "tags" }]
+
 [markdown]
 # Whether to do syntax highlighting
 # Theme can be customised by setting the `highlight_theme` variable to a theme supported by Zola
 highlight_code = true
 
+[search]
+include_title = true
+include_description = true
+include_path = true
+include_content = true
+index_format = "elasticlunr_json"
+
 [extra]
-# Put all your custom variables here
+theme = "auto"
+socials = [
+  { name = "github", url = "https://github.com/AliasJeff/", icon = "github" }
+]
+menu = [
+  { name = "Posts", url = "/posts", weight = 1 },
+  { name = "Projects", url = "/projects", weight = 2 },
+  { name = "About", url = "/about", weight = 3 },
+  { name = "Tags", url = "/tags", weight = 4 },
+]
+
+toc = true
+fancy_code = true
+dynamic_note = true
+
+favicon = "code.svg"
+
+# See this for more options: https://github.com/not-matthias/apollo/blob/main/config.toml#L14
