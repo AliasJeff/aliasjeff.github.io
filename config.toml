@@ -24,15 +24,16 @@ include_content = true
 index_format = "elasticlunr_json"
 
 [extra]
-theme = "auto"
+theme = "toggle"
 socials = [
   { name = "github", url = "https://github.com/AliasJeff/", icon = "github" }
 ]
 menu = [
-  { name = "Posts", url = "/posts", weight = 1 },
-  { name = "Projects", url = "/projects", weight = 2 },
-  { name = "About", url = "/about", weight = 3 },
-  { name = "Tags", url = "/tags", weight = 4 },
+  { name = "Home", url = "/", weight = 1 },
+  { name = "About", url = "/about", weight = 2 },
+  { name = "Projects", url = "/projects", weight = 3 },
+  { name = "Posts", url = "/posts", weight = 4 },
+  { name = "Tags", url = "/tags", weight = 5 },
 ]
 
 toc = true
@@ -40,5 +41,20 @@ fancy_code = true
 dynamic_note = true
 
 favicon = "code.svg"
+
+# Giscus Comments Configuration
+[extra.giscus]
+repo = "AliasJeff/alias-studio.github.io"
+repo_id = "R_kgDOQs_HFw"
+category = "General"
+category_id = "DIC_kwDOQs_HF84C0Hvj"
+mapping = "pathname"
+strict = "0"
+reactions_enabled = "1"
+emit_metadata = "0"
+input_position = "bottom"
+theme = "preferred_color_scheme"
+lang = "zh-CN"
+loading = "lazy"
 
 # See this for more options: https://github.com/not-matthias/apollo/blob/main/config.toml#L14
