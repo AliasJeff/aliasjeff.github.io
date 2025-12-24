@@ -143,9 +143,9 @@ comment = true
 </div>
 
 <div class="nav-card">
-    <span>🎯 Hobbies</span>
-    <p>What I do when I'm not coding</p>
-    <a href="/about/hobbies" class="nav-link">My Hobbies →</a>
+    <span>✨ Things I like</span>
+    <p>Stuff I enjoy beyond coding</p>
+    <a href="/about/things-i-like" class="nav-link">Things I like →</a>
 </div>
 
 <div class="nav-card">
