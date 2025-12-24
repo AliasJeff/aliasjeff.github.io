@@ -24,7 +24,7 @@ my day one in tech was in oct/2020 and to be fair I'm in a consistent pace since
 <p style="color: #7a7a7a">Just letting you know, I'm a very caring person :)</p>
 
 #### 📚 More
-[Things I like](./things-i-like.md)
+<u>[Things I like](./things-i-like)</u>
 
 ---
 
