@@ -15,6 +15,7 @@ comment = true
 ## 🎓 教育经历
 
 **西安电子科技大学** | 软件工程 | 硕士 | *2025.08 - 至今*
+
 **浙江师范大学** | 软件工程 | 本科 | *2020.10 - 2025.06*
 
 * **荣誉奖项**：综合成绩专业 **前5%**；获“互联网+”等 **国家级奖项 2 项**；发表软著 2 篇；多次获省政府/校级一等奖学金。
@@ -51,7 +52,7 @@ comment = true
 
 ## 💻 项目经验
 
-**高并发电商交易系统 (拼单/秒杀)** | [Github 链接](https://github.com/AliasJeff/alias-rpc)
+**高并发电商交易系统 (拼单/秒杀)** | <u>[Github 链接](https://github.com/AliasJeff/alias-rpc)</u>
 
 **核心技术**：SpringBoot, MySQL, Redis, RabbitMQ, Guava, XXL-Job, Docker, DDD
 
@@ -64,7 +65,7 @@ comment = true
 
 
 
-**Alias-RPC (可扩展的高性能 RPC 框架)** | [Github 链接](https://github.com/AliasJeff/alias-rpc)
+**Alias-RPC (可扩展的高性能 RPC 框架)** | <u>[Github 链接](https://github.com/AliasJeff/alias-rpc)</u>
 
 **核心技术**：Netty, Vert.x, Etcd, SPI, Spring Boot Starter, 自定义协议
 
@@ -99,6 +100,7 @@ comment = true
 ## 🎓 Education
 
 **Xidian University** | *M.S. in Software Engineering* | **Aug 2025 - Present**
+
 **Zhejiang Normal University** | *B.S. in Software Engineering* | **Oct 2020 - Jun 2025**
 
 * **Academics:** Top 5% ranking; Received **National Gold Award** in "Internet+" Competition; Published 2 Software Copyrights.
@@ -136,7 +138,7 @@ comment = true
 
 ## 💻 Project Experience
 
-**High-Concurrency E-Commerce System** | [Github Link](https://github.com/AliasJeff/alias-rpc)
+**High-Concurrency E-Commerce System** | <u>[Github Link](https://github.com/AliasJeff/alias-rpc)</u>
 
 * **Tech Stack:** Spring Boot, MySQL, Redis, RabbitMQ, Guava, XXL-Job, Docker, DDD.
 * **Description:** A comprehensive trading platform integrating Group Buying and Flash Sales. Implemented the full lifecycle from discount calculation, inventory locking, and payment, to refunds.
@@ -145,7 +147,7 @@ comment = true
 * **Distributed Consistency:** Adopted the **"Local Message Table + RabbitMQ"** pattern. utilized scheduled tasks and async compensation to ensure Eventual Consistency between trade data and message delivery.
 * **Dynamic Configuration:** Built a configuration center based on **Redis Pub/Sub** and Spring AOP, enabling **second-level hot updates** for feature toggles and downgrade strategies without service restarts.
 
-**Alias-RPC Framework** | [Github Link](https://github.com/AliasJeff/alias-rpc)
+**Alias-RPC Framework** | <u>[Github Link](https://github.com/AliasJeff/alias-rpc)</u>
 
 * **Tech Stack:** Netty, Vert.x, Etcd, SPI, Spring Boot Starter, Custom Protocol.
 * **Description:** A high-performance, extensible RPC framework built on Etcd and Vert.x, supporting annotation-based remote calls.
