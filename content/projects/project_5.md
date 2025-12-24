@@ -1,10 +1,17 @@
 +++
-title = "Exploit Development Framework"
-description = "Research-focused exploit development for security professionals"
-weight = 5
-date = 2023-08-12
+title = "智能数据可视化平台"
+description = "搭建前后端分离的智能数据可视化系统，使用AI能力实现多数据源接入、动态仪表盘配置与交互式数据分析展示。"
+weight = 6
 
 [extra]
-github = "https://github.com/example/exploit-framework"
-tags = ["python", "assembly", "metasploit"]
+local_image = ""
+github = "https://github.com/AliasJeff/ai-plots-backend"
+tags = ["Java", "Redis", "消息队列", "线程池"]
 +++
+
+一个面向业务分析场景的数据可视化平台，使用AI能力实现多数据源接入、动态仪表盘配置与交互式数据分析展示。
+
+1. 后端自定义 Prompt **预设模板**并封装用户输入的数据和分析诉求，对接**AIGC接口**生成**可视化图表** json 配置和分析结论，返回前端渲染。
+2. 为防止恶意占用系统资源，使用 Redisson 的 RateLimiter 实现**分布式限流**，控制单用户访问频率。
+3. 由于 AIGC 响应时间长，基于自定义 **IO 密集型线程池** + **任务队列**实现了 AIGC 的**并发执行**和**异步化**，削峰填谷，支持更多用户排队而不是增加系统压力。
+4. 考虑到单个图表的原始数据量较大，基于 MyBatis + 业务层**构建自定义 SQL**，实现对原始数据**分表存储**，提高查询性能和系统**可扩展性**。

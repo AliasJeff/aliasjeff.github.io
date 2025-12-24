@@ -1,14 +1,21 @@
 +++
-title = "Apollo"
-description = "A modern and minimalistic blog theme for Zola"
-weight = 1
-date = 2023-10-26
+title = "仿PDD的高并发电商交易系统 (拼单/秒杀)"
+description = "参考拼多多拼单模式设计的分布式交易系统，覆盖拼单成团、支付结算、退款等核心链路，通过消息队列与一致性方案保障复杂业务下的数据可靠性。"
+weight = 2
 
 [extra]
-local_image = "project-1.jpg"
-github = "https://github.com/not-matthias/apollo"
-demo = "https://not-matthias.github.io/apollo"
-tags = ["rust", "scss", "javascript", "tera"]
+local_image = ""
+github = "https://github.com/AliasJeff/pin-mate-buy"
+demo = "http://alias-studio.natapp1.cc/"
+tags = ["Java", "DDD", "Redis", "消息队列", "分布式锁", "动态配置", "规则引擎", "MySQL"]
 +++
 
-Apollo is a fast, elegant static site theme built for Zola. It features a clean design with light/dark mode support, responsive layouts, and excellent performance. The theme is highly customizable through a simple configuration file and includes built-in support for analytics, social links, and math rendering.
+**核心技术：**SpringBoot、MyBatis、MySQL、Redis、RabbitMQ、Guava、XXL-Job、Docker
+
+**项目描述：**本项目集**多人拼团、限时秒杀、优惠营销**于一体，实现了 优惠试算 → 锁单 → 支付结算 → 退单 的全链路业务流程。为了应对大促活动期间流量大、规则复杂的情况，系统对核心交易链路进行深度优化。通过对**业务模块的拆分**、**缓存机制**的引入以及**异步处理方案**的实施，解决了高并发下的抢单卡顿、库存不足以及系统响应慢等问题。
+
+1. **DDD 与规则引擎设计**：基于 DDD 四色建模构建业务，配合**规则树** + **责任链**模式，将人群筛选、限购校验、优惠试算等复杂逻辑**模块化**，实现了业务规则的**动态编排**与**热插拔**。
+2. **高并发库存安全 (防超卖)**：锁单环节采用 Redis **分段锁**，拆分库存粒度，降低数据库行锁竞争，提高系统**并发量**，在保证高性能的同时防止超卖。
+3. **一致性保障**：采用 **本地消息表 + RabbitMQ** 的组合方案。在业务事务提交的同时，将待发送的消息记录**落库**，由**定时任务**和**异步任务**扫描本地消息表并发送至 MQ，确保**消息必达**和拼单状态**最终一致性**。
+4. **动态配置管理**：设计基于 Redis Pub/Sub 模型的**动态配置中心**，结合 **Spring AOP 切面和代理**，以**自定义注解**的方式控制属性信息**动态配置**，实现活动开关、降级策略的**秒级**热更新（无需重启）。
+

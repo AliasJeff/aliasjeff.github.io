@@ -1,12 +1,11 @@
 +++
-title = "Binary Analysis Platform"
-description = "Dissect binaries with automated decompilation and analysis"
-weight = 4
-date = 2023-11-08
+title = "记账小星球"
+description = "多人合作记账微信小程序，已上线。"
+weight = 5
 
 [extra]
-remote_image = "https://images.unsplash.com/photo-1620121692029-d088224ddc74?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1632&q=80"
-github = "https://github.com/example/binary-analyzer"
-demo = "https://binary-analysis-demo.example.com"
-tags = ["python", "capstone", "ghidra", "angr"]
+local_image = ""
+tags = ["Java", "DevOps", "小程序"]
 +++
+
+一款已上线的微信记账小程序，从需求设计到完整落地，覆盖后端服务开发、部署与运维流程。

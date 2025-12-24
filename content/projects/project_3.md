@@ -1,10 +1,13 @@
 +++
-title = "Memory Safety Analyzer"
-description = "Catch use-after-free and buffer overflows at compile time"
-weight = 3
-date = 2024-01-20
+title = "实习 - Taelor"
+description = "Intern. Men’s clothing rental company."
+weight = 4
 
 [extra]
-github = "https://github.com/example/memory-analyzer"
-tags = ["rust", "llvm", "c++"]
+local_image = ""
+tags = ["实习"]
 +++
+
+<u>[Clothing rental at Taelor](https://taelor.style/pages/membership)</u>
+
+在 Taelor 男装租赁平台的实习项目，参与核心业务系统的后端开发与优化，涉及数据一致性、日志分析与业务流程设计。
