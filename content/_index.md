@@ -137,12 +137,6 @@ comment = true
 </div>
 
 <div class="nav-card">
-    <span>🏷️ Tags</span>
-    <p>Browse content by topics and categories</p>
-    <a href="/tags" class="nav-link">Explore Tags →</a>
-</div>
-
-<div class="nav-card">
     <span>👋 About</span>
     <p>Learn more about me and my background</p>
     <a href="/about" class="nav-link">About Me →</a>
@@ -158,6 +152,12 @@ comment = true
     <span>📄 Résumé</span>
     <p>Professional experience and skills</p>
     <a href="/resume" class="nav-link">View Résumé →</a>
+</div>
+
+<div class="nav-card">
+    <span>🏷️ Tags</span>
+    <p>Browse content by topics and categories</p>
+    <a href="/tags" class="nav-link">Explore Tags →</a>
 </div>
 </div>
 </div>
