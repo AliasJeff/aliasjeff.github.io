@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                DDD 架构设计实践
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="DDD 架构设计实践" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link id="darkModeStyle"
+              rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                setTheme(getSavedTheme());
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+            <a id="dark-mode-toggle"
+               onclick="toggleTheme(); event.preventDefault();"
+               href="#">
+                <img src="https://aliasjeff.github.io/icons/sun.svg" id="sun-icon" alt="Light" />
+                <img src="https://aliasjeff.github.io/icons/moon.svg"
+                     id="moon-icon"
+                     style="filter: invert(1)"
+                     alt="Dark" />
+                <img src="https://aliasjeff.github.io/icons/auto.svg"
+                     id="auto-icon"
+                     style="filter: invert(1)"
+                     alt="Auto" />
+            </a>
+
+            <!-- Initialize the theme toggle icons -->
+            <script>
+                updateItemToggleTheme()
+            </script>
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            DDD 架构设计实践
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2025-11-07</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/jia-gou-she-ji/"
+                                       class="post-tag">架构设计</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/gao-bing-fa/"
+                                       class="post-tag">高并发</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>在面对业务逻辑极其复杂、营销玩法迭代频繁的电商交易系统时，传统的 MVC 三层架构往往容易陷入“贫血模型”的泥潭，导致交易逻辑与基础设施代码高度耦合，后期维护和扩展成本极高。本次仿 PDD 电商交易系统的架构，我们采用了 <strong>DDD 领域驱动设计</strong>，将核心交易逻辑剥离，通过合理的战术设计和分层架构，实现了系统的高内聚低耦合。</p>
+<p>以下是我对项目 DDD 架构设计的深度梳理。</p>
+<h3 id="1-wei-shen-me-xuan-ze-ddd-jia-gou"><a class="zola-anchor" href="#1-wei-shen-me-xuan-ze-ddd-jia-gou" aria-label="Anchor link for: 1-wei-shen-me-xuan-ze-ddd-jia-gou">1. 为什么选择 DDD 架构</a></h3>
+<p>在以往的电商开发中，我们习惯于 MVC 架构，OrderService 层充斥着成千上万行代码，而 PO 对象仅仅是数据库表的映射，没有任何行为能力。随着业务规则的增加，比如下单前的<strong>黑产用户拦截、人群标签匹配、复杂的优惠券叠加计算、下单后的库存预占</strong>等，Service 层变得臃肿不堪。</p>
+<p>DDD 的核心优势在于它能够治理复杂性。它要求我们回归业务本身，构建<strong>充血模型</strong>。在这个项目中，所有的交易逻辑被封装在领域层，领域对象（如“订单”、“购物车”）拥有了自己的行为。当需要数据库资源或外部接口（如支付网关）时，通过依赖倒置原则获取，而不是直接依赖底层实现。</p>
+<h3 id="2-zhan-lue-she-ji-ling-yu-de-hua-fen-yu-bian-jie"><a class="zola-anchor" href="#2-zhan-lue-she-ji-ling-yu-de-hua-fen-yu-bian-jie" aria-label="Anchor link for: 2-zhan-lue-she-ji-ling-yu-de-hua-fen-yu-bian-jie">2. 战略设计：领域的划分与边界</a></h3>
+<p>在战略设计阶段，我们通过<strong>事件风暴</strong>对电商业务进行了梳理，识别出核心域、通用域和支撑域。</p>
+<p><strong>核心域的界定</strong>
+我们将整个交易过程拆解为三个主要阶段：<strong>选购、下单、履约</strong>。基于此，我们划分出了三个核心领域：</p>
+<ol>
+<li><strong>营销领域（Promotion）：</strong> 负责用户的活动资格校验、拼团状态流转、优惠券发放等。</li>
+<li><strong>计价领域（Pricing）：</strong> 这是系统的“大脑”，负责商品原价、折扣算法、组合优惠、运费模板等价格计算逻辑。</li>
+<li><strong>交易领域（Trade）：</strong> 负责下单后的订单生成、状态机流转、支付回调处理等。</li>
+</ol>
+<p><strong>为什么将计价与交易分开？</strong></p>
+<p>在早期的设计中，算价和下单往往捆绑在一起。但在实际分析中我们发现，<strong>算价是一个纯粹的数学计算过程</strong>，而下单是一个涉及库存、状态流转的<strong>事务过程</strong>。用户在购物车页面只需算价而不生成订单。将两者解耦后，计价领域变得更加纯粹和通用，可以独立对外提供“价格试算”服务，供商品详情页或购物车调用。</p>
+<p><strong>通用域与支撑域</strong></p>
+<p>我们识别出了<strong>规则引擎</strong>作为通用域。规则引擎负责处理像<strong>用户画像判断、恶意刷单拦截</strong>等逻辑，它不仅服务于交易，也可以服务于社区评论风控或其他场景，具有极高的复用性。此外，<strong>分布式 ID 生成服务</strong>（雪花算法）等被划分为支撑域，为各个领域提供唯一主键服务。</p>
+<h3 id="3-jia-gou-fen-ceng-yu-yi-lai-dao-zhi"><a class="zola-anchor" href="#3-jia-gou-fen-ceng-yu-yi-lai-dao-zhi" aria-label="Anchor link for: 3-jia-gou-fen-ceng-yu-yi-lai-dao-zhi">3. 架构分层与依赖倒置</a></h3>
+<p>在工程落地时，我们采用了标准的 DDD 四层架构：接口层、应用层、领域层、基础层。</p>
+<p><strong>依赖倒置的实践</strong></p>
+<p>这是 DDD 与传统 MVC 最大的区别之一。在 MVC 中，上层依赖下层，Service 依赖 Dao。而在 DDD 中，我们采用<strong>依赖倒置原则</strong>。</p>
+<p>领域层作为核心，不应该依赖任何外部实现。所有的外部服务，包括数据库持久化、Redis 缓存操作、RPC 调用，都由领域层定义接口，然后由基础层去实现这些接口。例如，领域层定义了一个 <code>ITradeRepository</code> 接口，基础层通过集成 MyBatis 和 Redis 来实现这个接口。
+这样做的好处是天然防止了数据库 PO 对象侵入到业务领域中。领域层只操作纯粹的 Entity 和 Value Object，完全不关心数据是存在 MySQL 还是 Redis 中，极大地提升了系统的可测试性和可维护性。</p>
+<h3 id="4-zhan-shu-she-ji-ju-he-shi-ti-yu-zhi-dui-xiang"><a class="zola-anchor" href="#4-zhan-shu-she-ji-ju-he-shi-ti-yu-zhi-dui-xiang" aria-label="Anchor link for: 4-zhan-shu-she-ji-ju-he-shi-ti-yu-zhi-dui-xiang">4. 战术设计：聚合、实体与值对象</a></h3>
+<p>在战术设计层面，我们严格遵循 DDD 的规范来定义领域对象。</p>
+<p><strong>值对象与实体的区分</strong></p>
+<p>实体具有唯一的标识 ID，其生命周期内状态会发生变化，如<strong>主订单、SKU 库存</strong>。值对象则用于描述属性，没有唯一 ID，immutable（不可变）是其主要特征。
+在本项目中，像<strong>收货地址、优惠券规则描述、货币金额</strong>，都被定义为值对象。而<strong>拼团单、用户订单记录</strong>等则被定义为实体，因为它们需要进行持久化并且状态会随业务流转（如待支付 -&gt; 已支付）而改变。</p>
+<p><strong>聚合根的设计原则</strong></p>
+<p>聚合是修改数据的最小单元。以<strong>营销规则</strong>为例，我们通过事件风暴识别出了规则树根、判定节点、连线等对象。我们将整个决策树作为一个聚合，树根作为聚合根。
+设计聚合时我们遵循了几个原则：</p>
+<ol>
+<li><strong>聚合尽可能小：</strong> 避免一个聚合包含太多实体（如一个大订单包含所有日志），导致并发冲突和性能问题。</li>
+<li><strong>高内聚：</strong> 聚合内部保证数据强一致性，聚合之间（如订单与库存）通过领域事件实现最终一致性。</li>
+<li><strong>通过 ID 引用：</strong> 聚合之间不直接持有对象引用，而是通过 ID 进行关联，降低耦合度。</li>
+</ol>
+<h3 id="5-he-xin-ye-wu-liu-cheng-de-she-ji-mo-shi-ying-yong"><a class="zola-anchor" href="#5-he-xin-ye-wu-liu-cheng-de-she-ji-mo-shi-ying-yong" aria-label="Anchor link for: 5-he-xin-ye-wu-liu-cheng-de-she-ji-mo-shi-ying-yong">5. 核心业务流程的设计模式应用</a></h3>
+<p>为了应对复杂的业务场景，我们在领域服务中大量使用了设计模式。</p>
+<p><strong>交易流程的模板方法模式</strong></p>
+<p>我们将下单流程抽象为<strong>前置校验、核心执行、后置处理</strong>三个阶段。这是一个典型的模板方法模式应用。</p>
+<ul>
+<li><strong>下单前：</strong> 执行风控黑名单校验、库存预查、限购规则过滤。</li>
+<li><strong>下单中：</strong> 执行核心扣减库存、订单落库、状态机初始化。</li>
+<li><strong>下单后：</strong> 发送 MQ 消息、清理购物车、触发营销发券。
+这种松耦合的结构使得我们能够轻松应对各种需求变更，比如大促时新增一种“实名认证”校验，只需要在下单前的环节扩展即可，不需要修改主流程代码。</li>
+</ul>
+<p><strong>优惠算价的组合模式</strong></p>
+<p>营销引擎的设计是本项目的亮点之一。为了支持灵活的活动配置，如“满 100 减 10”、“拼团折上折”、“百亿补贴直降”，我们采用<strong>组合模式</strong>构建了一颗<strong>价格计算树</strong>。
+数据库中配置了根节点（总价）、分支节点（各类优惠）和叶子节点（最终折扣）。在执行时，系统将这些配置组装成一棵内存中的逻辑树。每个节点通过工厂模式创建，实现了统一的 <code>calculate()</code> 接口。这样，运营人员可以像搭积木一样配置复杂的补贴规则，而无需改动代码。</p>
+<p><strong>风控策略的责任链模式</strong></p>
+<p>在用户下单前的筛选过程中，需要依次判断用户是否在黑名单、是否超过单日限购量、是否为异地登录刷单。这构成了一条<strong>责任链</strong>。请求在链上传递，直到被某个节点拦截或全部通过。这避免了大量的 <code>if-else</code> 嵌套，逻辑清晰且易于扩展新风控规则。</p>
+<h3 id="6-gao-bing-fa-xia-de-ku-cun-kou-jian-nan-ti"><a class="zola-anchor" href="#6-gao-bing-fa-xia-de-ku-cun-kou-jian-nan-ti" aria-label="Anchor link for: 6-gao-bing-fa-xia-de-ku-cun-kou-jian-nan-ti">6. 高并发下的库存扣减难题</a></h3>
+<p>虽然 DDD 强调业务建模，但在秒杀/百亿补贴的高并发场景下，必须结合技术手段解决实际问题。<strong>库存扣减</strong>是其中最核心的难点。</p>
+<p><strong>Redis 与数据库的最终一致性</strong></p>
+<p>直接操作数据库扣减库存会导致严重的行锁竞争，拖垮数据库。因此，我们采用 <strong>Redis 预扣库存</strong>。
+具体方案是：</p>
+<ol>
+<li><strong>Redis 预热：</strong> 活动开始前，将 SKU 库存预热到 Redis 中。</li>
+<li><strong>原子扣减：</strong> 秒杀时，利用 Redis 的 <code>decr</code> 命令或 Lua 脚本进行原子扣减。</li>
+<li><strong>异步同步：</strong> 扣减成功后，发送 MQ 消息或写入延迟队列，由定时任务异步更新数据库实际库存。这保证了数据库的最终一致性，削减了数据库的峰值流量。</li>
+</ol>
+<p><strong>防止超卖的滑块锁设计</strong></p>
+<p>单纯依靠 <code>decr</code> 在网络抖动或集群故障恢复时可能出现数据不一致。为了兜底，我们设计了一种颗粒度更细的<strong>滑块锁（Slide Lock）方案。</strong></p>
+<p>在 <code>decr</code> 扣减库存后，我们获取到扣减后的库存值，比如剩余库存 99。我们将 活动ID、SKU ID 和这个库存值 组合成一个 Key，使用 <code>setnx</code> 加锁，即：<code>lock_key = activity_id + sku_id + 99</code></p>
+<p>这样做的好处是，每一个库存个体的扣减都对应一把锁。即使 Redis 发生故障恢复，或者出现重放攻击，由于该“库存值 99”的 Key 已经被锁住，后续请求无法重复获取第 99 件商品，从而严格防止了超卖。这种方式实际上是把独占锁优化为了分段锁，性能接近于无锁化。</p>
+<p><strong>库存恢复机制</strong></p>
+<p>在实际业务中，用户下单后可能未支付（超时取消），或者发生退款，此时需要回滚库存。对于库存恢复，我们使用 <code>incr</code> 操作，并与总库存进行比对。对于使用滑块锁锁住的 Key，需谨慎处理，通常通过定时任务扫描超时未支付订单进行补偿释放，确保 Redis 和数据库的数据对齐。</p>
+<h3 id="7-zong-jie"><a class="zola-anchor" href="#7-zong-jie" aria-label="Anchor link for: 7-zong-jie">7. 总结</a></h3>
+<p>通过本次仿 PDD 电商项目的 DDD 改造，我们成功将一个原本混乱的交易系统重构为结构清晰、易于维护的现代化应用。</p>
+<ul>
+<li><strong>业务清晰：</strong> 通过领域划分，计价与交易解耦，营销规则独立，业务边界十分清晰。</li>
+<li><strong>技术解耦：</strong> 四层架构和依赖倒置，让交易逻辑不再依赖具体的数据库或中间件技术。</li>
+<li><strong>扩展性强：</strong> 责任链、组合模式、模板方法的应用，使得新活动玩法的添加变得非常简单。</li>
+<li><strong>性能卓越：</strong> 结合 Redis 分段锁和异步队列，完美解决了百亿补贴高并发下的库存扣减和数据一致性问题。</li>
+</ul>
+<p>DDD 不是银弹，通过复杂的建模和分层确实增加了前期的开发成本，但对于生命周期长、业务逻辑复杂的电商核心交易系统来说，它带来的可维护性和扩展性收益是巨大的。这不仅是一次架构的升级，更是一次研发思维的转变。</p>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/alias-studio.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="General"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ddd-jia-gou-she-ji-shi-jian/#1-wei-shen-me-xuan-ze-ddd-jia-gou">1. 为什么选择 DDD 架构</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ddd-jia-gou-she-ji-shi-jian/#2-zhan-lue-she-ji-ling-yu-de-hua-fen-yu-bian-jie">2. 战略设计：领域的划分与边界</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ddd-jia-gou-she-ji-shi-jian/#3-jia-gou-fen-ceng-yu-yi-lai-dao-zhi">3. 架构分层与依赖倒置</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ddd-jia-gou-she-ji-shi-jian/#4-zhan-shu-she-ji-ju-he-shi-ti-yu-zhi-dui-xiang">4. 战术设计：聚合、实体与值对象</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ddd-jia-gou-she-ji-shi-jian/#5-he-xin-ye-wu-liu-cheng-de-she-ji-mo-shi-ying-yong">5. 核心业务流程的设计模式应用</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ddd-jia-gou-she-ji-shi-jian/#6-gao-bing-fa-xia-de-ku-cun-kou-jian-nan-ti">6. 高并发下的库存扣减难题</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ddd-jia-gou-she-ji-shi-jian/#7-zong-jie">7. 总结</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

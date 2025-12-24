@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                Résumé
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="AliasJeff" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link id="darkModeStyle"
+              rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                setTheme(getSavedTheme());
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+            <a id="dark-mode-toggle"
+               onclick="toggleTheme(); event.preventDefault();"
+               href="#">
+                <img src="https://aliasjeff.github.io/icons/sun.svg" id="sun-icon" alt="Light" />
+                <img src="https://aliasjeff.github.io/icons/moon.svg"
+                     id="moon-icon"
+                     style="filter: invert(1)"
+                     alt="Dark" />
+                <img src="https://aliasjeff.github.io/icons/auto.svg"
+                     id="auto-icon"
+                     style="filter: invert(1)"
+                     alt="Auto" />
+            </a>
+
+            <!-- Initialize the theme toggle icons -->
+            <script>
+                updateItemToggleTheme()
+            </script>
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+        
+    
+        <div class="page-header">
+            Résumé
+        </div>
+    
+
+    
+
+    
+        <div class="section-content">
+            <h1 id="chen-zhe-xun">陈喆勋</h1>
+<p>📞 19557864422 | 📧 zhexunchen@gmail.com
+💻 <a href="https://github.com/AliasJeff/">Github: AliasJeff</a> | 📝 <a href="https://alias-studio.github.io/">Blog: alias-studio.github.io</a></p>
+<hr />
+<h2 id="mortar-board-jiao-yu-jing-li">🎓 教育经历</h2>
+<p><strong>西安电子科技大学</strong> | 软件工程 | 硕士 | <em>2025.08 - 至今</em></p>
+<p><strong>浙江师范大学</strong> | 软件工程 | 本科 | <em>2020.10 - 2025.06</em></p>
+<ul>
+<li><strong>荣誉奖项</strong>：综合成绩专业 <strong>前5%</strong>；获“互联网+”等 <strong>国家级奖项 2 项</strong>；发表软著 2 篇；多次获省政府/校级一等奖学金。</li>
+<li><strong>证书</strong>：英语六级 (579)；中级软件设计师；计算机二级。</li>
+</ul>
+<hr />
+<h2 id="tools-zhuan-ye-ji-neng">🛠 专业技能</h2>
+<ul>
+<li><strong>Java 核心</strong>：精通 Java 基础及集合框架；熟练掌握注解、反射、动态代理、SPI 机制；理解 AOP/IoC 思想。</li>
+<li><strong>并发编程</strong>：深入理解 JUC，掌握线程池原理、synchronized/volatile 关键字底层机制、锁升级过程及 AQS 原理。</li>
+<li><strong>数据库</strong>：熟练掌握 MySQL 索引优化、事务隔离级别及锁机制；具备慢 SQL 治理与生产环境调优经验。</li>
+<li><strong>分布式/中间件</strong>：
+<ul>
+<li><strong>Redis</strong>：熟练运用分布式锁、缓存一致性策略；理解 RDB/AOF 持久化、哨兵及集群模式原理。</li>
+<li><strong>RabbitMQ</strong>：掌握消息持久化、TTL、死信队列、延迟队列及消息可靠性投递方案。</li>
+<li><strong>RPC/微服务</strong>：熟悉 Dubbo 框架及负载均衡、服务容错（重试/降级）机制。</li>
+</ul>
+</li>
+<li><strong>工具与生态</strong>：熟练使用 Spring Boot, MyBatis, Maven, Git, Docker, Linux 常用命令。</li>
+</ul>
+<hr />
+<h2 id="briefcase-gong-zuo-jing-li">💼 工作经历</h2>
+<p><strong>Taelor Inc.</strong> (AI 驱动的男装租赁订阅平台) | <strong>后台开发实习生</strong> | <strong>2023.06 - 2025.06</strong></p>
+<p><strong>工作内容</strong>：负责营销服务架构设计，涵盖抽奖、积分、优惠券体系；设计高并发评论评价系统；主导线上故障排查与性能治理。</p>
+<ul>
+<li><strong>营销抽奖系统重构</strong>：针对差异化抽奖流程运用策略模式与模板方法重构代码；优化秒杀算法，经压测系统吞吐量提升至 <strong>1200~1500 TPS</strong>，接口响应稳定在 <strong>45ms</strong>。</li>
+<li><strong>高并发库存防超卖</strong>：设计**“Redis Decr 分段扣减 + 异步队列 + 定时任务同步”<strong>的多级库存扣减方案，有效解决数据库行锁瓶颈，确保高并发下的</strong>库存一致性**。</li>
+<li><strong>评价系统优化</strong>：针对多级评论与高频点赞场景，结合 Redis 实现点赞去重与计数<strong>聚合缓冲</strong>，支撑高并发访问；通过<strong>策略模式</strong>解耦复杂评价规则，提升代码可维护性。</li>
+<li><strong>事务级可观测性建设</strong>：针对长事务与锁等待痛点，基于 AOP 与 <code>TransactionSynchronizationManager</code> 实现<strong>无侵入式</strong>事务监控，精确采集最外层事务耗时与异常上下文并异步落库，提升问题排查效率。</li>
+<li><strong>线上稳定性保障</strong>：参与解决 <strong>10+</strong> 起线上故障（慢 SQL、长事务等），并输出完整的技术复盘文档与开发规范。</li>
+</ul>
+<hr />
+<h2 id="computer-xiang-mu-jing-yan">💻 项目经验</h2>
+<p><strong>高并发电商交易系统 (拼单/秒杀)</strong> | <u><a href="https://github.com/AliasJeff/alias-rpc">Github 链接</a></u></p>
+<p><strong>核心技术</strong>：SpringBoot, MySQL, Redis, RabbitMQ, Guava, XXL-Job, Docker, DDD</p>
+<p><strong>项目描述</strong>：集多人拼团、限时秒杀、优惠营销于一体的电商交易平台，实现了从优惠试算、锁单、支付到退单的全链路闭环。</p>
+<ul>
+<li><strong>DDD 与规则引擎设计</strong>：基于 DDD 四色建模构建业务，配合<strong>规则树</strong> + <strong>责任链</strong>模式，将人群筛选、限购校验、优惠试算等复杂逻辑<strong>模块化</strong>，实现了业务规则的<strong>动态编排</strong>与<strong>热插拔</strong>。</li>
+<li><strong>高并发库存安全 (防超卖)</strong>：锁单环节采用 Redis <strong>分段锁</strong>，拆分库存粒度，降低数据库行锁竞争，提高系统<strong>并发量</strong>，在保证高性能的同时防止超卖。</li>
+<li><strong>一致性保障</strong>：采用 <strong>本地消息表 + RabbitMQ</strong> 的组合方案。在业务事务提交的同时，将待发送的消息记录<strong>落库</strong>，由<strong>定时任务</strong>和<strong>异步任务</strong>扫描本地消息表并发送至 MQ，确保<strong>消息必达</strong>和拼单状态<strong>最终一致性</strong>。</li>
+<li><strong>动态配置管理</strong>：设计基于 Redis Pub/Sub 模型的<strong>动态配置中心</strong>，结合 <strong>Spring AOP 切面和代理</strong>，以<strong>自定义注解</strong>的方式控制属性信息<strong>动态配置</strong>，实现活动开关、降级策略的<strong>秒级</strong>热更新（无需重启）。</li>
+</ul>
+<p><strong>Alias-RPC (可扩展的高性能 RPC 框架)</strong> | <u><a href="https://github.com/AliasJeff/alias-rpc">Github 链接</a></u></p>
+<p><strong>核心技术</strong>：Netty, Vert.x, Etcd, SPI, Spring Boot Starter, 自定义协议</p>
+<p><strong>项目描述</strong>：基于 Etcd 与 Vert.x 构建的轻量级 RPC 框架，支持注解式调用，具备高度可扩展性。</p>
+<ul>
+<li>实现了<strong>高可用</strong>的<strong>分布式注册中心</strong>，利用其层级结构和 Jetcd 的 KvClient 存储服务和节点信息，并支持 SPI 机制扩展。</li>
+<li>利用定时任务和 Etcd Key 的 TTL 实现服务提供者的<strong>心跳检测</strong>和<strong>续期机制</strong>，节点下线一定时间后<strong>自动移除</strong>注册信息。</li>
+<li>基于 Vert.x 的 RecordParse 完美解决<strong>半包粘包</strong>问题，使用<strong>装饰者模式</strong>封装了 TcpBufferHandlerWrapper 类，一行代码即可对原有的请求处理器进行增强，提高代码可维护性。</li>
+<li>使用 Jmeter 进行压力测试，使用 5000 个线程并发调用，TPS 达到 20000 左右。</li>
+</ul>
+<hr />
+<h2 id="trophy-rong-yu-jiang-xiang">🏆 荣誉奖项</h2>
+<ul>
+<li><strong>国家级</strong>：第七届“互联网+”大学生创新创业大赛 <strong>全国金奖</strong> (2021)</li>
+<li><strong>国家级</strong>：第十三届“挑战杯”大学生创业计划竞赛 <strong>全国银奖</strong> (2023)</li>
+<li><strong>国家级</strong>：第十五届服务外包大赛 <strong>全国铜奖</strong> (2024)</li>
+<li><strong>省级</strong>：连续两年获得 <strong>浙江省政府奖学金</strong> (2021-2023)</li>
+<li><strong>校级</strong>：连续两年获得 <strong>校一等奖学金</strong> (2021-2023)</li>
+</ul>
+<hr />
+<h1 id="zhexun-jeffery-chen">Zhexun(Jeffery) Chen</h1>
+<p>📞 (+86) 195-5786-4422 | 📧 zhexunchen@gmail.com
+💻 <a href="https://github.com/AliasJeff/">Github: AliasJeff</a> | 📝 <a href="https://alias-studio.github.io/">Blog: alias-studio.github.io</a></p>
+<hr />
+<h2 id="mortar-board-education">🎓 Education</h2>
+<p><strong>Xidian University</strong> | <em>M.S. in Software Engineering</em> | <strong>Aug 2025 - Present</strong></p>
+<p><strong>Zhejiang Normal University</strong> | <em>B.S. in Software Engineering</em> | <strong>Oct 2020 - Jun 2025</strong></p>
+<ul>
+<li><strong>Academics:</strong> Top 5% ranking; Received <strong>National Gold Award</strong> in "Internet+" Competition; Published 2 Software Copyrights.</li>
+<li><strong>Awards:</strong> Provincial Government Scholarship (Twice); University First-Class Scholarship (Twice).</li>
+<li><strong>Certifications:</strong> CET-6 (Score: 579); Intermediate Software Designer.</li>
+</ul>
+<hr />
+<h2 id="tools-professional-skills">🛠 Professional Skills</h2>
+<ul>
+<li><strong>Java Core:</strong> Proficient in Java SE, Collections, Reflection, and SPI; Deep understanding of <strong>AOP/IoC</strong> principles and Dynamic Proxies.</li>
+<li><strong>Concurrency:</strong> Mastered <strong>JUC</strong> (java.util.concurrent), Thread Pools, <code>synchronized</code>/<code>volatile</code> internals, Lock Escalation, and AQS mechanisms.</li>
+<li><strong>Database:</strong> Expert in <strong>MySQL</strong> indexing, transaction isolation levels, and locking mechanisms; Experienced in Slow SQL tuning and production optimization.</li>
+<li><strong>Distributed Systems:</strong>
+<ul>
+<li><strong>Redis:</strong> Proficient in Distributed Locks, Cache Consistency, Persistence (RDB/AOF), and Cluster/Sentinel architectures.</li>
+<li><strong>RabbitMQ:</strong> Skilled in message persistence, TTL, Dead Letter Queues, and ensuring reliable message delivery.</li>
+<li><strong>RPC/Microservices:</strong> Familiar with Dubbo, Load Balancing algorithms, and Fault Tolerance strategies (Retry/Fallback).</li>
+</ul>
+</li>
+<li><strong>Tools &amp; DevOps:</strong> Spring Boot, MyBatis, Maven, Git, Docker, Linux, Navicat.</li>
+</ul>
+<hr />
+<h2 id="briefcase-work-experience">💼 Work Experience</h2>
+<p><strong>Taelor Inc.</strong> (AI-Powered Menswear Rental Subscription) | <strong>Backend Development Intern</strong> | <em>Jun 2023 - Jun 2025</em></p>
+<p><strong>Overview:</strong> Responsible for the architecture of the Marketing Service (Lottery/Points/Coupons) and the Evaluation System. Led stability governance initiatives including Slow SQL tuning and Long Transaction optimization.</p>
+<ul>
+<li><strong>Marketing System Refactoring:</strong> Redesigned the lottery module using <strong>Strategy &amp; Template Method patterns</strong> to handle differentiated workflows. Optimized the flash-sale algorithm, achieving <strong>1,200–1,500 TPS</strong> with stable response times around <strong>45ms</strong>.</li>
+<li><strong>Inventory Concurrency Control:</strong> Engineered a "Redis Decr + Async Queue + Scheduler" mechanism to prevent <strong>overselling</strong>, significantly reducing database row lock contention under high concurrency.</li>
+<li><strong>Evaluation System Optimization:</strong> Developed a high-concurrency comment/like system. Implemented Redis for deduplication and aggregated counting; decoupled complex business rules using Strategy patterns to ensure scalability.</li>
+<li><strong>Transaction Observability:</strong> Addressed long-transaction issues by building a <strong>non-intrusive monitoring system</strong> based on AOP and <code>TransactionSynchronizationManager</code>. Achieved precise logging of transaction execution time and exception contexts.</li>
+<li><strong>Stability Governance:</strong> Resolved <strong>10+</strong> critical production incidents (e.g., Slow SQLs, Deadlocks) and authored technical documentation and development standards.</li>
+</ul>
+<hr />
+<h2 id="computer-project-experience">💻 Project Experience</h2>
+<p><strong>High-Concurrency E-Commerce System</strong> | <u><a href="https://github.com/AliasJeff/alias-rpc">Github Link</a></u></p>
+<ul>
+<li><strong>Tech Stack:</strong> Spring Boot, MySQL, Redis, RabbitMQ, Guava, XXL-Job, Docker, DDD.</li>
+<li><strong>Description:</strong> A comprehensive trading platform integrating Group Buying and Flash Sales. Implemented the full lifecycle from discount calculation, inventory locking, and payment, to refunds.</li>
+<li><strong>DDD &amp; Rule Engine:</strong> Modeled business boundaries using <strong>DDD</strong>; Implemented a "Rule Tree + Chain of Responsibility" engine to dynamically orchestrate user filtering and complex discount rules.</li>
+<li><strong>Inventory Safety:</strong> Implemented <strong>Redis Segmented Locks</strong> to split inventory granularity, maximizing concurrency performance while guaranteeing zero overselling.</li>
+<li><strong>Distributed Consistency:</strong> Adopted the <strong>"Local Message Table + RabbitMQ"</strong> pattern. utilized scheduled tasks and async compensation to ensure Eventual Consistency between trade data and message delivery.</li>
+<li><strong>Dynamic Configuration:</strong> Built a configuration center based on <strong>Redis Pub/Sub</strong> and Spring AOP, enabling <strong>second-level hot updates</strong> for feature toggles and downgrade strategies without service restarts.</li>
+</ul>
+<p><strong>Alias-RPC Framework</strong> | <u><a href="https://github.com/AliasJeff/alias-rpc">Github Link</a></u></p>
+<ul>
+<li><strong>Tech Stack:</strong> Netty, Vert.x, Etcd, SPI, Spring Boot Starter, Custom Protocol.</li>
+<li><strong>Description:</strong> A high-performance, extensible RPC framework built on Etcd and Vert.x, supporting annotation-based remote calls.</li>
+<li><strong>High Performance:</strong> Designed a custom communication protocol over Netty/TCP. Solved TCP Packet Sticking/Splitting issues using <code>RecordParser</code>. Achieved <strong>20,000+ QPS</strong> under 5,000 concurrent threads.</li>
+<li><strong>SPI Extensibility:</strong> Implemented <strong>SPI (Service Provider Interface)</strong> to allow dynamic plugging of Serializers (JDK/JSON/Kryo), Load Balancers, and Fault Tolerance strategies.</li>
+<li><strong>Service Governance:</strong> Integrated <strong>Etcd</strong> for service registry/discovery. Implemented Keep-Alive mechanisms using Key TTL. Enhanced request handling logic via the Decorator pattern (<code>TcpBufferHandlerWrapper</code>).</li>
+</ul>
+<hr />
+<h2 id="trophy-honors-awards">🏆 Honors &amp; Awards</h2>
+<ul>
+<li><strong>National Gold Award</strong>, 7th China International College Students' "Internet+" Innovation Competition (2021)</li>
+<li><strong>National Silver Award</strong>, 13th "Challenge Cup" National College Students' Entrepreneurship Competition (2023)</li>
+<li><strong>National Bronze Award</strong>, 15th Service Outsourcing Innovation &amp; Entrepreneurship Competition (2024)</li>
+<li><strong>Provincial Government Scholarship</strong> (Awarded in 2021-2022 &amp; 2022-2023)</li>
+</ul>
+
+        </div>
+    
+
+    
+        <main class="post-list">
+    <ul></ul>
+
+        </main>
+    
+
+    
+
+
+            
+                
+            
+
+            
+        </div>
+
+        <div class="right-content">
+            
+            
+        </div>
+    </body>
+
+</html>
