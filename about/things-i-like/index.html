@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                Things that I like
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="Things that I like" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link id="darkModeStyle"
+              rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                setTheme(getSavedTheme());
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+            <a id="dark-mode-toggle"
+               onclick="toggleTheme(); event.preventDefault();"
+               href="#">
+                <img src="https://aliasjeff.github.io/icons/sun.svg" id="sun-icon" alt="Light" />
+                <img src="https://aliasjeff.github.io/icons/moon.svg"
+                     id="moon-icon"
+                     style="filter: invert(1)"
+                     alt="Dark" />
+                <img src="https://aliasjeff.github.io/icons/auto.svg"
+                     id="auto-icon"
+                     style="filter: invert(1)"
+                     alt="Auto" />
+            </a>
+
+            <!-- Initialize the theme toggle icons -->
+            <script>
+                updateItemToggleTheme()
+            </script>
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            Things that I like
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2025-07-09</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/personal/"
+                                       class="post-tag">personal</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>I love dark wood furniture, bearing the rustic warmth of time’s slow settling.</p>
+<p>我喜欢深色的木制家具，带着有一种在岁月中反复沉淀的质朴与温暖</p>
+<p>I admire words that are both clean and beautiful.</p>
+<p>我喜欢既简洁又漂亮的文字</p>
+<p>I admire the intricate green landscapes of old circuit boards.</p>
+<p>我喜欢看旧电子产品内部精密的绿色电路板</p>
+<p>I find peace in making lists and striking them through, one by one.</p>
+<p>我喜欢把事情列成清单然后一项项划掉</p>
+<p>I love the bustling city night, with nowhere to be. I am a warm grain of sand, sinking into the urban torrent.</p>
+<p>我喜欢夜晚繁华的市中心，而我不用急着回家，此刻我是一粒温热的沙，沉没于都市的急流</p>
+<p>I favor navy blue and warm browns.</p>
+<p>我喜欢藏青色和棕色</p>
+<p>I love songs woven with the sound of strings.</p>
+<p>我喜欢听编曲里有弦乐的歌</p>
+<p>I love morning TV—a luxury reserved for the idle days of holiday.</p>
+<p>我喜欢早上起床看电视，因为只有无所事事的假期才能这么做</p>
+<p>I walk to a rhythmic beat, pretending I am the lead in a movie.</p>
+<p>我喜欢在走路的时候听有节奏感的歌，假装自己是电影主角</p>
+<p>I delight in wild, unbridled metaphors.</p>
+<p>我喜欢天马行空的修辞</p>
+<p>I am drawn to the cool gleam of silver metal.</p>
+<p>我喜欢银色的金属</p>
+<p>I love capturing moments through a lens.</p>
+<p>我喜欢拍照</p>
+<p>I crave dark chocolate; the darker, the better.</p>
+<p>我喜欢吃黑巧克力，越纯越好</p>
+<p>I enjoy the crisp, tactile click of a mechanical keyboard.</p>
+<p>我喜欢机械键盘敲击时清脆的段落感</p>
+<p>I love sheltering inside a car or room, listening to the rain while the world is locked away.</p>
+<p>我喜欢雨天躲在车里或房间里听雨声，世界被隔绝在外</p>
+<p>I loathe wet hems and soaked socks on a rainy day.</p>
+<p>我不喜欢下雨天被打湿的裤脚和鞋袜</p>
+<p>I dislike roundabout words and hollow pleasantries.</p>
+<p>我不喜欢说话拐弯抹角和过度的客套</p>
+<p>I dread the red anxiety of a dying battery.</p>
+<p>我不喜欢手机电量变红时的焦虑</p>
+<p>I despise forced laughter just to fit in—a sound far more awkward than silence.</p>
+<p>我不喜欢为了合群而必须要发出的笑声，那比沉默还要尴尬一百倍</p>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/alias-studio.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="General"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+
+        </div>
+    </body>
+
+</html>

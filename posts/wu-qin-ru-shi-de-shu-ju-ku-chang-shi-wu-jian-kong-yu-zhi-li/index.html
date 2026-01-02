@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                无侵入式的数据库长事务监控与治理
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="无侵入式的数据库长事务监控与治理" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link id="darkModeStyle"
+              rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                setTheme(getSavedTheme());
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+            <a id="dark-mode-toggle"
+               onclick="toggleTheme(); event.preventDefault();"
+               href="#">
+                <img src="https://aliasjeff.github.io/icons/sun.svg" id="sun-icon" alt="Light" />
+                <img src="https://aliasjeff.github.io/icons/moon.svg"
+                     id="moon-icon"
+                     style="filter: invert(1)"
+                     alt="Dark" />
+                <img src="https://aliasjeff.github.io/icons/auto.svg"
+                     id="auto-icon"
+                     style="filter: invert(1)"
+                     alt="Auto" />
+            </a>
+
+            <!-- Initialize the theme toggle icons -->
+            <script>
+                updateItemToggleTheme()
+            </script>
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            无侵入式的数据库长事务监控与治理
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2025-06-23</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/springboot/"
+                                       class="post-tag">SpringBoot</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/xing-neng-diao-you/"
+                                       class="post-tag">性能调优</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/xi-tong-jian-kong/"
+                                       class="post-tag">系统监控</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>在生产环境中，我们经常会遇到数据库连接池打满、锁等待超时甚至服务雪崩的问题。排查时往往发现，罪魁祸首并不是某条具体的“慢SQL”，而是“长事务”（Long Transaction）。</p>
+<p>长事务是指持有数据库事务时间过长的操作。它可能包含多条执行很快的 SQL，但由于混合了 RPC 调用、复杂的业务逻辑计算或 IO 操作，导致事务长时间不提交。这会引发锁资源无法释放、MVCC 回滚段膨胀等严重后果。</p>
+<p>本文将分享一种在 Java Spring Boot 体系下，<strong>完全不侵入业务代码</strong>，基于基础设施层实现的长事务与死锁监控方案。</p>
+<hr />
+<h2 id="he-xin-she-ji-si-lu"><a class="zola-anchor" href="#he-xin-she-ji-si-lu" aria-label="Anchor link for: he-xin-she-ji-si-lu">核心设计思路</a></h2>
+<p>不同于简单的 AOP 耗时统计，生产级的事务监控需要解决以下几个痛点：</p>
+<ol>
+<li><strong>准确性</strong>：必须精准识别事务的物理提交/回滚时间，而不仅仅是方法执行时间。</li>
+<li><strong>去噪</strong>：Spring 事务支持嵌套（Propagation），我们只关心<strong>最外层事务</strong>，避免日志爆炸。</li>
+<li><strong>现场保留</strong>：发现长事务或死锁时，需要保留 TraceID、线程堆栈、当前 SQL 及用户上下文。</li>
+<li><strong>隔离性</strong>：监控数据的落库不能影响主业务事务，必须异步且独立。</li>
+</ol>
+<h3 id="zheng-ti-jia-gou-tu"><a class="zola-anchor" href="#zheng-ti-jia-gou-tu" aria-label="Anchor link for: zheng-ti-jia-gou-tu">整体架构图</a></h3>
+<p>我们利用 Spring 强大的事务同步机制（Transaction Synchronization）来实现这一目标。</p>
+<hr />
+<h2 id="ji-shu-shi-xian-chai-jie"><a class="zola-anchor" href="#ji-shu-shi-xian-chai-jie" aria-label="Anchor link for: ji-shu-shi-xian-chai-jie">技术实现拆解</a></h2>
+<h3 id="1-qie-ru-dian-aop-yu-transactionsynchronizationmanager"><a class="zola-anchor" href="#1-qie-ru-dian-aop-yu-transactionsynchronizationmanager" aria-label="Anchor link for: 1-qie-ru-dian-aop-yu-transactionsynchronizationmanager">1. 切入点：AOP 与 TransactionSynchronizationManager</a></h3>
+<p>最直观的做法是用 AOP 环绕通知（<code>@Around</code>）拦截 <code>@Transactional</code> 注解。但单纯的 AOP 无法感知事务是否真正提交（例如事务可能在 <code>finally</code> 块中才由 TransactionManager 完成 commit）。</p>
+<p>更“资深”的做法是：<strong>在 AOP 中仅做入口拦截，利用 <code>TransactionSynchronizationManager</code> 注册一个回调钩子，监听事务的生命周期。</strong></p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">@Aspect
+@Component
+public class TransactionMonitorAspect {
+
+    @Around(&quot;@annotation(org.springframework.transaction.annotation.Transactional)&quot;)
+    public Object monitorTransaction(ProceedingJoinPoint pjp) throws Throwable {
+        &#x2F;&#x2F; 1. 检查当前是否是新事务（最外层事务）
+        &#x2F;&#x2F; TransactionAspectSupport.currentTransactionStatus().isNewTransaction() 在此处可能尚不可用
+        &#x2F;&#x2F; 通常结合 ThreadLocal 标记或 TransactionSynchronizationManager.isActualTransactionActive() 判断
+        boolean isOuterTransaction = !TransactionSynchronizationManager.isSynchronizationActive();
+
+        if (isOuterTransaction) {
+            &#x2F;&#x2F; 2. 初始化事务同步管理器，开启同步
+            TransactionSynchronizationManager.initSynchronization();
+            &#x2F;&#x2F; 3. 注册我们的监控钩子
+            TransactionSynchronizationManager.registerSynchronization(
+                new TransactionMonitorSynchronization(System.currentTimeMillis(), TraceContext.getTraceId())
+            );
+        }
+
+        try {
+            return pjp.proceed();
+        } finally {
+            &#x2F;&#x2F; Spring 的 TransactionInterceptor 会处理清理工作，这里主要是防守
+        }
+    }
+}
+</code></pre>
+<h3 id="2-he-xin-luo-ji-transactionmonitorsynchronization"><a class="zola-anchor" href="#2-he-xin-luo-ji-transactionmonitorsynchronization" aria-label="Anchor link for: 2-he-xin-luo-ji-transactionmonitorsynchronization">2. 核心逻辑：TransactionMonitorSynchronization</a></h3>
+<p>这是实现监控的核心类，继承 <code>TransactionSynchronizationAdapter</code>。我们重点关注 <code>afterCompletion</code> 方法，它会在事务 commit 或 rollback 完成后被回调。</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">public class TransactionMonitorSynchronization extends TransactionSynchronizationAdapter {
+
+    private final long startTime;
+    private final String traceId;
+    private static final long SLOW_THRESHOLD = 5000L; &#x2F;&#x2F; 5秒视为长事务
+
+    public TransactionMonitorSynchronization(long startTime, String traceId) {
+        this.startTime = startTime;
+        this.traceId = traceId;
+    }
+
+    @Override
+    public void afterCompletion(int status) {
+        long duration = System.currentTimeMillis() - startTime;
+
+        &#x2F;&#x2F; 场景一：耗时超过阈值，标记为长事务
+        if (duration &gt; SLOW_THRESHOLD) {
+            handleLongTransaction(duration, status);
+        }
+        
+        &#x2F;&#x2F; 场景二：虽然耗时短，但发生了死锁异常（需要结合 Exception 捕获机制）
+        &#x2F;&#x2F; 注意：afterCompletion 只能拿到 status，具体的 Exception 需要在 AOP 层或 ExceptionHandler 中传递进来
+    }
+    
+    private void handleLongTransaction(long duration, int status) {
+        &#x2F;&#x2F; 采集当前线程信息、Request信息等
+        TransactionInfo info = new TransactionInfo();
+        info.setTraceId(traceId);
+        info.setDuration(duration);
+        info.setThreadName(Thread.currentThread().getName());
+        info.setStatus(status == STATUS_COMMITTED ? &quot;COMMIT&quot; : &quot;ROLLBACK&quot;);
+        
+        &#x2F;&#x2F; 异步落库
+        AsyncLogService.save(info);
+    }
+}
+</code></pre>
+<h3 id="3-jing-zhun-bu-huo-si-suo-yu-suo-deng-dai"><a class="zola-anchor" href="#3-jing-zhun-bu-huo-si-suo-yu-suo-deng-dai" aria-label="Anchor link for: 3-jing-zhun-bu-huo-si-suo-yu-suo-deng-dai">3. 精准捕获死锁与锁等待</a></h3>
+<p>Spring 的 <code>DataAccessException</code> 封装了底层的 JDBC 异常。为了区分是普通报错还是数据库死锁，我们需要解包异常链，检查 MySQL 的 Error Code。</p>
+<ul>
+<li><strong>1213</strong>: Deadlock found (死锁)</li>
+<li><strong>1205</strong>: Lock wait timeout exceeded (锁等待超时)</li>
+</ul>
+<p>这一步通常可以在全局异常处理器或 AOP 的 catch 块中增强：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">public boolean isLockError(Throwable t) {
+    Throwable root = ExceptionUtils.getRootCause(t); &#x2F;&#x2F; 使用 Apache Commons Lang
+    if (root instanceof SQLException) {
+        int errorCode = ((SQLException) root).getErrorCode();
+        return errorCode == 1213 || errorCode == 1205;
+    }
+    return false;
+}
+</code></pre>
+<h3 id="4-feng-fu-de-shang-xia-wen-cai-ji"><a class="zola-anchor" href="#4-feng-fu-de-shang-xia-wen-cai-ji" aria-label="Anchor link for: 4-feng-fu-de-shang-xia-wen-cai-ji">4. 丰富的上下文采集</a></h3>
+<p>光知道“慢”是不够的，我们需要知道“为什么慢”。在 <code>handleLongTransaction</code> 中，我们可以采集以下关键信息：</p>
+<ul>
+<li><strong>Java 线程信息</strong>：<code>Thread.currentThread().getName()</code>，定位是哪个业务线程。</li>
+<li><strong>Web 上下文</strong>：通过 <code>RequestContextHolder</code> 获取请求 URL、User ID、客户端 IP。</li>
+<li><strong>全链路 TraceID</strong>：从 MDC (Mapped Diagnostic Context) 中提取 <code>traceId</code>，方便去日志系统（如 ELK、SkyWalking）查询完整的调用链路。</li>
+<li><strong>数据库现场（高级）</strong>：如果权限允许，甚至可以在检测到异常时，查询 MySQL <code>performance_schema</code>，记录当前的 <code>THREAD_ID</code> 和锁持有情况。</li>
+</ul>
+<h3 id="5-yi-bu-luo-ku-yu-xin-shi-wu"><a class="zola-anchor" href="#5-yi-bu-luo-ku-yu-xin-shi-wu" aria-label="Anchor link for: 5-yi-bu-luo-ku-yu-xin-shi-wu">5. 异步落库与新事务</a></h3>
+<p>监控日志的保存<strong>绝对不能</strong>影响主业务事务，也不能复用当前已经结束（或回滚）的事务连接。</p>
+<p>因此，落库操作必须：</p>
+<ol>
+<li><strong>异步执行</strong>：使用线程池或 <code>@Async</code>。</li>
+<li><strong>独立事务</strong>：使用 <code>Propagation.REQUIRES_NEW</code>。</li>
+</ol>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">@Service
+public class AsyncLogService {
+
+    @Async(&quot;monitorThreadPool&quot;) &#x2F;&#x2F; 专用线程池
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void save(TransactionInfo info) {
+        &#x2F;&#x2F; 保存到独立的监控表或发送到 Kafka&#x2F;ES
+        transactionHistoryRepository.save(info);
+    }
+}
+</code></pre>
+<h3 id="6-ye-wu-kai-fa-zhong-de-chang-shi-wu-zhi-li-jian-yi"><a class="zola-anchor" href="#6-ye-wu-kai-fa-zhong-de-chang-shi-wu-zhi-li-jian-yi" aria-label="Anchor link for: 6-ye-wu-kai-fa-zhong-de-chang-shi-wu-zhi-li-jian-yi">6、 业务开发中的长事务治理建议</a></h3>
+<p>监控只是手段，解决问题才是目的。在日常开发中，为了避免触发上述报警，建议大家遵循以下原则：</p>
+<p><strong>1. 事务颗粒度“最小化”</strong></p>
+<p><strong>错误示范：</strong></p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">@Transactional
+public void buyTicket() {
+    &#x2F;&#x2F; 1. 远程调用查询库存 -&gt; 耗时不可控！
+    inventoryService.check(); 
+    &#x2F;&#x2F; 2. 数据库操作
+    db.update();
+    &#x2F;&#x2F; 3. 发送邮件通知 (IO操作) -&gt; 耗时！
+    emailService.send();
+}
+</code></pre>
+<p><strong>正确做法：</strong>
+禁止将远程调用、IO 操作放入事务中，可做异步化处理，将非 DB 操作移出 <code>@Transactional</code> 方法。</p>
+<p><strong>2. 批量操作分批次</strong></p>
+<p>大批量数据（如 10 万条）的 Update/Delete，不要在一个事务中做完。建议分批提交（如每 1000 条 commit 一次），避免长时间占用 undo log 和锁。</p>
+<p><strong>3. 警惕死锁</strong></p>
+<p>严格规范表资源的访问顺序。如果业务 A 先锁表 1 再锁表 2，业务 B 必须保持同样的顺序，严禁反向操作。</p>
+<hr />
+<h2 id="zong-jie"><a class="zola-anchor" href="#zong-jie" aria-label="Anchor link for: zong-jie">总结</a></h2>
+<p>这套方案通过组合 Spring 的 <strong>AOP</strong> 和 <strong>TransactionSynchronizationManager</strong>，实现了对业务代码零侵入的监控。其核心技术价值在于：</p>
+<ol>
+<li><strong>生命周期对齐</strong>：使用 <code>afterCompletion</code> 确保统计的是事务持有的完整物理时间（包括 commit 的 IO 时间），比单纯的方法耗时统计更准确。</li>
+<li><strong>最外层识别</strong>：利用 Spring 事务状态判断，避免了嵌套事务导致的监控数据冗余。</li>
+<li><strong>异常归因</strong>：通过底层 SQL Error Code 解析，精准区分“业务慢”和“数据库锁冲突”。</li>
+<li><strong>全链路串联</strong>：集成 TraceID，打通了应用监控与数据库监控的壁垒。</li>
+</ol>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/alias-studio.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="General"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/wu-qin-ru-shi-de-shu-ju-ku-chang-shi-wu-jian-kong-yu-zhi-li/#he-xin-she-ji-si-lu">核心设计思路</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/wu-qin-ru-shi-de-shu-ju-ku-chang-shi-wu-jian-kong-yu-zhi-li/#zheng-ti-jia-gou-tu">整体架构图</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/wu-qin-ru-shi-de-shu-ju-ku-chang-shi-wu-jian-kong-yu-zhi-li/#ji-shu-shi-xian-chai-jie">技术实现拆解</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/wu-qin-ru-shi-de-shu-ju-ku-chang-shi-wu-jian-kong-yu-zhi-li/#1-qie-ru-dian-aop-yu-transactionsynchronizationmanager">1. 切入点：AOP 与 TransactionSynchronizationManager</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/wu-qin-ru-shi-de-shu-ju-ku-chang-shi-wu-jian-kong-yu-zhi-li/#2-he-xin-luo-ji-transactionmonitorsynchronization">2. 核心逻辑：TransactionMonitorSynchronization</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/wu-qin-ru-shi-de-shu-ju-ku-chang-shi-wu-jian-kong-yu-zhi-li/#3-jing-zhun-bu-huo-si-suo-yu-suo-deng-dai">3. 精准捕获死锁与锁等待</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/wu-qin-ru-shi-de-shu-ju-ku-chang-shi-wu-jian-kong-yu-zhi-li/#4-feng-fu-de-shang-xia-wen-cai-ji">4. 丰富的上下文采集</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/wu-qin-ru-shi-de-shu-ju-ku-chang-shi-wu-jian-kong-yu-zhi-li/#5-yi-bu-luo-ku-yu-xin-shi-wu">5. 异步落库与新事务</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/wu-qin-ru-shi-de-shu-ju-ku-chang-shi-wu-jian-kong-yu-zhi-li/#6-ye-wu-kai-fa-zhong-de-chang-shi-wu-zhi-li-jian-yi">6、 业务开发中的长事务治理建议</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/wu-qin-ru-shi-de-shu-ju-ku-chang-shi-wu-jian-kong-yu-zhi-li/#zong-jie">总结</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                加索引查询反而变慢了？——记一次慢 SQL 治理实践
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="加索引查询反而变慢了？——记一次慢 SQL 治理实践" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link id="darkModeStyle"
+              rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                setTheme(getSavedTheme());
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+            <a id="dark-mode-toggle"
+               onclick="toggleTheme(); event.preventDefault();"
+               href="#">
+                <img src="https://aliasjeff.github.io/icons/sun.svg" id="sun-icon" alt="Light" />
+                <img src="https://aliasjeff.github.io/icons/moon.svg"
+                     id="moon-icon"
+                     style="filter: invert(1)"
+                     alt="Dark" />
+                <img src="https://aliasjeff.github.io/icons/auto.svg"
+                     id="auto-icon"
+                     style="filter: invert(1)"
+                     alt="Auto" />
+            </a>
+
+            <!-- Initialize the theme toggle icons -->
+            <script>
+                updateItemToggleTheme()
+            </script>
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            加索引查询反而变慢了？——记一次慢 SQL 治理实践
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2024-07-19</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/shu-ju-ku/"
+                                       class="post-tag">数据库</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/xing-neng-diao-you/"
+                                       class="post-tag">性能调优</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>在数据库性能优化领域，索引通常被视为提升查询效率的银弹。然而，在实际的生产环境中，有时会遇到一种反直觉的现象：给原本执行缓慢的查询添加索引后，查询性能不仅没有提升，反而变得更慢。本文将通过一个实际的业务案例，深入剖析 MySQL 查询优化器的决策逻辑，并探讨如何通过合理的索引设计解决复杂的性能问题。</p>
+<h2 id="mysql-cha-xun-de-zhi-xing-liu-cheng"><a class="zola-anchor" href="#mysql-cha-xun-de-zhi-xing-liu-cheng" aria-label="Anchor link for: mysql-cha-xun-de-zhi-xing-liu-cheng">MySQL 查询的执行流程</a></h2>
+<p>理解索引失效或性能下降的原因，首先需要明确 MySQL 执行一条查询语句的底层逻辑。MySQL 的架构可以分为 Server 层和存储引擎层。</p>
+<ol>
+<li><strong>连接器与缓存</strong>：客户端发起请求，通过连接器建立连接。虽然 MySQL 8.0 之后已经废弃了查询缓存，但在较旧版本中，如果命中了缓存则直接返回结果。</li>
+<li><strong>解析器与预处理器</strong>：解析器会对 SQL 语句进行词法和语法分析，确保语句符合语法规则。预处理器则会检查表名、列名是否存在。</li>
+<li><strong>优化器（Optimizer）</strong>：这是决定查询性能的关键环节。MySQL使用的是基于成本的优化器。优化器的任务是根据现有的统计信息，比如表的总行数、索引的基数、数据页的数量等，计算出各种可能的执行方案的成本。成本主要包括I/O成本（读取磁盘数据页）和CPU成本（数据比较、排序等）。优化器会选择一个成本最低的方案生成执行计划。我们在排查慢SQL时看到的explain结果，就是优化器经过计算后认为最优的执行路径。</li>
+<li><strong>执行器与存储引擎</strong>：执行器根据优化器生成的计划，调用存储引擎的接口获取数据。在这一步，存储引擎（通常是InnoDB）会利用索引结构或全表扫描的方式，将数据加载到内存中返回给执行器。</li>
+</ol>
+<hr />
+<h2 id="innodb-suo-yin-de-she-ji"><a class="zola-anchor" href="#innodb-suo-yin-de-she-ji" aria-label="Anchor link for: innodb-suo-yin-de-she-ji">InnoDB 索引的设计</a></h2>
+<p>为了讲清楚后面的案例，我们需要先回顾一下InnoDB引擎的索引结构。InnoDB的数据存储是基于B+树的。</p>
+<ul>
+<li><strong>聚簇索引与二级索引</strong>：一张表的数据是按照聚簇索引组织的，通常就是主键索引。聚簇索引的叶子节点里存的是完整的行数据。除了聚簇索引之外的索引，都叫二级索引。二级索引的叶子节点里存的是索引列的值和对应的主键值，不包含完整的行数据。</li>
+<li><strong>回表操作</strong>：当我们通过二级索引查找数据时，如果查询需要的列不在当前索引中，引擎就必须拿着二级索引里找到的主键值，回到聚簇索引中去查找完整的行数据。这个过程叫做回表。</li>
+<li><strong>索引的有序性</strong>：B+树的一个核心特性是有序性。索引树上的数据是严格按照定义的字段顺序排列的。这意味着如果我们按照索引字段进行排序查询，数据库可以直接按顺序读取，而不需要额外的排序操作。</li>
+</ul>
+<hr />
+<h2 id="an-li-bei-jing-jia-liao-suo-yin-fan-er-geng-man"><a class="zola-anchor" href="#an-li-bei-jing-jia-liao-suo-yin-fan-er-geng-man" aria-label="Anchor link for: an-li-bei-jing-jia-liao-suo-yin-fan-er-geng-man">案例背景：加了索引反而更慢？</a></h2>
+<h3 id="ye-wu-chang-jing-miao-shu"><a class="zola-anchor" href="#ye-wu-chang-jing-miao-shu" aria-label="Anchor link for: ye-wu-chang-jing-miao-shu">业务场景描述</a></h3>
+<p>在系统中，存在一张订单箱体表 <code>order_boxes</code>。该表承载了大量的 return，业务需要频繁查询状态为“return_completed”且按“return_processed_at”倒序排列的数据。</p>
+<p>原始 SQL 如下：</p>
+<pre data-lang="sql" class="language-sql "><code class="language-sql" data-lang="sql">SELECT * FROM order_boxes 
+WHERE status = &#x27;return_completed&#x27; 
+ORDER BY return_processed_at DESC;
+</code></pre>
+<h3 id="you-hua-chang-shi-yu-yi-wai-jie-guo"><a class="zola-anchor" href="#you-hua-chang-shi-yu-yi-wai-jie-guo" aria-label="Anchor link for: you-hua-chang-shi-yu-yi-wai-jie-guo">优化尝试与意外结果</a></h3>
+<p>该表在初期并没有建立任何索引。随着数据量增长到百万级，查询变得极其缓慢。通过 <code>EXPLAIN</code> 发现，此时 MySQL 执行的是全表扫描，并且在内存或磁盘中进行了文件排序。</p>
+<p>为了优化查询，我们针对排序字段创建了单列索引：</p>
+<pre data-lang="sql" class="language-sql "><code class="language-sql" data-lang="sql">CREATE INDEX idx_return_time ON order_boxes (return_processed_at);
+</code></pre>
+<p>预期中，MySQL 应该利用索引的有序性直接获取数据。但实际测试发现，查询耗时从 3 秒增加到了 5 秒以上。</p>
+<h3 id="yuan-yin-shen-du-pou-xi"><a class="zola-anchor" href="#yuan-yin-shen-du-pou-xi" aria-label="Anchor link for: yuan-yin-shen-du-pou-xi">原因深度剖析</a></h3>
+<p>通过分析执行计划发现，加上索引后，优化器确实选择了 <code>idx_return_time</code>。然而，执行路径发生了变化：</p>
+<ol>
+<li><strong>方案 A：不使用索引（全表扫描）</strong>
+<ul>
+<li><strong>流程</strong>：顺序扫描聚簇索引的所有记录。</li>
+<li><strong>处理</strong>：对每一行判断 <code>status</code> 是否匹配。</li>
+<li><strong>排序</strong>：将匹配的行放入 <code>sort_buffer</code> 中进行 <code>filesort</code>。</li>
+<li><strong>成本</strong>：高额的 CPU 排序成本，但 I/O 是顺序读取。</li>
+</ul>
+</li>
+<li><strong>方案 B：使用单列索引（idx_return_time）</strong>
+<ul>
+<li><strong>流程</strong>：按照 <code>return_processed_at</code> 的倒序扫描二级索引。</li>
+<li><strong>回表</strong>：每读到一个索引项，就必须立即根据主键回表读取整行数据，以判断 <code>status</code> 是否满足条件。</li>
+<li><strong>成本</strong>：虽然省去了排序时间，但产生了大量的随机回表 I/O。</li>
+</ul>
+</li>
+</ol>
+<p>在这个特定场景下，<strong>回表成本 &gt; 全表扫描 + 排序成本</strong>。因为 <code>status = 'return_completed'</code> 的记录在表中占比约 20% 到 30%，这意味着如果扫描索引，有很大比例的记录需要执行回表操作。对于机械硬盘甚至是部分 SSD 而言，大量的随机回表是性能杀手。</p>
+<h3 id="you-hua-qi-de-xuan-ze-bu-wen-ding"><a class="zola-anchor" href="#you-hua-qi-de-xuan-ze-bu-wen-ding" aria-label="Anchor link for: you-hua-qi-de-xuan-ze-bu-wen-ding">优化器的选择不稳定</a></h3>
+<p>进一步观察发现，当 <code>status</code> 的过滤性较强（例如查询一个极少出现的状态）时，优化器会选择索引。而当数据分布达到某个临界点时，优化器的决策会变得不稳定，甚至选错执行计划。这是因为统计信息的更新存在滞后，且优化器对回表成本的评估模型相对固定。</p>
+<hr />
+<h2 id="zui-zhong-fang-an-lian-he-suo-yin"><a class="zola-anchor" href="#zui-zhong-fang-an-lian-he-suo-yin" aria-label="Anchor link for: zui-zhong-fang-an-lian-he-suo-yin">最终方案：联合索引</a></h2>
+<p>单列索引无法同时兼顾“过滤”和“排序”的需求。在该案例中，由于需要先根据 <code>status</code> 过滤，再根据 <code>return_processed_at</code> 排序，最符合逻辑的优化方式是建立联合索引。</p>
+<h3 id="zheng-que-de-suo-yin-she-ji"><a class="zola-anchor" href="#zheng-que-de-suo-yin-she-ji" aria-label="Anchor link for: zheng-que-de-suo-yin-she-ji">正确的索引设计</a></h3>
+<pre data-lang="sql" class="language-sql "><code class="language-sql" data-lang="sql">CREATE INDEX idx_status_return_time ON order_boxes (status, return_processed_at DESC);
+</code></pre>
+<p>这个联合索引的设计遵循了以下原则：</p>
+<ol>
+<li><strong>等值过滤在前</strong>：将 <code>status</code> 放在索引的第一列。由于索引是有序的，所有 <code>status = 'return_completed'</code> 的记录在 B+ 树中是紧凑排列在一起的。</li>
+<li><strong>排序字段在后</strong>：在 <code>status</code> 相同的前提下，<code>return_processed_at</code> 已经按照索引定义的顺序排好了。这意味着优化器可以直接从索引中按顺序读取数据。</li>
+<li><strong>避免文件排序</strong>：因为索引本身就是有序的，执行计划中的 <code>Extra</code> 列将不再出现 <code>Using filesort</code>，而是利用索引的自然顺序。</li>
+<li><strong>减少回表范围</strong>：只有在索引中完全匹配 <code>status</code> 的记录才需要回表（如果不是为了 <code>SELECT *</code>，甚至可以实现覆盖索引扫描）。</li>
+</ol>
+<h3 id="you-hua-hou-de-zhi-xing-luo-ji"><a class="zola-anchor" href="#you-hua-hou-de-zhi-xing-luo-ji" aria-label="Anchor link for: you-hua-hou-de-zhi-xing-luo-ji">优化后的执行逻辑</a></h3>
+<p>使用联合索引后，MySQL 的执行路径变为：</p>
+<ol>
+<li>在 <code>idx_status_return_time</code> 索引中直接定位到 <code>status = 'return_completed'</code> 的起始位置。</li>
+<li>按照索引顺序向后扫描。</li>
+<li>对扫描到的每一项进行回表（由于此时过滤出的数据量已经大幅减少，回表次数降至最低）。</li>
+<li>直接返回结果，无需额外排序。</li>
+</ol>
+<hr />
+<h2 id="pai-cha-man-sql-de-liu-cheng-he-fang-fa"><a class="zola-anchor" href="#pai-cha-man-sql-de-liu-cheng-he-fang-fa" aria-label="Anchor link for: pai-cha-man-sql-de-liu-cheng-he-fang-fa">排查慢 SQL 的流程和方法</a></h2>
+<p>在治理慢 SQL 时，通常遵循一套标准化的排查流程：</p>
+<ol>
+<li><strong>慢日志采集</strong>：通过设置 <code>long_query_time</code> 参数，将执行时间超过阈值的 SQL 记录到慢查询日志中。</li>
+<li><strong>执行计划分析</strong>：使用 <code>EXPLAIN</code> 命令查看 SQL 的执行计划。重点关注 <code>type</code>（访问类型）、<code>key</code>（实际使用的索引）、<code>rows</code>（预估扫描行数）以及 <code>Extra</code>（额外信息，如 <code>Using filesort</code>、<code>Using index</code> 等）。</li>
+<li><strong>成本量化</strong>：通过 <code>optimizer_trace</code> 工具查看优化器在选择索引时的具体成本计算细节，对比不同路径的 <code>total_cost</code>。</li>
+<li><strong>数据分布检查</strong>：通过 <code>SHOW INDEX FROM table_name</code> 查看索引的基数（Cardinality），并分析表中数据的分布情况，判断是否存在数据倾斜。</li>
+</ol>
+<hr />
+<h2 id="zong-jie-he-qi-fa"><a class="zola-anchor" href="#zong-jie-he-qi-fa" aria-label="Anchor link for: zong-jie-he-qi-fa">总结和启发</a></h2>
+<p>这次慢 SQL 治理实践带来了几点深刻的启示：</p>
+<ul>
+<li><strong>索引不是越多越好</strong>：索引虽然能加速查询，但也会增加维护成本和 I/O 负担。不合理的索引不仅浪费空间，还可能诱导优化器做出错误的决策。</li>
+<li><strong>理解回表成本</strong>：在非覆盖索引的场景下，回表是影响性能的核心因素。当查询结果集占总记录比例较高时，全表扫描往往优于索引扫描，不要惧怕 <code>filesort</code>。</li>
+<li><strong>联合索引的逻辑顺序</strong>：设计联合索引时，必须根据 SQL 的谓词逻辑进行排列。通常遵循“等值查询列在前，范围查询列在后，排序列在后”的原则。</li>
+<li><strong>执行计划是唯一标准</strong>：在修改索引后，必须通过 <code>EXPLAIN</code> 验证优化器的实际行为，确保其确实按照预期的路径执行。</li>
+</ul>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/alias-studio.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="General"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/jia-suo-yin-cha-xun-fan-er-bian-man-liao-ji-yi-ci-man-sql-zhi-li-shi-jian/#mysql-cha-xun-de-zhi-xing-liu-cheng">MySQL 查询的执行流程</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/jia-suo-yin-cha-xun-fan-er-bian-man-liao-ji-yi-ci-man-sql-zhi-li-shi-jian/#innodb-suo-yin-de-she-ji">InnoDB 索引的设计</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/jia-suo-yin-cha-xun-fan-er-bian-man-liao-ji-yi-ci-man-sql-zhi-li-shi-jian/#an-li-bei-jing-jia-liao-suo-yin-fan-er-geng-man">案例背景：加了索引反而更慢？</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/jia-suo-yin-cha-xun-fan-er-bian-man-liao-ji-yi-ci-man-sql-zhi-li-shi-jian/#ye-wu-chang-jing-miao-shu">业务场景描述</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/jia-suo-yin-cha-xun-fan-er-bian-man-liao-ji-yi-ci-man-sql-zhi-li-shi-jian/#you-hua-chang-shi-yu-yi-wai-jie-guo">优化尝试与意外结果</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/jia-suo-yin-cha-xun-fan-er-bian-man-liao-ji-yi-ci-man-sql-zhi-li-shi-jian/#yuan-yin-shen-du-pou-xi">原因深度剖析</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/jia-suo-yin-cha-xun-fan-er-bian-man-liao-ji-yi-ci-man-sql-zhi-li-shi-jian/#you-hua-qi-de-xuan-ze-bu-wen-ding">优化器的选择不稳定</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/jia-suo-yin-cha-xun-fan-er-bian-man-liao-ji-yi-ci-man-sql-zhi-li-shi-jian/#zui-zhong-fang-an-lian-he-suo-yin">最终方案：联合索引</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/jia-suo-yin-cha-xun-fan-er-bian-man-liao-ji-yi-ci-man-sql-zhi-li-shi-jian/#zheng-que-de-suo-yin-she-ji">正确的索引设计</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/jia-suo-yin-cha-xun-fan-er-bian-man-liao-ji-yi-ci-man-sql-zhi-li-shi-jian/#you-hua-hou-de-zhi-xing-luo-ji">优化后的执行逻辑</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/jia-suo-yin-cha-xun-fan-er-bian-man-liao-ji-yi-ci-man-sql-zhi-li-shi-jian/#pai-cha-man-sql-de-liu-cheng-he-fang-fa">排查慢 SQL 的流程和方法</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/jia-suo-yin-cha-xun-fan-er-bian-man-liao-ji-yi-ci-man-sql-zhi-li-shi-jian/#zong-jie-he-qi-fa">总结和启发</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

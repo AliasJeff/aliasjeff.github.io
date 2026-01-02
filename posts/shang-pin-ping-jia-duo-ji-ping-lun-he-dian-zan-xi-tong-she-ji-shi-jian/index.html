@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                商品评价、多级评论和点赞系统设计实践
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="商品评价、多级评论和点赞系统设计实践" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link id="darkModeStyle"
+              rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                setTheme(getSavedTheme());
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+            <a id="dark-mode-toggle"
+               onclick="toggleTheme(); event.preventDefault();"
+               href="#">
+                <img src="https://aliasjeff.github.io/icons/sun.svg" id="sun-icon" alt="Light" />
+                <img src="https://aliasjeff.github.io/icons/moon.svg"
+                     id="moon-icon"
+                     style="filter: invert(1)"
+                     alt="Dark" />
+                <img src="https://aliasjeff.github.io/icons/auto.svg"
+                     id="auto-icon"
+                     style="filter: invert(1)"
+                     alt="Auto" />
+            </a>
+
+            <!-- Initialize the theme toggle icons -->
+            <script>
+                updateItemToggleTheme()
+            </script>
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            商品评价、多级评论和点赞系统设计实践
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2025-10-11</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/jia-gou-she-ji/"
+                                       class="post-tag">架构设计</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/she-ji-mo-shi/"
+                                       class="post-tag">设计模式</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/gao-bing-fa/"
+                                       class="post-tag">高并发</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>在构建大型电商或内容平台时，商品评价、多级评论以及点赞系统是极为核心的交互模块。本文将深入剖析针对商品评价、多级评论与点赞等高频交互场景，采用模板方法与策略模式抽象评价处理流程，解耦差异化业务规则，并结合 Redis 实现点赞去重与计数缓存，支持高并发访问与平滑扩展，最终实现一个高性能、可扩展的评论系统。</p>
+<h2 id="yi-ye-wu-chang-jing-yu-fu-za-du-fen-xi"><a class="zola-anchor" href="#yi-ye-wu-chang-jing-yu-fu-za-du-fen-xi" aria-label="Anchor link for: yi-ye-wu-chang-jing-yu-fu-za-du-fen-xi">一、 业务场景与复杂度分析</a></h2>
+<p><strong>业务需求</strong></p>
+<ol>
+<li>
+<p>商品主评价</p>
+<p>这是业务的根节点，通常发生在订单完成后。用户对商品进行评分、上传图片，并撰写文字评价。此类数据写入频率相对较低，但读取频率极高，且对数据的一致性要求最严，通常需要经过风控系统的文本与图片审核。</p>
+</li>
+<li>
+<p>互动回复</p>
+<p>这包括商家对用户的解释性回复，以及用户之间的互动讨论。这里涉及到了层级关系，即回复的回复。</p>
+</li>
+<li>
+<p>点赞与互动</p>
+<p>这是最高频的写操作。用户对评价、追评或回复进行点赞。点赞具有瞬时并发极高的特点，且要求即时反馈，不能接受明显的延迟。</p>
+</li>
+</ol>
+<p><strong>痛点分析</strong></p>
+<p>随着业务迭代，最初的简单逻辑会迅速恶化。例如，商品评价允许上传图片，而回复不允许；主评价需要计算综合评分，而回复不需要；商家回复有特殊的UI标识，而普通用户没有。如果所有的逻辑都堆砌在同一个服务方法中，代码将充斥着大量的条件判断语句。此外，深层递归的评论结构会导致数据库查询性能急剧下降，造成严重的慢查询事故。</p>
+<h2 id="er-xi-tong-diao-yong-lian-lu-she-ji"><a class="zola-anchor" href="#er-xi-tong-diao-yong-lian-lu-she-ji" aria-label="Anchor link for: er-xi-tong-diao-yong-lian-lu-she-ji">二、 系统调用链路设计</a></h2>
+<p>系统整体采用分层架构，从网关到存储层层递进。从请求发起到数据落盘的完整链路：</p>
+<script src=https://aliasjeff.github.io/js/mermaid.js></script>
+
+<pre class="mermaid">
+  graph TD
+    Client[客户端] --> Gateway[网关层]
+    Gateway --> |鉴权/限流| Controller[业务接口层]
+    
+    subgraph 核心业务域
+    Controller --> |封装Command| StrategyFactory[策略工厂]
+    StrategyFactory --> |路由分发| Processor[评价处理器]
+    
+    Processor --> |1.参数校验| Validator[校验逻辑]
+    Processor --> |2.业务处理| DomainService[领域服务]
+    Processor --> |3.持久化| DataLayer[数据层]
+    end
+    
+    subgraph 数据与缓存
+    DataLayer --> |主数据| MySQL[MySQL数据库]
+    DataLayer --> |热点缓存| Redis[Redis缓存]
+    DataLayer --> |异步消息| MQ[消息队列]
+    MQ --> |削峰落库| Consumer[异步消费者]
+    end
+</pre>
+<ol>
+<li>接入层</li>
+</ol>
+<p>客户端发起请求，经过网关进行统一的鉴权与限流。对于点赞这类超高频请求，网关层可配置更激进的限流策略，甚至在活动高峰期进行降级处理。</p>
+<ol start="2">
+<li>业务编排层</li>
+</ol>
+<p>Controller 接收请求后，并不直接处理业务，而是将参数封装为命令对象。这一层主要负责参数的基本校验，然后根据请求的类型（如发布主评、回复、点赞），将命令分发给对应的处理器。</p>
+<ol start="3">
+<li>策略分发层</li>
+</ol>
+<p>这是核心业务逻辑的入口。利用工厂模式，根据传入的业务类型枚举，从 Spring 容器中获取对应的策略实现类。此时，调用链路进入了模板方法定义的标准流程中。</p>
+<ol start="4">
+<li>领域服务层</li>
+</ol>
+<p>在具体的策略实现类中，完成领域逻辑的校验。例如，检查用户是否购买过该商品、是否触发了敏感词风控、是否超过了当天的发布限制等。</p>
+<ol start="5">
+<li>数据持久层与缓存层</li>
+</ol>
+<p>校验通过后，数据一方面写入 MySQL 数据库作为持久化存储，另一方面同步或异步地更新 Redis 缓存，以支撑后续的高并发读取。对于点赞数据，则是先写入 Redis，再通过异步任务落库。</p>
+<h2 id="san-shu-ju-ku-jia-gou-she-ji-de-shen-du-kao-liang"><a class="zola-anchor" href="#san-shu-ju-ku-jia-gou-she-ji-de-shen-du-kao-liang" aria-label="Anchor link for: san-shu-ju-ku-jia-gou-she-ji-de-shen-du-kao-liang">三、 数据库架构设计的深度考量</a></h2>
+<p>针对评论系统多读少写、数据量大、层级关系复杂的特点，表结构设计必须在规范化与性能之间寻找平衡，重点在于如何高效地存储和查询树状数据。</p>
+<h3 id="1-ping-lun-zhu-biao-she-ji"><a class="zola-anchor" href="#1-ping-lun-zhu-biao-she-ji" aria-label="Anchor link for: 1-ping-lun-zhu-biao-she-ji">1. 评论主表设计</a></h3>
+<p>我们采用闭包表、邻接表与路径枚举的混合折中方案，更偏向于<strong>带根节点的邻接表设计</strong>。这种设计是为了避免数据库层面的递归查询。</p>
+<p>为了更直观地展示方案选择的依据，我们对比几种主流的树形数据存储方案：</p>
+<table><thead><tr><th><strong>方案</strong></th><th><strong>描述</strong></th><th><strong>优点</strong></th><th><strong>缺点</strong></th><th><strong>适用场景</strong></th></tr></thead><tbody>
+<tr><td><strong>邻接表</strong></td><td>仅存储 parent_id</td><td>写入简单，结构清晰</td><td>查询子树需要递归，性能差</td><td>简单的单级回复</td></tr>
+<tr><td><strong>路径枚举</strong></td><td>存储路径如 1/5/12</td><td>易于查询整棵树，易于排序</td><td>路径长度受限，更新父节点成本高</td><td>论坛楼层</td></tr>
+<tr><td><strong>嵌套集</strong></td><td>左右值编码 lft, rgt</td><td>查询子树极快</td><td>插入和移动节点代价极大</td><td>静态分类树</td></tr>
+<tr><td><strong>本案方案</strong></td><td><strong>邻接表 + root_id</strong></td><td><strong>查询整树只需一次索引查找</strong></td><td>数据有极少量冗余</td><td><strong>电商评论、社交动态</strong></td></tr>
+</tbody></table>
+<p>核心表结构 SQL 设计如下：</p>
+<pre data-lang="sql" class="language-sql "><code class="language-sql" data-lang="sql">CREATE TABLE comment (
+  id BIGINT UNSIGNED NOT NULL COMMENT &#x27;主键ID&#x27;,
+  biz_type VARCHAR(32) NOT NULL COMMENT &#x27;业务类型: PRODUCT&#x2F;ARTICLE&#x27;,
+  biz_id BIGINT UNSIGNED NOT NULL COMMENT &#x27;业务ID: 商品ID&#x2F;文章ID&#x27;,
+  user_id BIGINT UNSIGNED NOT NULL COMMENT &#x27;用户ID&#x27;,
+  parent_id BIGINT UNSIGNED DEFAULT 0 COMMENT &#x27;父评论ID&#x27;,
+  root_id BIGINT UNSIGNED DEFAULT 0 COMMENT &#x27;根评论ID&#x27;,
+  content TEXT COMMENT &#x27;评论内容&#x27;,
+  images VARCHAR(1024) DEFAULT &#x27;&#x27; COMMENT &#x27;图片地址，JSON数组&#x27;,
+  like_count INT UNSIGNED DEFAULT 0 COMMENT &#x27;点赞数快照&#x27;,
+  status TINYINT DEFAULT 0 COMMENT &#x27;状态&#x27;,
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_biz_root (biz_id, root_id, status) COMMENT &#x27;核心查询索引&#x27;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT=&#x27;评论主表&#x27;;
+</code></pre>
+<p>id：主键 ID，建议使用雪花算法生成，保证全局唯一且按时间有序，有利于索引性能。</p>
+<p>biz_type：业务类型字段，用于区分是商品评价、追评还是普通回复。该字段配合策略模式使用。</p>
+<p>biz_id：业务归属 ID。如果是商品评价，这里存储商品 ID；如果是文章评论，这里存储文章 ID。该字段必须建立索引，是查询列表的主要入口。</p>
+<p>user_id：发布者 ID，用于关联用户信息。</p>
+<p>content：评论内容。对于长文本，建议垂直分表，将大字段单独存储，避免影响主表的扫描性能。</p>
+<p>parent_id：直接父节点 ID。如果是一级评论，此值为 0。这是构建树形结构的直接依据。</p>
+<p>root_id：根节点 ID。这是性能优化的关键字段。无论评论处于第几层级，该字段永远存储其所属的最顶层主评价的 ID。</p>
+<p>（在查询某条主评价下的所有回复时，如果没有 root_id，数据库需要进行递归查询（Oracle 的 CONNECT BY 或 MySQL 8.0 的 CTE），性能极差。有了 root_id，我们只需执行 WHERE root_id = ? 即可一次性拉取整棵树的所有节点，将树形组装的压力转移到应用内存中，极大减轻了数据库负担。）</p>
+<p>path：路径字段。存储如 1001/1005/1008 的字符串。这个字段虽然存在数据冗余，但对于需要展示楼层关系或进行特殊排序的场景非常有用，它可以快速判断两个节点的从属关系。</p>
+<p>like_count：点赞数快照。虽然点赞数在 Redis 中维护，但数据库中仍需保留一份快照，用于缓存失效时的兜底展示以及数据分析。</p>
+<p>status：状态机字段。包含 待审核、审核通过、审核拒绝、逻辑删除 等状态。</p>
+<h3 id="2-dian-zan-guan-xi-biao-she-ji"><a class="zola-anchor" href="#2-dian-zan-guan-xi-biao-she-ji" aria-label="Anchor link for: 2-dian-zan-guan-xi-biao-she-ji">2. 点赞关系表设计</a></h3>
+<pre data-lang="sql" class="language-sql "><code class="language-sql" data-lang="sql">CREATE TABLE comment_like (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  comment_id BIGINT UNSIGNED NOT NULL COMMENT &#x27;评论ID&#x27;,
+  user_id BIGINT UNSIGNED NOT NULL COMMENT &#x27;用户ID&#x27;,
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_comment_user (comment_id, user_id) COMMENT &#x27;防重复点赞唯一索引&#x27;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT=&#x27;点赞记录表&#x27;;
+</code></pre>
+<p>comment_id: 被点赞的评论 ID。</p>
+<p>user_id: 点赞用户 ID。</p>
+<p>create_time: 点赞时间。</p>
+<p>（comment_id 和 user_id 必须建立联合唯一索引。这不仅是为了加速查询，更是为了在数据库层面利用唯一约束防止重复点赞。尽管 Redis 会做前置校验，但数据库的唯一索引是数据一致性的最后一道防线。）</p>
+<h2 id="si-he-xin-dai-ma-mo-shi-mo-ban-fang-fa-yu-ce-lue-mo-shi-de-shen-du-jie-he"><a class="zola-anchor" href="#si-he-xin-dai-ma-mo-shi-mo-ban-fang-fa-yu-ce-lue-mo-shi-de-shen-du-jie-he" aria-label="Anchor link for: si-he-xin-dai-ma-mo-shi-mo-ban-fang-fa-yu-ce-lue-mo-shi-de-shen-du-jie-he">四、 核心代码模式：模板方法与策略模式的深度结合</a></h2>
+<p>为了解决业务逻辑膨胀和 <code>if-else</code> 泛滥的问题，我们采用模板方法定义骨架，策略模式实现差异。</p>
+<h3 id="1-mo-ban-fang-fa-de-chou-xiang-she-ji"><a class="zola-anchor" href="#1-mo-ban-fang-fa-de-chou-xiang-she-ji" aria-label="Anchor link for: 1-mo-ban-fang-fa-de-chou-xiang-she-ji">1. 模板方法的抽象设计</a></h3>
+<p>我们定义一个抽象类 <code>AbstractCommentProcessor</code>，它规定了评论处理的标准生命周期。这个生命周期是不可变的，所有类型的评论都必须遵守。</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">public abstract class AbstractCommentProcessor {
+
+    &#x2F;**
+     * 模板方法，定义标准处理流程，使用 final 禁止重写
+     *&#x2F;
+    public final void process(CommentCommand cmd) {
+        &#x2F;&#x2F; 1. 基础参数校验
+        validateBasic(cmd);
+        
+        &#x2F;&#x2F; 2. 业务权限校验，由子类实现
+        checkPermission(cmd);
+        
+        &#x2F;&#x2F; 3. 构建领域模型
+        Comment comment = buildComment(cmd);
+        
+        &#x2F;&#x2F; 4. 前置处理，如敏感词过滤
+        preHandle(comment);
+        
+        &#x2F;&#x2F; 5. 数据持久化
+        saveToDb(comment);
+        
+        &#x2F;&#x2F; 6. 后置处理，如发消息、加积分
+        afterHandle(comment);
+    }
+
+    protected abstract void checkPermission(CommentCommand cmd);
+    
+    protected abstract Comment buildComment(CommentCommand cmd);
+
+    private void saveToDb(Comment comment) {
+        &#x2F;&#x2F; 通用的落库逻辑
+    }
+    
+    &#x2F;&#x2F; 其他通用方法实现...
+}
+</code></pre>
+<p>生命周期包含以下步骤：</p>
+<p><strong>参数校验</strong>：检查输入内容的合法性。</p>
+<p><strong>权限校验</strong>：检查当前用户是否有权执行此操作。</p>
+<p><strong>前置处理</strong>：如敏感词过滤、风控调用。</p>
+<p><strong>模型构建</strong>：将 DTO 转换为数据库实体对象。</p>
+<p><strong>数据持久化</strong>：写入数据库。</p>
+<p><strong>后置处理</strong>：如发送消息通知、增加积分、更新统计数据。</p>
+<p>在抽象类中，我们将核心流程 <code>process</code> 方法定义为 <code>final</code>，防止子类篡改执行顺序。而将 <code>validate</code>、<code>checkPermission</code> 等方法定义为 <code>abstract</code> 或 <code>protected</code>，留给子类去实现具体逻辑。</p>
+<h3 id="2-ce-lue-mo-shi-de-chai-yi-hua-shi-xian"><a class="zola-anchor" href="#2-ce-lue-mo-shi-de-chai-yi-hua-shi-xian" aria-label="Anchor link for: 2-ce-lue-mo-shi-de-chai-yi-hua-shi-xian">2. 策略模式的差异化实现</a></h3>
+<p>针对不同的业务场景，创建具体的实现类。</p>
+<p><strong>商品评价策略类</strong></p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">@Component(&quot;PRODUCT_COMMENT&quot;)
+public class ProductCommentProcessor extends AbstractCommentProcessor {
+
+    @Resource
+    private OrderService orderService;
+
+    @Override
+    protected void checkPermission(CommentCommand cmd) {
+        &#x2F;&#x2F; 校验用户是否购买过该商品且订单已完成
+        boolean bought = orderService.hasFinishedOrder(cmd.getUserId(), cmd.getBizId());
+        if (!bought) {
+            throw new BizException(&quot;只有购买过商品才能评价&quot;);
+        }
+    }
+
+    @Override
+    protected Comment buildComment(CommentCommand cmd) {
+        Comment comment = new Comment();
+        &#x2F;&#x2F; 处理商品评价特有的评分字段
+        comment.setScore(cmd.getScore());
+        &#x2F;&#x2F; 处理图片上传逻辑
+        comment.setImages(cmd.getImages());
+        return comment;
+    }
+}
+</code></pre>
+<p>在权限校验步骤，该类会调用订单服务，查询用户是否确实购买了该商品且订单状态为已完成。在模型构建步骤，它会处理上传的图片和评分数据。</p>
+<p>追评策略类：在权限校验步骤，它会检查当前时间是否超出了允许追评的期限，同时校验用户是否已经发布过追评（通常限制只能追评一次）。</p>
+<p>回复策略类：它不需要校验订单，但需要校验被回复的评论是否依然存在且状态正常。</p>
+<h3 id="3-ce-lue-gong-han-de-lu-you-ji-zhi"><a class="zola-anchor" href="#3-ce-lue-gong-han-de-lu-you-ji-zhi" aria-label="Anchor link for: 3-ce-lue-gong-han-de-lu-you-ji-zhi">3. 策略工厂的路由机制</a></h3>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">@Component
+public class CommentProcessorFactory {
+
+    private final Map&lt;String, AbstractCommentProcessor&gt; processorMap = new ConcurrentHashMap&lt;&gt;();
+
+    &#x2F;&#x2F; 利用 Spring 的自动注入将所有实现类放入 Map
+    public CommentProcessorFactory(Map&lt;String, AbstractCommentProcessor&gt; processorMap) {
+        this.processorMap.putAll(processorMap);
+    }
+
+    public AbstractCommentProcessor getProcessor(String bizType) {
+        AbstractCommentProcessor processor = processorMap.get(bizType);
+        if (processor == null) {
+            throw new BizException(&quot;不支持的评价类型&quot;);
+        }
+        return processor;
+    }
+}
+</code></pre>
+<p>使用 Spring 的依赖注入功能，将所有实现了抽象类的 Bean 注入到一个 Map 中，Key 为业务类型枚举，Value 为对应的处理器实例。在业务入口处，根据前端传递的类型参数，直接从 Map 中获取对应的处理器对象并调用 <code>process</code> 方法。这种设计完全遵循了开闭原则，当需要新增一种评价类型时，只需新增一个类，而无需修改现有代码。</p>
+<h2 id="wu-redis-gao-bing-fa-dian-zan-xi-tong-de-xiang-xi-she-ji"><a class="zola-anchor" href="#wu-redis-gao-bing-fa-dian-zan-xi-tong-de-xiang-xi-she-ji" aria-label="Anchor link for: wu-redis-gao-bing-fa-dian-zan-xi-tong-de-xiang-xi-she-ji">五、 Redis 高并发点赞系统的详细设计</a></h2>
+<p>点赞功能看似简单，却是系统并发的最高点。直接操作数据库会导致严重的锁竞争和 CPU 飙升。因此，设计必须基于 Redis 进行抗压。</p>
+<h3 id="1-redis-shu-ju-jie-gou-xuan-xing"><a class="zola-anchor" href="#1-redis-shu-ju-jie-gou-xuan-xing" aria-label="Anchor link for: 1-redis-shu-ju-jie-gou-xuan-xing">1. Redis 数据结构选型</a></h3>
+<p>我们需要存储两类数据：某对象的总点赞数，以及某个用户是否对某对象点过赞。</p>
+<p><strong>方案一：Hash + Set</strong></p>
+<p>使用 String 或 Hash 存储计数，使用 Set 存储点赞的用户 ID 列表。</p>
+<p>优点：实现简单，Set 天然去重，可以方便地查询某用户是否点赞。</p>
+<p>缺点：当点赞数达到百万千万级时，Set 集合会变得极其巨大，造成大 Key 问题，读取和序列化会阻塞 Redis 线程。</p>
+<p><strong>方案二：Bitmap（位图）</strong></p>
+<p>使用 Bitmap 存储用户点赞状态，Offset 为用户 ID，Value 为 0 或 1。</p>
+<p>优点：极致的存储空间压缩。</p>
+<p>缺点：需要用户 ID 必须是连续整数，且数据稀疏时（如总用户 1 亿，只有 1 个点赞）反而浪费空间。</p>
+<p><strong>最终方案：Hash 计数 + 定长 Set 缓冲 + 数据库持久化</strong></p>
+<p>考虑到通用性，我们采用复合方案。</p>
+<p>Redis 中使用 Hash 结构存储计数：Key: comment_like_count, Field: comment_id, Value: count。</p>
+<p>Redis 中使用 Set 结构存储最近点赞的用户：Key: comment_liked_users:{comment_id}。注意，这个 Set 我们不存全量，只用于高频访问的去重判断，或者通过过期时间控制生命周期。</p>
+<p>全量的点赞记录，依靠异步写入数据库保存。</p>
+<h3 id="2-gao-bing-fa-dian-zan-liu-cheng-xiang-jie"><a class="zola-anchor" href="#2-gao-bing-fa-dian-zan-liu-cheng-xiang-jie" aria-label="Anchor link for: 2-gao-bing-fa-dian-zan-liu-cheng-xiang-jie">2. 高并发点赞流程详解</a></h3>
+<p>第一步：Lua 脚本保证原子性</p>
+<p>点赞操作包含三个逻辑：检查是否已赞、写入点赞记录、计数器加一。这三个步骤必须是原子的。我们编写 Lua 脚本提交给 Redis 执行。</p>
+<pre data-lang="lua" class="language-lua "><code class="language-lua" data-lang="lua">-- KEYS[1]: 点赞用户Set集合 Key
+-- KEYS[2]: 点赞计数器 Key
+-- ARGV[1]: 用户ID
+-- ARGV[2]: 过期时间(秒)
+
+-- 1. 检查用户是否已点赞
+if redis.call(&#x27;SISMEMBER&#x27;, KEYS[1], ARGV[1]) == 1 then
+    return 0 -- 重复点赞
+end
+
+-- 2. 添加用户到 Set
+redis.call(&#x27;SADD&#x27;, KEYS[1], ARGV[1])
+
+-- 3. 增加计数
+redis.call(&#x27;INCR&#x27;, KEYS[2])
+
+-- 4. 刷新过期时间，防止冷数据常驻
+redis.call(&#x27;EXPIRE&#x27;, KEYS[1], ARGV[2])
+
+return 1 -- 点赞成功
+</code></pre>
+<p>脚本逻辑如下：</p>
+<p>首先检查 Set 中是否存在该用户 ID。如果存在，直接返回重复点赞。</p>
+<p>如果不存在，执行 SADD 写入用户 ID，同时执行 HINCRBY 对计数器加一。</p>
+<p>设置 Key 的过期时间，防止冷数据长期占用内存。</p>
+<p>第二步：异步削峰落库</p>
+<p>Redis 更新成功后，业务直接返回成功给前端。</p>
+<p>随后，系统将点赞事件（包含评论 ID、用户 ID、时间）发送到消息队列（如 Kafka 或 RocketMQ）。</p>
+<p>消费者服务订阅队列，以批量的方式将点赞记录插入 MySQL 的 comment_like 表。</p>
+<script src=https://aliasjeff.github.io/js/mermaid.js></script>
+
+<pre class="mermaid">
+  sequenceDiagram
+    participant User as 用户
+    participant API as 后端服务
+    participant Redis as Redis缓存
+    participant MQ as 消息队列
+    participant DB as 数据库
+
+    User->>API: 发起点赞请求
+    API->>Redis: 执行 Lua 脚本
+    alt 脚本返回 1 (成功)
+        Redis-->>API: 更新缓存成功
+        API->>MQ: 发送点赞事件消息
+        API-->>User: 返回点赞成功
+    else 脚本返回 0 (重复)
+        API-->>User: 提示已点赞
+    end
+    
+    loop 异步消费
+        MQ->>DB: 消费者批量获取消息
+        DB->>DB: 插入点赞记录 (忽略唯一索引冲突)
+    end
+</pre>
+<p><strong>技术细节：</strong> 消费者在入库时，如果遇到数据库唯一索引冲突，说明是重复消息或极端的并发情况，此时应忽略异常，确保幂等性。</p>
+<p>第三步：取消点赞</p>
+<p>取消点赞是点赞的逆操作。同样通过 Lua 脚本原子性地从 Set 中移除用户 ID 并减少计数。同时发送取消点赞的消息到 MQ，消费者在数据库中执行物理删除或逻辑删除。</p>
+<h3 id="3-du-xie-yi-zhi-xing-yu-huan-cun-chuan-tou-chu-li"><a class="zola-anchor" href="#3-du-xie-yi-zhi-xing-yu-huan-cun-chuan-tou-chu-li" aria-label="Anchor link for: 3-du-xie-yi-zhi-xing-yu-huan-cun-chuan-tou-chu-li">3. 读写一致性与缓存穿透处理</a></h3>
+<p><strong>查询点赞状态</strong></p>
+<p>用户查看评论列表时，需要知道自己是否给这些评论点过赞。</p>
+<p>首先查询 Redis 的 Set。如果 Set 中有数据，直接判定。</p>
+<p>如果 Redis 中 Key 不存在（过期或未命中），则利用 Bloom Filter（布隆过滤器）快速判断。如果布隆过滤器认为可能存在，再回查数据库，并将结果回填到 Redis。这能有效防止大量未点赞的用户请求穿透到数据库。</p>
+<p><strong>缓存与数据库的最终一致性</strong></p>
+<p>由于采用异步落库，Redis 的计数可能与数据库记录数短暂不一致。我们并不追求强一致性，而是通过定时任务（如 T+1 对账）校准。每天低峰期，扫描热门评论的数据库记录数，强制覆盖 Redis 的计数，消除累积误差。</p>
+<h2 id="liu-shu-xing-jie-gou-yu-bian-ping-hua-chu-li"><a class="zola-anchor" href="#liu-shu-xing-jie-gou-yu-bian-ping-hua-chu-li" aria-label="Anchor link for: liu-shu-xing-jie-gou-yu-bian-ping-hua-chu-li">六、 树形结构与扁平化处理</a></h2>
+<p>多级评论在数据库中是扁平存储的，但在前端展示时需要还原为树形或嵌套结构。如何在内存中高效地完成这一转换是关键。</p>
+<h3 id="1-wei-shen-me-yao-bian-ping-hua-cha-xun"><a class="zola-anchor" href="#1-wei-shen-me-yao-bian-ping-hua-cha-xun" aria-label="Anchor link for: 1-wei-shen-me-yao-bian-ping-hua-cha-xun">1. 为什么要扁平化查询</a></h3>
+<p>传统的做法是先查一级评论，对每个一级评论再循环查二级评论。这是典型的 N+1 查询问题，效率极低。</p>
+<p>我们的做法是：根据 root_id 一次性查出该主评下的所有回复（包括二级、三级等）。假设查出了 100 条数据，这是一个扁平的 List 集合。</p>
+<h3 id="2-nei-cun-zhong-gou-jian-shu-de-suan-fa"><a class="zola-anchor" href="#2-nei-cun-zhong-gou-jian-shu-de-suan-fa" aria-label="Anchor link for: 2-nei-cun-zhong-gou-jian-shu-de-suan-fa">2. 内存中构建树的算法</a></h3>
+<p>我们需要将这个扁平 List 转换为层级结构。即使前端只需要两层结构（主评 + 列表形式的子评），后端最好也具备构建完整树的能力以适应不同端的需求。</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">public List&lt;CommentVO&gt; buildTree(List&lt;Comment&gt; flatList) {
+    if (CollectionUtils.isEmpty(flatList)) {
+        return Collections.emptyList();
+    }
+
+    List&lt;CommentVO&gt; rootNodes = new ArrayList&lt;&gt;();
+    &#x2F;&#x2F; 1. 转换 VO 并建立 ID 映射 Map
+    Map&lt;Long, CommentVO&gt; nodeMap = flatList.stream()
+            .map(CommentVO::fromEntity)
+            .collect(Collectors.toMap(CommentVO::getId, Function.identity()));
+
+    &#x2F;&#x2F; 2. 遍历组装
+    for (CommentVO node : nodeMap.values()) {
+        Long parentId = node.getParentId();
+        if (parentId == null || parentId == 0) {
+            &#x2F;&#x2F; 是根节点
+            rootNodes.add(node);
+        } else {
+            &#x2F;&#x2F; 是子节点，找到父节点并挂载
+            CommentVO parent = nodeMap.get(parentId);
+            if (parent != null) {
+                if (parent.getChildren() == null) {
+                    parent.setChildren(new ArrayList&lt;&gt;());
+                }
+                parent.getChildren().add(node);
+            }
+        }
+    }
+    
+    &#x2F;&#x2F; 3. 排序处理 (根据时间倒序或正序)
+    rootNodes.sort((a, b) -&gt; b.getCreateTime().compareTo(a.getCreateTime()));
+    return rootNodes;
+}
+</code></pre>
+<p><strong>具体步骤：</strong></p>
+<p>第一步：建立映射</p>
+<p>遍历 List，将所有 Comment 对象放入一个 Map 中，Key 为 id，Value 为 Comment 对象本身。这一步是为了通过 ID 快速找到引用，时间复杂度为 O(N)。</p>
+<p>第二步：组装层级</p>
+<p>再次遍历 List。对于每一个 Comment 对象，获取其 parent_id。</p>
+<p>如果 parent_id 为 0 或空，说明它是根节点，将其加入结果集列表。</p>
+<p>如果 parent_id 不为空，则从 Map 中获取父对象。如果父对象存在，将当前对象添加到父对象的 children 列表中。</p>
+<p>第三步：处理排序</p>
+<p>在组装完成后，对每一个节点的 children 列表进行排序。通常按照时间正序排列（最早回复在最前）。</p>
+<h3 id="3-qian-duan-zhan-shi-de-you-hua-ce-lue"><a class="zola-anchor" href="#3-qian-duan-zhan-shi-de-you-hua-ce-lue" aria-label="Anchor link for: 3-qian-duan-zhan-shi-de-you-hua-ce-lue">3. 前端展示的优化策略</a></h3>
+<p>虽然算法可以构建无限层级，但现代移动端 UI 设计通常不再推荐无限缩进的盖楼模式。</p>
+<p>主流做法是：两层结构。</p>
+<p>第一层：主评论。</p>
+<p>第二层：该主评论下的所有回复，按时间流平铺展示。如果回复是针对某人的，则在文案中显示 回复 某某用户。</p>
+<p>这种展示方式下，后端只需要将数据按照 root_id 分组，主评论单独返回，子评论作为一个扁平列表返回即可，大大简化了前端的渲染逻辑，也降低了数据传输的体积。</p>
+<h2 id="qi-zong-jie"><a class="zola-anchor" href="#qi-zong-jie" aria-label="Anchor link for: qi-zong-jie">七、 总结</a></h2>
+<p>本系统设计通过分层架构清晰地隔离了关注点。利用模板方法模式，我们规范了评论处理的标准化流程，杜绝了逻辑遗漏；利用策略模式，我们实现了业务规则的解耦，使得系统面对新增评价类型时具备极强的扩展性。</p>
+<p>在数据存储上，通过 <code>root_id</code> 的设计巧妙解决了树形数据的查询难题。最关键的是，通过 Redis 的原子操作与异步消息队列的配合，我们将高频的点赞写操作完全从数据库解耦，实现了系统在高并发场景下的高性能与最终一致性。</p>
+<p>这是一套经过实战检验、既符合软件工程原则又能应对复杂业务挑战的解决方案。</p>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/alias-studio.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="General"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#yi-ye-wu-chang-jing-yu-fu-za-du-fen-xi">一、 业务场景与复杂度分析</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#er-xi-tong-diao-yong-lian-lu-she-ji">二、 系统调用链路设计</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#san-shu-ju-ku-jia-gou-she-ji-de-shen-du-kao-liang">三、 数据库架构设计的深度考量</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#1-ping-lun-zhu-biao-she-ji">1. 评论主表设计</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#2-dian-zan-guan-xi-biao-she-ji">2. 点赞关系表设计</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#si-he-xin-dai-ma-mo-shi-mo-ban-fang-fa-yu-ce-lue-mo-shi-de-shen-du-jie-he">四、 核心代码模式：模板方法与策略模式的深度结合</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#1-mo-ban-fang-fa-de-chou-xiang-she-ji">1. 模板方法的抽象设计</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#2-ce-lue-mo-shi-de-chai-yi-hua-shi-xian">2. 策略模式的差异化实现</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#3-ce-lue-gong-han-de-lu-you-ji-zhi">3. 策略工厂的路由机制</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#wu-redis-gao-bing-fa-dian-zan-xi-tong-de-xiang-xi-she-ji">五、 Redis 高并发点赞系统的详细设计</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#1-redis-shu-ju-jie-gou-xuan-xing">1. Redis 数据结构选型</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#2-gao-bing-fa-dian-zan-liu-cheng-xiang-jie">2. 高并发点赞流程详解</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#3-du-xie-yi-zhi-xing-yu-huan-cun-chuan-tou-chu-li">3. 读写一致性与缓存穿透处理</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#liu-shu-xing-jie-gou-yu-bian-ping-hua-chu-li">六、 树形结构与扁平化处理</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#1-wei-shen-me-yao-bian-ping-hua-cha-xun">1. 为什么要扁平化查询</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#2-nei-cun-zhong-gou-jian-shu-de-suan-fa">2. 内存中构建树的算法</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#3-qian-duan-zhan-shi-de-you-hua-ce-lue">3. 前端展示的优化策略</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/shang-pin-ping-jia-duo-ji-ping-lun-he-dian-zan-xi-tong-she-ji-shi-jian/#qi-zong-jie">七、 总结</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

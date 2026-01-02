@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                一致性问题 (三) —— 竞态条件
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="一致性问题 (三) —— 竞态条件" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link id="darkModeStyle"
+              rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                setTheme(getSavedTheme());
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+            <a id="dark-mode-toggle"
+               onclick="toggleTheme(); event.preventDefault();"
+               href="#">
+                <img src="https://aliasjeff.github.io/icons/sun.svg" id="sun-icon" alt="Light" />
+                <img src="https://aliasjeff.github.io/icons/moon.svg"
+                     id="moon-icon"
+                     style="filter: invert(1)"
+                     alt="Dark" />
+                <img src="https://aliasjeff.github.io/icons/auto.svg"
+                     id="auto-icon"
+                     style="filter: invert(1)"
+                     alt="Auto" />
+            </a>
+
+            <!-- Initialize the theme toggle icons -->
+            <script>
+                updateItemToggleTheme()
+            </script>
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            一致性问题 (三) —— 竞态条件
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2025-12-14</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/yi-zhi-xing/"
+                                       class="post-tag">一致性</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/gao-bing-fa/"
+                                       class="post-tag">高并发</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <h2 id="yi-qian-yan"><a class="zola-anchor" href="#yi-qian-yan" aria-label="Anchor link for: yi-qian-yan">一、前言</a></h2>
+<p>在构建高可靠的软件系统时，数据一致性始终是我们面临的最大挑战之一。在此前的系列文章中，我们已经探讨了几个维度的一致性问题：</p>
+<ul>
+<li>冗余数据存储中的一致性问题</li>
+<li>分布式共识算法中的一致性问题</li>
+<li>单机事务中的一致性问题</li>
+<li>分布式事务中的一致性问题</li>
+</ul>
+<p>本文将从微观的代码执行层面，聊一聊<strong>竞态条件（Race Condition）</strong>。</p>
+<p>很多线上诡异的Bug，比如“库存扣成了负数”、“流水记录重复”、“配置更新丢失”，其背后的始作俑者往往就是竞态条件。本文将深入剖析其成因，结合真实的业务Case，并给出从单机到分布式的完整解决方案。</p>
+<h2 id="er-wen-ti-ding-yi"><a class="zola-anchor" href="#er-wen-ti-ding-yi" aria-label="Anchor link for: er-wen-ti-ding-yi">二、问题定义</a></h2>
+<h3 id="2-1-shen-me-shi-jing-tai-tiao-jian"><a class="zola-anchor" href="#2-1-shen-me-shi-jing-tai-tiao-jian" aria-label="Anchor link for: 2-1-shen-me-shi-jing-tai-tiao-jian">2.1 什么是竞态条件</a></h3>
+<p>竞态条件，顾名思义，就是多个执行单元（线程、进程或分布式服务节点）为了竞争同一份资源，而产生的时序上的不确定性。</p>
+<p>简单来说，当计算的正确性依赖于相对时间顺序或线程的交替执行顺序时，就会发生竞态条件。如果我们的代码没有针对这种不确定的顺序做出防御，系统就会陷入混乱。</p>
+<p>最经典的例子莫过于计数器累加。假设我们有一个全局变量 <code>count = 0</code>，两个线程同时执行 <code>count++</code>。在底层汇编或字节码层面，这是一个典型的 <strong>RMW (Read-Modify-Write)</strong> 操作：</p>
+<ol>
+<li><strong>Read</strong>：读取内存中的值到寄存器</li>
+<li><strong>Modify</strong>：寄存器值加1</li>
+<li><strong>Write</strong>：将寄存器值写回内存</li>
+</ol>
+<p>如果没有同步机制，线程A和线程B可能同时读取到0，各自加1后都写入1。预期的结果是2，实际结果却是1。这就造成了<strong>更新丢失（Lost Update）</strong>。</p>
+<script src=https://aliasjeff.github.io/js/mermaid.js></script>
+
+<pre class="mermaid">
+  sequenceDiagram
+    participant T1 as 线程1
+    participant T2 as 线程2
+    participant Store as 共享内存(Count=0)
+
+    T1->>Store: 读取Count (得到0)
+    T2->>Store: 读取Count (得到0)
+    T1->>T1: 计算 0+1=1
+    T2->>T2: 计算 0+1=1
+    T1->>Store: 写入Count (写入1)
+    T2->>Store: 写入Count (写入1)
+    Note over Store: 最终结果是1，而不是2
+</pre>
+<h3 id="2-2-ben-zhi-gui-yin"><a class="zola-anchor" href="#2-2-ben-zhi-gui-yin" aria-label="Anchor link for: 2-2-ben-zhi-gui-yin">2.2 本质归因</a></h3>
+<p>从本质上讲，竞态条件问题通常由以下三个要素共同作用产生：</p>
+<ol>
+<li><strong>共享资源</strong>：存在被多个执行单元共同访问的变量、文件、数据库记录等。</li>
+<li><strong>可变状态</strong>：该资源是可以被修改的，只读资源不存在竞态问题。</li>
+<li><strong>非原子操作</strong>：业务逻辑由多个步骤组成（如“先检查后执行”或“读取后修改”），且这些步骤中间可能被其他线程打断。</li>
+</ol>
+<h2 id="san-chang-jian-ye-wu-chang-jing"><a class="zola-anchor" href="#san-chang-jian-ye-wu-chang-jing" aria-label="Anchor link for: san-chang-jian-ye-wu-chang-jing">三、常见业务场景</a></h2>
+<h3 id="3-1-case-1-mqzhong-fu-xiao-fei-dao-zhi-de-zang-shu-ju"><a class="zola-anchor" href="#3-1-case-1-mqzhong-fu-xiao-fei-dao-zhi-de-zang-shu-ju" aria-label="Anchor link for: 3-1-case-1-mqzhong-fu-xiao-fei-dao-zhi-de-zang-shu-ju">3.1 Case 1：MQ重复消费导致的脏数据</a></h3>
+<p><strong>场景描述</strong></p>
+<p>在一个电商营销系统中，有一个“新用户注册自动送新人券”的功能。系统订阅了用户中心的MQ消息（Topic: <code>User_Register</code>），逻辑非常简单：收到注册消息 -&gt; 查询该用户是否已领过新人券 -&gt; 如果没领过，则调用发券接口。</p>
+<p><strong>问题现象</strong></p>
+<p>客服接到用户反馈或财务对账时发现，同一个新用户在注册的一瞬间，竟然收到了两张甚至多张一样的新人优惠券。这造成了营销预算的浪费，甚至可能被黑产利用薅羊毛。</p>
+<p><strong>原因分析</strong></p>
+<p>这是典型的 <strong>Check-Then-Act（先检查后执行）</strong> 类型的竞态条件。</p>
+<p>虽然代码里写了防重逻辑 <code>if (couponRecordService.check(userId) == false)</code>，但在高并发下，MQ可能会因网络抖动触发重试，或者微服务扩容导致两个消费者节点同时收到了同一条消息（或极短时间内的两条消息）。</p>
+<ol>
+<li><strong>消费者A</strong> 查询数据库：用户1001有过领券记录吗？-&gt; <strong>无</strong>。</li>
+<li><strong>消费者B</strong> 查询数据库：用户1001有过领券记录吗？-&gt; <strong>无</strong>（因为A还没来得及写入）。</li>
+<li><strong>消费者A</strong> 执行发券，并写入领券记录。</li>
+<li><strong>消费者B</strong> 执行发券，并写入领券记录。</li>
+</ol>
+<p>结果：该用户被发了两张券，产生了重复数据。</p>
+<script src=https://aliasjeff.github.io/js/mermaid.js></script>
+
+<pre class="mermaid">
+  sequenceDiagram
+    participant C1 as 消费者1
+    participant C2 as 消费者2
+    participant DB as 数据库/优惠券服务
+
+    C1->>DB: 查询用户1001是否已领券
+    C2->>DB: 查询用户1001是否已领券
+    DB-->>C1: 返回 false (未领取)
+    DB-->>C2: 返回 false (未领取)
+    C1->>DB: 发放优惠券 & 写入记录
+    C2->>DB: 发放优惠券 & 写入记录
+    Note right of DB: 用户收到了两张券！<br/>资产超发风险
+</pre>
+<h3 id="3-2-case-2-da-jsonzi-duan-bing-fa-geng-xin-dao-zhi-de-xie-diu-shi"><a class="zola-anchor" href="#3-2-case-2-da-jsonzi-duan-bing-fa-geng-xin-dao-zhi-de-xie-diu-shi" aria-label="Anchor link for: 3-2-case-2-da-jsonzi-duan-bing-fa-geng-xin-dao-zhi-de-xie-diu-shi">3.2 Case 2：大Json字段并发更新导致的“写丢失”</a></h3>
+<p>场景描述</p>
+<p>系统中有一个“车辆证照”表，为了扩展性，我们用一个名为 extra_info 的 JSON 字段存储各种灵活的属性，比如 { "A": 1, "B": 2 }。</p>
+<p>业务有两个独立的入口：入口A负责更新属性A，入口B负责更新属性B。</p>
+<p>问题现象</p>
+<p>运营反馈，明明刚刚在入口B把属性B更新为3了，怎么过了一会又变回了2？</p>
+<p>原因分析</p>
+<p>对于JSON字段的更新，通常方式是：读取整行数据 -&gt; 反序列化为对象 -&gt; 修改内存对象 -&gt; 序列化为JSON -&gt; Update写回数据库。</p>
+<p>这构成了 Read-Modify-Write 模式。</p>
+<ol>
+<li>线程A读取数据，拿到 <code>{ "A": 1, "B": 2 }</code>。</li>
+<li>线程B读取数据，拿到 <code>{ "A": 1, "B": 2 }</code>。</li>
+<li>线程A在内存中把A改为2，准备写入 <code>{ "A": 2, "B": 2 }</code>。</li>
+<li>线程B在内存中把B改为3，准备写入 <code>{ "A": 1, "B": 3 }</code>。</li>
+<li>线程A执行Update，数据库变为 <code>{ "A": 2, "B": 2 }</code>。</li>
+<li>线程B执行Update，数据库变为 <code>{ "A": 1, "B": 3 }</code>。</li>
+</ol>
+<p>线程A对属性A的修改，被线程B无情地覆盖了。这就是著名的<strong>写偏斜（Write Skew）或第二类丢失更新</strong>。</p>
+<script src=https://aliasjeff.github.io/js/mermaid.js></script>
+
+<pre class="mermaid">
+  sequenceDiagram
+    participant TA as 线程A(改A)
+    participant TB as 线程B(改B)
+    participant DB as 数据库
+
+    TA->>DB: Read (A=1, B=2)
+    TB->>DB: Read (A=1, B=2)
+    TA->>TA: 修改 A=2
+    TB->>TB: 修改 B=3
+    TA->>DB: Update set json = {A=2, B=2}
+    TB->>DB: Update set json = {A=1, B=3}
+    Note right of DB: 线程A的修改丢失了！
+</pre>
+<h2 id="si-si-lu-fen-xi-yu-jie-jue-fang-an"><a class="zola-anchor" href="#si-si-lu-fen-xi-yu-jie-jue-fang-an" aria-label="Anchor link for: si-si-lu-fen-xi-yu-jie-jue-fang-an">四、思路分析与解决方案</a></h2>
+<p>解决竞态条件的核心心法只有一句话：<strong>将并发操作串行化</strong>。</p>
+<p>我们需要通过某种机制，确保在同一时刻，只有一个执行单元能对共享资源进行“读取-修改-写入”的完整操作。在技术实现上，主要分为<strong>悲观锁</strong>和<strong>乐观锁</strong>两大流派。</p>
+<h3 id="4-1-bei-guan-suo-yi-zu-sai-huan-an-quan"><a class="zola-anchor" href="#4-1-bei-guan-suo-yi-zu-sai-huan-an-quan" aria-label="Anchor link for: 4-1-bei-guan-suo-yi-zu-sai-huan-an-quan">4.1 悲观锁：以“阻塞”换“安全”</a></h3>
+<p>悲观锁假定并发冲突发生的概率很高，所以在操作数据之前，必须先拿到锁，独占资源。其他线程想要访问，必须排队阻塞。</p>
+<h3 id="4-1-1-chang-jian-shi-xian-fang-shi"><a class="zola-anchor" href="#4-1-1-chang-jian-shi-xian-fang-shi" aria-label="Anchor link for: 4-1-1-chang-jian-shi-xian-fang-shi">4.1.1 常见实现方式</a></h3>
+<p><strong>1. 单机环境</strong></p>
+<ul>
+<li><strong>Java Synchronized / Lock</strong>：这是最基础的手段。对于单机内存中的共享对象，使用 <code>synchronized</code> 关键字或者 <code>ReentrantLock</code> 即可。</li>
+<li><strong>Go Mutex</strong>：Go语言中的 <code>sync.Mutex</code> 或 <code>sync.RWMutex</code>。</li>
+</ul>
+<p><strong>2. 数据库层面</strong></p>
+<ul>
+<li><strong>Select For Update</strong>：在事务中使用 <code>select * from table where id = ? for update</code>。这会给数据库行加上排他锁（X锁），在事务提交前，其他事务无法读取或修改这行数据。</li>
+</ul>
+<ol start="3">
+<li>分布式环境</li>
+</ol>
+<p>在微服务架构下，应用部署在多台机器上，单机的锁已经失效，我们需要依赖外部组件来实现分布式锁。</p>
+<ul>
+<li><strong>Redis 分布式锁</strong>：利用 Redis 的单线程特性。
+<ul>
+<li><strong>加锁</strong>：<code>SET key value NX PX 10000</code> (如果key不存在则设置，设置过期时间10秒)。</li>
+<li><strong>解锁</strong>：需要使用Lua脚本保证原子性，判断value一致才删除，防止误删别人的锁。</li>
+<li><strong>红锁（Redlock）</strong>：在Redis集群环境下，为了防止主从切换导致锁丢失，在多个独立Redis实例上加锁的高可用方案。</li>
+</ul>
+</li>
+<li><strong>Zookeeper / Etcd</strong>：利用其临时有序节点或Revision机制。ZK的锁一致性更强，但性能略低于Redis。</li>
+</ul>
+<h3 id="4-1-2-case-1-de-bei-guan-suo-jie-fa"><a class="zola-anchor" href="#4-1-2-case-1-de-bei-guan-suo-jie-fa" aria-label="Anchor link for: 4-1-2-case-1-de-bei-guan-suo-jie-fa">4.1.2 Case 1 的悲观锁解法</a></h3>
+<p>回到MQ重复消费的例子。我们可以在Redis中加一把分布式锁，锁的Key是 <code>lock:car_model:{fashion_id}</code>。</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">&#x2F;&#x2F; 伪代码示例
+String lockKey = &quot;lock:car_model:&quot; + fashionId;
+boolean locked = redis.setNxPx(lockKey, uuid, 5000);
+
+if (locked) {
+    try {
+        &#x2F;&#x2F; 1. 再次查询数据库 (Double Check)
+        if (db.query(fashionId) == null) {
+            &#x2F;&#x2F; 2. 插入
+            db.insert(data);
+        }
+    } finally {
+        &#x2F;&#x2F; 3. 释放锁
+        redis.unlock(lockKey, uuid);
+    }
+} else {
+    &#x2F;&#x2F; 获取锁失败，说明有其他线程正在处理，可以选择丢弃或稍后重试
+    return;
+}
+</code></pre>
+<p>通过这把锁，我们将并发的MQ消费变成了串行执行。当线程1拿到锁时，线程2获取失败，从而避免了重复插入。</p>
+<h3 id="4-1-3-bei-guan-suo-de-ben-zhi"><a class="zola-anchor" href="#4-1-3-bei-guan-suo-de-ben-zhi" aria-label="Anchor link for: 4-1-3-bei-guan-suo-de-ben-zhi">4.1.3 悲观锁的本质</a></h3>
+<p>悲观锁的本质是在访问资源前设置一个<strong>状态标记</strong>。</p>
+<ul>
+<li>在单机，这个标记在对象头（Mark Word）里。</li>
+<li>在数据库，这个标记在数据页的锁位图里。</li>
+<li>在分布式，这个标记是Redis里的一个Key或ZK里的一个节点。</li>
+</ul>
+<p>获取锁的过程，本质上就是利用更底层的原子操作（如CPU的CAS指令、Redis的原子命令）去争抢设置这个标记的权利。</p>
+<h3 id="4-2-le-guan-suo-yi-shi-tan-qiu-gao-xiao"><a class="zola-anchor" href="#4-2-le-guan-suo-yi-shi-tan-qiu-gao-xiao" aria-label="Anchor link for: 4-2-le-guan-suo-yi-shi-tan-qiu-gao-xiao">4.2 乐观锁：以“试探”求“高效”</a></h3>
+<p>乐观锁假定并发冲突的概率很低，所以不加锁直接执行，只是在最后提交更新的时候，校验一下数据有没有被别人改过。</p>
+<h3 id="4-2-1-chang-jian-shi-xian-fang-shi"><a class="zola-anchor" href="#4-2-1-chang-jian-shi-xian-fang-shi" aria-label="Anchor link for: 4-2-1-chang-jian-shi-xian-fang-shi">4.2.1 常见实现方式</a></h3>
+<ol>
+<li>CAS (Compare And Swap)</li>
+</ol>
+<p>这是CPU指令级别的支持。逻辑是：我认为内存位置V的值应该是A，如果是，就把他改成B；如果不是（说明被别人改了），那我就不操作，或者重试。</p>
+<p>Java中的 AtomicInteger 就是基于CAS实现的自旋锁。</p>
+<ol start="2">
+<li>数据库版本号机制 (Versioning)</li>
+</ol>
+<p>这是业务开发中最常用的方案。在数据库表中增加一个 version 字段。</p>
+<p>每次更新时，将版本号作为WHERE条件，并同时将版本号+1。</p>
+<pre data-lang="sql" class="language-sql "><code class="language-sql" data-lang="sql">UPDATE table 
+SET field = new_value, version = version + 1 
+WHERE id = ? AND version = old_version;
+</code></pre>
+<p>如果返回的影响行数为1，说明更新成功；如果是0，说明版本号变了，更新失败，需要应用层决定是重试还是报错。</p>
+<h3 id="4-2-2-case-2-de-le-guan-suo-jie-fa"><a class="zola-anchor" href="#4-2-2-case-2-de-le-guan-suo-jie-fa" aria-label="Anchor link for: 4-2-2-case-2-de-le-guan-suo-jie-fa">4.2.2 Case 2 的乐观锁解法</a></h3>
+<p>对于Json字段并发更新丢失的问题，非常适合用版本号解决。</p>
+<ol>
+<li>
+<p>线程A读数据，拿到 <code>version=1</code>。</p>
+</li>
+<li>
+<p>线程B读数据，拿到 <code>version=1</code>。</p>
+</li>
+<li>
+<p>线程A计算完成，执行SQL：</p>
+<p>UPDATE car_license SET json=..., version=2 WHERE id=1 AND version=1</p>
+<p>执行成功，数据库变成 version=2。</p>
+</li>
+<li>
+<p>线程B计算完成，执行SQL：</p>
+<p>UPDATE car_license SET json=..., version=2 WHERE id=1 AND version=1</p>
+<p>执行失败！ 因为此时数据库里的version已经是2了，不等于WHERE条件里的1。</p>
+</li>
+</ol>
+<p>这样线程B的操作就被拦截了，避免了静默覆盖线程A的数据。线程B捕获到失败后，可以重新读取最新的数据，合并自己的修改，再次尝试提交。</p>
+<script src=https://aliasjeff.github.io/js/mermaid.js></script>
+
+<pre class="mermaid">
+  sequenceDiagram
+    participant TA as 线程A
+    participant TB as 线程B
+    participant DB as 数据库
+
+    TA->>DB: Read (v=1)
+    TB->>DB: Read (v=1)
+    TA->>DB: Update set v=2 where v=1
+    Note right of DB: 成功，v变为2
+    TB->>DB: Update set v=2 where v=1
+    Note right of DB: 失败！影响行数0
+    TB->>TB: 捕获失败，重新读取重试
+    TB->>DB: Read (v=2)
+    TB->>DB: Update set v=3 where v=2
+    Note right of DB: 成功
+</pre>
+<h3 id="4-3-wei-yi-suo-yin-shu-ju-ku-ceng-mian-de-dou-di"><a class="zola-anchor" href="#4-3-wei-yi-suo-yin-shu-ju-ku-ceng-mian-de-dou-di" aria-label="Anchor link for: 4-3-wei-yi-suo-yin-shu-ju-ku-ceng-mian-de-dou-di">4.3 唯一索引：数据库层面的兜底</a></h3>
+<p>除了悲观锁和乐观锁，还有一个朴素但强大的工具：<strong>数据库唯一约束</strong>。</p>
+<p>对于Case 1（MQ重复插入），最彻底的解决办法其实是给数据库表的 fashion_id 加上唯一索引。</p>
+<p>当两个线程同时插入时，数据库引擎会通过内部的锁机制确保只有一个能成功，另一个会抛出 <code>DuplicateKeyException</code>。</p>
+<p>在代码层面，我们捕获这个异常，把它当作“消费成功”处理即可。这种方式不需要引入Redis等外部组件，简单可靠。</p>
+<h3 id="4-4-shen-du-dui-bi-yu-si-kao"><a class="zola-anchor" href="#4-4-shen-du-dui-bi-yu-si-kao" aria-label="Anchor link for: 4-4-shen-du-dui-bi-yu-si-kao">4.4 深度对比与思考</a></h3>
+<p>悲观锁和乐观锁没有绝对的优劣，只有适用的场景。</p>
+<table><thead><tr><th><strong>特性</strong></th><th><strong>悲观锁</strong></th><th><strong>乐观锁</strong></th></tr></thead><tbody>
+<tr><td><strong>核心理念</strong></td><td>独占、阻塞</td><td>冲突检测、重试</td></tr>
+<tr><td><strong>适用场景</strong></td><td><strong>写多读少</strong>，并发冲突极高</td><td><strong>读多写少</strong>，并发冲突较低</td></tr>
+<tr><td><strong>优点</strong></td><td>保证强一致，避免反复重试导致CPU飙升</td><td>吞吐量高，无死锁风险</td></tr>
+<tr><td><strong>缺点</strong></td><td>线程阻塞开销大，可能死锁</td><td>高并发下CAS自旋浪费CPU，ABA问题</td></tr>
+<tr><td><strong>实现复杂度</strong></td><td>较高（需维护锁状态）</td><td>较低（依赖数据库或CAS）</td></tr>
+</tbody></table>
+<p>思考：锁的本质是串行化</p>
+<p>无论是悲观锁的排队等待，还是乐观锁的失败重试，其最终效果都是让原本并行的操作，在时间维度上拉成一条直线。</p>
+<ul>
+<li>悲观锁是<strong>物理串行</strong>：大家排好队，一个一个进屋办事。</li>
+<li>乐观锁是<strong>逻辑串行</strong>：大家一起冲进屋，最后出门检票时，发现票号不对的回去重新排队。</li>
+</ul>
+<h2 id="wu-kai-fa-jian-yi"><a class="zola-anchor" href="#wu-kai-fa-jian-yi" aria-label="Anchor link for: wu-kai-fa-jian-yi">五、开发建议</a></h2>
+<p>作为资深开发，在处理竞态条件时，我有以下几点建议分享：</p>
+<ol>
+<li>识别临界区，最小化锁粒度</li>
+</ol>
+<p>锁是性能的杀手。千万不要为了省事，在整个方法上加 synchronized 或者在整个业务流程头部加分布式锁。</p>
+<p>只对修改共享变量的那几行代码加锁。锁的持有时间越短，系统的并发能力越强。</p>
+<ol start="2">
+<li>优先考虑幂等性设计</li>
+</ol>
+<p>在分布式系统中，网络抖动是常态。上游服务调用超时重试、MQ消息重复投递不可避免。</p>
+<p>与其到处加锁防御，不如把接口设计成**幂等（Idempotent）**的。比如利用数据库唯一索引、利用状态机流转限制（如订单状态只能从A流转到B），从数据模型层面天然抵御重复操作。</p>
+<ol start="3">
+<li>警惕“复合操作”的原子性</li>
+</ol>
+<p>Java中的 ConcurrentHashMap 是线程安全的，但这不代表对它的复合操作也是安全的。</p>
+<p>错误写法：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">if (!map.containsKey(key)) {
+    map.put(key, value);
+}
+</code></pre>
+<p>正确写法：</p>
+<p><code>map.putIfAbsent(key, value);</code></p>
+<p>要时刻警惕这种 Check-Then-Act 的代码块。</p>
+<ol start="4">
+<li>兜底策略不能少</li>
+</ol>
+<p>使用分布式锁时，一定要设置合理的过期时间（TTL），防止服务宕机导致锁永远无法释放（死锁）。</p>
+<p>使用乐观锁自旋重试时，一定要限制最大重试次数，防止CPU打满。</p>
+<h2 id="liu-xiao-jie"><a class="zola-anchor" href="#liu-xiao-jie" aria-label="Anchor link for: liu-xiao-jie">六、小结</a></h2>
+<p>竞态条件是并发编程中无处不在的幽灵，它源于多执行单元对共享资源的无序争夺。</p>
+<ul>
+<li>我们通过 <strong>Case 1 (MQ重复消费)</strong> 学习了如何利用 <strong>分布式锁（悲观锁）</strong> 或 <strong>唯一索引</strong> 来解决 Check-Then-Act 类问题。</li>
+<li>我们通过 <strong>Case 2 (Json字段并发写)</strong> 学习了如何利用 <strong>版本号（乐观锁）</strong> 来解决 Read-Modify-Write 类问题。</li>
+</ul>
+<p><strong>悲观锁</strong>适合写冲突激烈的战场，以阻塞换安全；<strong>乐观锁</strong>适合读多写少的乐土，以重试换性能。</p>
+<p>在架构设计中，没有万能的银弹。理解业务场景的并发量级，权衡数据一致性与系统吞吐量，选择最合适的同步机制，才是资深开发者的核心竞争力。希望本文能为你解决并发一致性问题提供清晰的思路。</p>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/alias-studio.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="General"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#yi-qian-yan">一、前言</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#er-wen-ti-ding-yi">二、问题定义</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#2-1-shen-me-shi-jing-tai-tiao-jian">2.1 什么是竞态条件</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#2-2-ben-zhi-gui-yin">2.2 本质归因</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#san-chang-jian-ye-wu-chang-jing">三、常见业务场景</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#3-1-case-1-mqzhong-fu-xiao-fei-dao-zhi-de-zang-shu-ju">3.1 Case 1：MQ重复消费导致的脏数据</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#3-2-case-2-da-jsonzi-duan-bing-fa-geng-xin-dao-zhi-de-xie-diu-shi">3.2 Case 2：大Json字段并发更新导致的“写丢失”</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#si-si-lu-fen-xi-yu-jie-jue-fang-an">四、思路分析与解决方案</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#4-1-bei-guan-suo-yi-zu-sai-huan-an-quan">4.1 悲观锁：以“阻塞”换“安全”</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#4-1-1-chang-jian-shi-xian-fang-shi">4.1.1 常见实现方式</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#4-1-2-case-1-de-bei-guan-suo-jie-fa">4.1.2 Case 1 的悲观锁解法</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#4-1-3-bei-guan-suo-de-ben-zhi">4.1.3 悲观锁的本质</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#4-2-le-guan-suo-yi-shi-tan-qiu-gao-xiao">4.2 乐观锁：以“试探”求“高效”</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#4-2-1-chang-jian-shi-xian-fang-shi">4.2.1 常见实现方式</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#4-2-2-case-2-de-le-guan-suo-jie-fa">4.2.2 Case 2 的乐观锁解法</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#4-3-wei-yi-suo-yin-shu-ju-ku-ceng-mian-de-dou-di">4.3 唯一索引：数据库层面的兜底</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#4-4-shen-du-dui-bi-yu-si-kao">4.4 深度对比与思考</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#wu-kai-fa-jian-yi">五、开发建议</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-san-jing-tai-tiao-jian/#liu-xiao-jie">六、小结</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>
