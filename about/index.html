@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                About
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="AliasJeff" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link id="darkModeStyle"
+              rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                setTheme(getSavedTheme());
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+            <a id="dark-mode-toggle"
+               onclick="toggleTheme(); event.preventDefault();"
+               href="#">
+                <img src="https://aliasjeff.github.io/icons/sun.svg" id="sun-icon" alt="Light" />
+                <img src="https://aliasjeff.github.io/icons/moon.svg"
+                     id="moon-icon"
+                     style="filter: invert(1)"
+                     alt="Dark" />
+                <img src="https://aliasjeff.github.io/icons/auto.svg"
+                     id="auto-icon"
+                     style="filter: invert(1)"
+                     alt="Auto" />
+            </a>
+
+            <!-- Initialize the theme toggle icons -->
+            <script>
+                updateItemToggleTheme()
+            </script>
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+        
+    
+        <div class="page-header">
+            About
+        </div>
+    
+
+    
+
+    
+        <div class="section-content">
+            <h2 id="hi-there-wave-i-m-jeffery">Hi there! 👋 I'm Jeffery</h2>
+<p align="left"> <img src="https://komarev.com/ghpvc/?username=AliasJeff&label=Profile%20views&color=0e75b6&style=flat" alt="AliasJeff" /> </p>
+Hy name is <strong>Jeffery (陈喆勋)</strong>, my date of birth is 2002/02/27,
+<p>I like music, movies, photography, body-building, and I'm a BIG fan of <strong>Development &amp; Technologies</strong> (obviously)!</p>
+<p>my day one in tech was in oct/2020 and to be fair I'm in a consistent pace since June/2022 only.
+<img src="/images/comic-like.png" alt="look" style="display:block; margin:20px auto; max-width:300px;" /></p>
+<hr />
+<h3 id="rocket-about-me">🚀 About Me</h3>
+<ul>
+<li><strong>🎓 Education</strong> : Software Engineering M.S. student, Xidian University.</li>
+<li><strong>👨‍💻 Work</strong> : Full stack developer interning at <a href="https://taelor.style/">Taelor</a> from July/2023 - Now. <span style="text-decoration: underline"><a href="https://taelor.style/pages/membership">Clothing rental at Taelor</a><span></li>
+</ul>
+<p>I am master's student/programmer/developer/software engineer with background in fullstack development designing databases, backend and frontend alongside engineering team for shipping products.</p>
+<p style="color: #7a7a7a">Just letting you know, I'm a very caring person :)</p>
+<h4 id="books-more">📚 More</h4>
+<p><u><a href="https://aliasjeff.github.io/about/./things-i-like">Things I like</a></u></p>
+<hr />
+<h3 id="tools-skills">🛠️ Skills</h3>
+<p><img src="https://img.shields.io/badge/Code-Java-informational?style=flat&amp;logo=java&amp;color=F7DF1E" alt="Java" />
+<img src="https://img.shields.io/badge/Code-Python-informational?style=flat&amp;logo=python&amp;color=3776AB" alt="Python" />
+<img src="https://img.shields.io/badge/Code-React-informational?style=flat&amp;logo=react&amp;color=777BB4" alt="React" />
+<img src="https://img.shields.io/badge/System-Linux-informational?style=flat&amp;logo=linux&amp;color=FCC624" alt="Linux" /></p>
+<p><code><img height="27" src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/java/java.png" alt="java"></code>
+<code><img height="30" src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/python/python.png" alt="python"></code>
+<code><img height="27" src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/react/react.png" alt="react"></code>
+<code><img height="27" src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/sql/sql.png" alt="sql"></code>
+<code><img height="27" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/git/git-original.svg" alt="git"></code>
+<code><img height="27" src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/terminal/terminal.png" alt="terminal"></code></p>
+<hr />
+<h3 id="mailbox-contact">📫 Contact</h3>
+<ul>
+<li><strong>GitHub</strong>: <span style="text-decoration: underline"><a href="https://github.com/AliasJeff" target="_blank">AliasJeff</a></span></li>
+<li><strong>Email</strong>: <span style="text-decoration: underline"><a href="mailto:zhexunchen@gmail.com">zhexunchen@gmail.com</a></span></li>
+<li><strong>LinkedIn</strong>:</li>
+</ul>
+<hr />
+
+        </div>
+    
+
+    
+        <main class="post-list">
+    <ul>
+            
+    <li class="list-item">
+        <section>
+            <div class="post-header">
+                <time>2025-07-09</time>
+
+                <div>
+                    <h1 class="title">
+                        <a href=https://aliasjeff.github.io/about/things-i-like/>Things that I like</a>
+
+                        
+                    </h1>
+
+                    <div class="meta">
+                        <div class="description">
+                            
+                                
+                            
+                        </div>
+
+                        
+                    </div>
+                </div>
+            </div>
+        </section>
+    </li>
+
+        </ul>
+
+        </main>
+    
+
+    
+
+
+            
+                
+            
+
+            
+        </div>
+
+        <div class="right-content">
+            
+            
+        </div>
+    </body>
+
+</html>

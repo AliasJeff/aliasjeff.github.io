@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                一致性问题 (一) —— 冗余数据与分布式共识决策
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="一致性问题 (一) —— 冗余数据与分布式共识决策" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link id="darkModeStyle"
+              rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                setTheme(getSavedTheme());
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+            <a id="dark-mode-toggle"
+               onclick="toggleTheme(); event.preventDefault();"
+               href="#">
+                <img src="https://aliasjeff.github.io/icons/sun.svg" id="sun-icon" alt="Light" />
+                <img src="https://aliasjeff.github.io/icons/moon.svg"
+                     id="moon-icon"
+                     style="filter: invert(1)"
+                     alt="Dark" />
+                <img src="https://aliasjeff.github.io/icons/auto.svg"
+                     id="auto-icon"
+                     style="filter: invert(1)"
+                     alt="Auto" />
+            </a>
+
+            <!-- Initialize the theme toggle icons -->
+            <script>
+                updateItemToggleTheme()
+            </script>
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            一致性问题 (一) —— 冗余数据与分布式共识决策
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2025-12-03</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/yi-zhi-xing/"
+                                       class="post-tag">一致性</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/fen-bu-shi/"
+                                       class="post-tag">分布式</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>数据一致性问题，追根溯源，本质是多份数据存储所衍生出的不一致状况。</p>
+<p>在当今的开发环境中，数据一致性的概念早已突破了传统的边界。在实际项目开发过程中，它呈现出泛化的态势，既包含理论层面的严格定义，也包含工程实践中各种异常数据的统称。今天我们从这两个维度出发，深入探讨冗余数据存储与分布式共识中的一致性难题。</p>
+<h2 id="yi-wen-ti-ding-yi"><a class="zola-anchor" href="#yi-wen-ti-ding-yi" aria-label="Anchor link for: yi-wen-ti-ding-yi">一、 问题定义</a></h2>
+<p>我们首先需要厘清一致性在不同语境下的具体含义。</p>
+<h3 id="xue-shu-yan-jin-ding-yi"><a class="zola-anchor" href="#xue-shu-yan-jin-ding-yi" aria-label="Anchor link for: xue-shu-yan-jin-ding-yi">学术严谨定义</a></h3>
+<p>在分布式系统理论的精密架构里，一致性有着极为明确且特定的指向。它主要聚焦于多副本数据之间的同步难题，这一点在经典的CAP定理中的Consistency表现得尤为突出。</p>
+<p>多副本数据同步问题，核心在于如何保持其对外表现的数据一致性。当数据以多副本的形式存储于分布式系统的各个节点时，如何确保这些副本在任何时刻对外呈现的数据状态都是一致的，成为了一个极具挑战性的问题。</p>
+<p>由于各个副本可能分布在不同地理位置、不同性能的物理节点上，并且受到网络延迟、节点故障、时钟差异等多种复杂因素的影响，数据同步过程变得异常复杂。例如，在一个跨国公司的分布式数据库系统中，位于不同国家的数据中心都存有相同数据的副本。如何保证无论用户从哪个数据中心读取数据，都能获取到完全一致的结果，这对多副本数据同步机制提出了极高的要求。</p>
+<p>这里属于分布式系统特性，即CAP中的C。CAP定理指出，在分布式系统中，一致性、可用性、分区容错性这三个特性无法同时完美达成。这里的一致性强调在分布式环境下，任何对数据的更新操作，都能够在所有节点上以相同的顺序和内容被正确执行，进而使得所有节点在任意时刻所呈现的数据状态完全一致。然而，在实际的分布式系统构建中，由于网络分区等现实问题的不可避免，我们往往需要在一致性和可用性之间进行权衡取舍。</p>
+<h3 id="gong-cheng-shi-jian-fan-hua"><a class="zola-anchor" href="#gong-cheng-shi-jian-fan-hua" aria-label="Anchor link for: gong-cheng-shi-jian-fan-hua">工程实践泛化</a></h3>
+<p>在工程实践的一线场景中，开发者们常常将所有导致数据出现不正确或者不符合预期结果的情形，一概归类为一致性问题。这其中涵盖了多个不同维度、不同本质的情况：</p>
+<ol>
+<li>
+<p><strong>并发写入冲突</strong>
+本质是竞态条件。在高并发的系统环境下，当多个写入操作同时针对同一数据资源发起修改请求时，由于操作执行顺序的不确定性，极有可能引发最终数据状态与预期不符的情况。以在线抢票系统为例，大量用户同时抢购有限数量的车票，若对车票库存的并发写入操作缺乏有效的协调与控制，就极易出现超卖等严重的数据不一致问题，严重影响系统的正常运营和用户体验。</p>
+</li>
+<li>
+<p><strong>事务隔离性破坏</strong>
+本质是可见性问题。事务隔离性定义了不同事务之间相互隔离的程度，不同的隔离级别决定了一个事务对其他事务操作结果的可见性范围。一旦事务隔离性遭到破坏，就会滋生出诸如脏读、不可重复读以及幻读等数据一致性问题，严重干扰了系统数据的准确性和完整性。</p>
+<ul>
+<li>脏读：一个事务读取到另一个未提交事务修改的数据。</li>
+<li>不可重复读：在同一事务中，多次读取同一数据却得到不同的结果，原因是其他事务在此期间对该数据进行了修改并提交。</li>
+<li>幻读：在一个事务中执行查询操作时，由于其他事务插入或删除了符合查询条件的数据，导致该事务再次执行相同查询时得到了不同的结果集。</li>
+</ul>
+</li>
+<li>
+<p><strong>事务原子性破坏</strong>
+本质是完整性问题。事务的原子性是指事务作为一个不可分割的最小工作单元，要么全部执行成功并提交，要么全部执行失败并回滚，不存在部分成功部分失败的中间状态。在实际工程场景中，事务原子性的破坏会导致数据处于不一致的状态，影响系统的正确性和可靠性。</p>
+<p>例如，在一个电商系统的订单创建和库存扣减的业务流程中，创建订单和扣减库存这两个操作应作为一个事务来处理。假设用户下单购买了一件商品，系统首先在订单表中插入一条订单记录，然后需要从库存表中扣减相应商品的库存数量。如果在插入订单记录后，由于系统故障、网络中断或其他原因，导致库存扣减操作未能成功执行，那么就破坏了事务的原子性。此时，订单已经生成，但库存数量却没有相应减少，这会导致商品超卖的情况发生，使得订单数据和库存数据之间出现不一致，严重影响业务的正常运行。</p>
+</li>
+<li>
+<p><strong>业务规则违反</strong>
+本质是完整性约束。业务规则是对现实世界中业务逻辑的高度抽象与规范化约束。例如，在金融信贷系统中，明确规定用户的信用额度不能为负数，且贷款金额必须在用户信用额度允许的范围内。倘若由于程序漏洞、错误操作或者系统设计缺陷等原因，导致用户的信用额度出现负数，或者贷款金额超出了合理范围，这就严重违反了既定的业务规则，破坏了数据的完整性，进而引发数据一致性问题。</p>
+</li>
+</ol>
+<p>本文主要聚焦于实际工程开发中的问题。由于不同场景的问题原因和解决思路并不相同，本质是多种问题合并统称的结果，所以本系列会拆分情况，逐个去讨论。</p>
+<h2 id="er-rong-yu-shu-ju-cun-chu-dao-zhi-de-yi-zhi-xing-wen-ti"><a class="zola-anchor" href="#er-rong-yu-shu-ju-cun-chu-dao-zhi-de-yi-zhi-xing-wen-ti" aria-label="Anchor link for: er-rong-yu-shu-ju-cun-chu-dao-zhi-de-yi-zhi-xing-wen-ti">二、 冗余数据存储导致的一致性问题</a></h2>
+<h3 id="2-1-wen-ti-chan-sheng-tiao-jian"><a class="zola-anchor" href="#2-1-wen-ti-chan-sheng-tiao-jian" aria-label="Anchor link for: 2-1-wen-ti-chan-sheng-tiao-jian">2.1 问题产生条件</a></h3>
+<p>当存在多份数据冗余存储时，就为数据一致性问题埋下了隐患。</p>
+<p>这里所说的冗余存储，不仅仅局限于数据本身的重复存储，还包括那些间接的映射关系，它们同样属于冗余存储的范畴。</p>
+<p>例如，在车辆系统中，车型库的品牌车型车款名称不仅存在在车型库服务中，往往也会在车辆系统中冗余一份，这个是直接数据的冗余。</p>
+<p>在商品服务中，存储了商品和车型的映射关系，这个关系在业务上可以理解为同名车款的组合，而这个就是间接数据的冗余，因为这里其实冗余了同名车款，尽管数据源头没有直接存储，但是可以从数据源头实时计算得出。</p>
+<p>这种直接或间接的冗余存储都可能引发数据一致性问题。</p>
+<h3 id="2-2-dian-xing-chang-jing"><a class="zola-anchor" href="#2-2-dian-xing-chang-jing" aria-label="Anchor link for: 2-2-dian-xing-chang-jing">2.2 典型场景</a></h3>
+<p><strong>分布式存储中的主从分片</strong></p>
+<p>在分布式存储体系架构中，为了有效保障数据的可靠性，并显著提升系统的读性能，主从模式成为了一种广泛采用的设计思路。在这种模式下，一份数据仅存在一个主节点，通过将主分片数据进行冗余存储到多个从节点的方式，来实现性能的优化与拓展。例如Redis哨兵模式的主从分片，以及ES的主从分片。</p>
+<p><strong>缓存</strong></p>
+<p>缓存机制在现代计算机系统和软件架构中被广泛应用，旨在通过存储常用数据的副本，减少对后端数据源的直接访问，从而显著提升系统的响应速度和整体性能。然而，缓存的使用也带来了数据一致性方面的挑战。这就包括了Redis缓存、MySQL表冗余字段、CPU多级缓存以及JVM内部缓存。</p>
+<p><strong>服务间状态冗余</strong></p>
+<p>在当今流行的微服务架构体系中，各个服务之间通过相互协作来共同完成复杂的业务功能。然而，为了提高服务的响应速度和减少对其他服务的依赖，部分服务可能会选择冗余存储其他服务的数据，这就引发了服务间状态冗余的问题。例如服务A为了查询性能冗余存储了服务B的核心数据。</p>
+<h3 id="2-3-jie-jue-si-lu-fan-shi"><a class="zola-anchor" href="#2-3-jie-jue-si-lu-fan-shi" aria-label="Anchor link for: 2-3-jie-jue-si-lu-fan-shi">2.3 解决思路范式</a></h3>
+<p>一般治理冗余数据的一致性问题有两种思路。</p>
+<p><strong>2.3.1 允许冗余存储，做好一致性方案</strong></p>
+<p>如果确认要冗余存储，那么需要根据实际场景选择强一致性还是最终一致性。</p>
+<p><strong>强一致性</strong></p>
+<p>强一致性要求系统在任何时刻，所有副本的数据都保持完全一致。
+常见做法是同步写，任何对数据的更新操作，都必须在所有副本上立即完成，并且对所有后续的读操作可见。</p>
+<p>在分布式环境下，这种做法往往还会引入事务性的问题，比如发给副本的同步消息超时，那么此时副本可能同步成功，也可能同步失败，这时其实就引入了数据不一致的问题。如果同步失败，涉及回滚，这又涉及到分布式事务中的原子性问题。单机的强一致性代价较低，但是在分布式环境下，冗余存储的强一致性很难完全保障，因此正常业务中都会尽量避免在分布式环境中去保证强一致性。</p>
+<p><strong>最终一致性</strong></p>
+<p>最终一致性则相对较为灵活，它允许系统在一段时间内存在数据不一致的情况，但保证在经过一段时间的延迟后，所有副本的数据最终能够达到一致状态。</p>
+<p>在许多对数据一致性要求相对较低，但对系统性能和可用性要求较高的业务场景中，如社交媒体平台上的点赞数统计、浏览量计数等，最终一致性是一种更为合适的选择。因为在这些场景下，短期内的数据不一致对用户体验的影响较小，而通过采用最终一致性方案，可以大大简化系统设计，提高系统的并发处理能力和整体性能。</p>
+<p>常见方案包括：</p>
+<ul>
+<li>增量同步</li>
+<li>异步写，如MQ消息等</li>
+<li>同步写，写主数据后，同步写副本数据，但不一定要求写成功</li>
+<li>全量补偿，如定时补偿任务</li>
+<li>读屏障，通过一定的机制如超时失效，判定是否需要从主数据更新</li>
+</ul>
+<p>实现最终一致性，将数据变更操作异步地传播到各个副本，并通过定期的校验和修复机制来确保最终数据的一致性。当然也可以通过读屏障的方式，将存储的数据一致性问题转为对外表现的数据一致性，实现一样的效果。</p>
+<p><strong>2.3.2 清除冗余存储，关键数据以数据源为准</strong></p>
+<p>如果冗余存储所带来的数据一致性问题过于复杂且难以有效解决，或者经过评估发现该冗余存储对系统性能等方面的提升并不显著，甚至得不偿失，那么可以考虑直接清除冗余存储。</p>
+<p>在这种思路下，当系统需要获取数据时，直接从数据源进行查询获取。这样做的最大优势在于可以从根本上避免由于冗余存储导致的数据不一致问题，因为所有的数据读取和操作都直接基于唯一的数据源。</p>
+<p>然而，这种方案也并非完美无缺，它可能会对数据源的访问压力产生较大影响，尤其是在高并发场景下。因此，在决定采用这种方案之前，需要充分评估数据源的性能承载能力，并可能需要结合一些缓存策略或优化数据源的查询性能，以确保系统的整体性能不受太大影响。</p>
+<p>在实际决策过程中，我们需要深入思考以下几个关键问题：</p>
+<ul>
+<li>当前业务场景是否有必要进行冗余存储。例如在一个数据更新频率极低且对查询性能要求不高的业务场景中，如一些历史档案查询系统，可能并不需要进行冗余存储，直接从数据源查询即可满足业务需求，这样既能避免复杂的数据一致性问题，又能简化系统设计和维护成本。</li>
+<li>如果需要冗余存储，那么该业务场景对于一致性的要求是怎么样的。对于一些对数据一致性要求极高的业务场景，如金融交易结算系统，即使采用冗余存储，也必须确保数据在极短的时间内达到一致，此时可能需要选择强一致性方案。而对于社交平台的用户动态展示等，稍微延迟的最终一致性可能是完全可以接受的。</li>
+<li>数据源变更频率是怎么样的，是否需要同步机制。如果数据源变更频率非常高，如在一个实时交易频繁的电商系统中，商品库存、价格等数据可能随时发生变化，那么就需要设计高效、实时的同步机制。</li>
+</ul>
+<h3 id="2-4-chang-jian-jie-jue-fang-an-pou-xi"><a class="zola-anchor" href="#2-4-chang-jian-jie-jue-fang-an-pou-xi" aria-label="Anchor link for: 2-4-chang-jian-jie-jue-fang-an-pou-xi">2.4 常见解决方案剖析</a></h3>
+<p>以下举例几种我们常见的场景和对应的解决方案，来将我们之前说的解决思路串联起来。</p>
+<p><strong>CPU多级缓存：缓存一致性协议</strong></p>
+<p>在多级缓存架构中，为了确保各级缓存之间的数据一致性，通常会采用专门的缓存一致性协议，其中较为经典的如MESI协议。该协议的核心工作原理是，当一个缓存中的数据被修改时，会立即将其他缓存中对应的副本数据标记为失效状态。这样，当其他缓存需要读取该数据时，首先会检查自身缓存中的数据状态，发现数据已被标记为失效，就会从主存或者其他仍然保持有效状态的缓存中获取最新数据，从而保证了多级缓存之间的数据一致性。这本质上是共享变量写失效副本数据的策略。</p>
+<p><strong>Redis缓存与MySQL：旁路缓存</strong></p>
+<p>旁路缓存模式是一种常用的缓存与数据库协同工作的方式。在这种模式下，应用程序在进行数据读取操作时，首先会尝试从Redis缓存中获取数据。如果缓存命中，即Redis中存在所需数据，则直接将数据返回给应用程序，这样可以极大地提高数据读取速度。若缓存未命中，应用程序会转而从MySQL数据库中读取数据，获取到数据后，一方面将数据返回给应用程序，另一方面将数据写入Redis缓存，以便后续读取能够直接命中缓存。</p>
+<p>在数据更新操作时，应用程序先更新MySQL数据库，然后立即删除Redis缓存中对应的旧数据。这样，当下次读取该数据时，由于缓存未命中，会从数据库中获取最新数据并重新写入缓存，从而保证了数据的一致性。</p>
+<p>这两种解决方案都是通过写主数据，然后失效副本数据的方式实现对外表现的数据一致性。其实就存储而言，两份数据已经不一致，可以归纳为使用了读屏障，将存储的数据一致性问题转化为对外表现的数据一致性。而失效操作，本质就是同步双写，双写了失效数据这个操作，从而实现强一致性。</p>
+<p>但在分布式场景下，由于网络的不可靠，强一致性就很难保证，一般都会退化为最终一致性。比如在Redis和MySQL的场景中，如果删除Redis失败，此时就出现数据不一致的情况。一般策略就是根据业务场景Key的设置过期时间，由Redis去保证最终的删除。</p>
+<p>关于八股文中常提的延迟双删，这种做法的本质是由服务自身去保证最终的删除。个人认为该做法并不优雅，因为你无法确认延迟的时间，以及由业务去做这种操作，有点舍本逐末的感觉。在实际开发中，也并没有真正见过这种做法。在Redis删除失败的这种情况下，我们通过TTL机制实现的是最终一致性。</p>
+<p><strong>MQ增量更新</strong>
+MQ增量更新策略主要基于数据源数据发生变化时产生的增量信息来驱动同步流程。</p>
+<p>以电商系统为例，当商品信息如价格、库存、描述等在核心数据库MySQL中发生变更时，数据库的binlog会记录下这些详细的变更操作。专门的监听程序如Canal会实时监测binlog，一旦捕获到商品数据的变更事件，它会将这些增量变更信息封装成消息发送到MQ中。</p>
+<p>在消息队列的另一端，负责处理缓存更新或者其他数据同步任务的消费者服务时刻监听着MQ中的消息。当接收到商品数据变更的消息后，消费者服务会解析消息内容，从中提取出变更的具体信息。然后依据这些增量信息，消费者服务会对相关的Redis缓存或者其他关联数据存储进行针对性的更新操作。这种方案就是通过增量同步和异步写的方式实现数据的最终一致性。</p>
+<p><strong>业务服务间状态的一致性</strong>
+在实际业务中，不同服务间状态的一致性，主要有两种思路。</p>
+<ol>
+<li><strong>感知上游服务状态的变化</strong>
+例如通过订阅上游MQ来感知数据一致性。以电商系统为例，订单服务作为下游服务，可以订阅上游库存服务的MQ。当库存服务中的商品库存数量发生变化时，会向MQ发送消息，订单服务通过订阅该MQ，能够及时感知到库存状态的改变，从而在处理订单时，基于最新的库存数据进行业务逻辑判断。</li>
+<li><strong>通过定时任务扫描不一致数据并补偿</strong>
+比如在一个涉及用户信息管理和用户积分统计的系统中，用户信息服务和积分服务可能由于各种原因导致数据不一致。此时可设置一个定时任务，按照一定的时间间隔对两个服务中的相关数据进行比对。通过预先设定的一致性规则，找出存在差异的数据记录，然后根据用户信息服务中的准确数据，在积分服务中进行积分补偿操作。这便是全量补偿的方式，它作为一种兜底策略，在一定程度上保证了即使存在增量同步过程中的遗漏或异常，也能实现数据的最终一致性。</li>
+</ol>
+<h2 id="san-fen-bu-shi-gong-shi-jue-ce-zhong-de-yi-zhi-xing-wen-ti"><a class="zola-anchor" href="#san-fen-bu-shi-gong-shi-jue-ce-zhong-de-yi-zhi-xing-wen-ti" aria-label="Anchor link for: san-fen-bu-shi-gong-shi-jue-ce-zhong-de-yi-zhi-xing-wen-ti">三、 分布式共识决策中的一致性问题</a></h2>
+<p>在分布式环境中，冗余数据存储的一致性问题，往往和分布式共识决策混为一谈。</p>
+<p>分布式共识决策强调共识，即在一个范围内的所有节点，如何在一个确定的提案上达成一个统一的结论，可以理解为认知上的一致性。而冗余数据存储的一致性强调多副本或者叫多节点上的数据一致。</p>
+<p>一个经典的错误认知就是Wikipedia在2019年8月的一个对Paxos的定义中，将其描述为一致性算法，这一错误在同年12月被修正。</p>
+<h3 id="3-1-fen-bu-shi-huan-jing-de-he-xin-wen-ti-bu-ke-kao-de-wang-luo"><a class="zola-anchor" href="#3-1-fen-bu-shi-huan-jing-de-he-xin-wen-ti-bu-ke-kao-de-wang-luo" aria-label="Anchor link for: 3-1-fen-bu-shi-huan-jing-de-he-xin-wen-ti-bu-ke-kao-de-wang-luo">3.1 分布式环境的核心问题：不可靠的网络</a></h3>
+<p>互联网及多数数据中心内部网络为异步网络。在此网络中，节点间数据包传输存在诸多不确定性。消息发送后等待响应期间，状况百出。</p>
+<p>发送请求后，请求可能滞留于消息队列或因网络分区无法及时抵达远程接收节点。远程接收节点可能崩溃、暂时无法响应如执行长时间垃圾回收。即便远程节点正确处理请求，回复消息也可能在网络中丢失。</p>
+<p>由于网络延迟不确定，数据包及回复消息皆可能丢失或延迟，发送者仅知未收到响应，却难判原因，常只能不断重发消息。</p>
+<h3 id="3-2-fen-bu-shi-gong-shi-suan-fa"><a class="zola-anchor" href="#3-2-fen-bu-shi-gong-shi-suan-fa" aria-label="Anchor link for: 3-2-fen-bu-shi-gong-shi-suan-fa">3.2 分布式共识算法</a></h3>
+<p><strong>Raft</strong>
+Raft算法致力于在分布式系统节点间达成可靠共识。我之前也手写过类似Raft算法，总结下来有几个核心的机制去实现节点间的共识：</p>
+<ol>
+<li>
+<p><strong>状态存储日志化</strong>
+各节点通过日志记录系统状态变更操作，日志顺序保证系统状态一致演进。</p>
+</li>
+<li>
+<p><strong>心跳机制</strong>
+领导者节点定期向其他节点发送心跳消息维持活性与领导地位，接收节点据此重置选举超时计时器。</p>
+</li>
+<li>
+<p><strong>重新选举机制</strong>
+节点在随机选举超时时间内未收到心跳，则发起选举。投票策略为节点优先投票给任期term比自身大的候选人，任期相同时，选日志完整性更高的。</p>
+</li>
+<li>
+<p><strong>写入策略</strong>
+领导者写操作时，追加日志并向其他节点发送复制请求，超半数节点复制成功，才标记日志已提交。</p>
+</li>
+</ol>
+<p>…</p>
+<h3 id="3-3-gong-cheng-shi-jian-fen-bu-shi-gong-shi-de-ying-yong"><a class="zola-anchor" href="#3-3-gong-cheng-shi-jian-fen-bu-shi-gong-shi-de-ying-yong" aria-label="Anchor link for: 3-3-gong-cheng-shi-jian-fen-bu-shi-gong-shi-de-ying-yong">3.3 工程实践：分布式共识的应用</a></h3>
+<p>在分布式系统中，分布式共识算法可以实现分布式系统中的决策一致，因此分布式共识应用非常广泛。</p>
+<p><strong>Zookeeper</strong></p>
+<p>Zookeeper作为分布式协调服务框架，在工程实践中应用广泛。其最核心的能力是在分布式环境中实现自动的主从切换，同时保证集群节点能在一定范围内达成共识。</p>
+<p>基于此能力拓展出来一些功能：</p>
+<ul>
+<li>服务发现：服务实例启动时向Zookeeper注册，其他服务查询获取列表。</li>
+<li>分布式锁：通过创建临时顺序节点实现分布式锁，控制共享资源访问。</li>
+<li>配置管理：集中存储配置数据，变更时通知组件更新。</li>
+</ul>
+<p>除了常见的集群服务配置管理和服务发现外，Zookeeper也广泛用于分布式存储领域集群的搭建。比如腾讯云MQ的背后实现Pulsar，就是用的Zookeeper去实现集群元数据的管理。</p>
+<p><strong>ES集群管理：分布式存储实现的典范</strong></p>
+<p>其实就本质而言，Zookeeper实现的是一套分布式共识算法，大部分分布式应用的集群实现基本上会依赖类似Zookeeper提供的共识能力。当然，你也可以自己实现，比如ES的集群管理，其实就是自己实现了一套共识机制来天然支持集群能力。</p>
+<p>需要注意的是，分布式共识并不是银弹。因为他为了保证共识，其关键一步就是写主时，必须同步写入半数以上节点成功才能成功，这种方式的弊端就是性能。所以用来存储这种共识的数据，一般都是特别关键且不容易变化的信息，比如集群元数据，包括主从分片地址等。</p>
+<h2 id="si-xiao-jie"><a class="zola-anchor" href="#si-xiao-jie" aria-label="Anchor link for: si-xiao-jie">四、 小结</a></h2>
+<p>本文讨论了一致性中比较典型的两种场景：冗余数据存储中的一致性问题，以及分布式共识决策中的一致性问题。</p>
+<p>我们总结了常见的解决范式，通过归纳，我们发现很多场景的解决思路非常相似。比如CPU多级缓存和Redis-MySQL的一致性问题，都是通过同步写加读屏障去解决冗余数据的一致性问题。</p>
+<p>分布式共识决策强调共识，即在一个范围内的所有节点，如何在一个确定的提案上达成一个统一的结论，可以理解为认知上的一致性。而冗余数据存储的一致性强调多副本上的数据一致。</p>
+<p>当然一致性问题不止于此，后续将会就以下场景继续展开分析：</p>
+<ul>
+<li>并发场景导致数据竞态条件问题</li>
+<li>事务型一致性问题：单机事务、分布式事务、原子性、隔离性、持久性</li>
+<li>业务规则违反的一致性问题</li>
+</ul>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/alias-studio.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="General"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-yi-rong-yu-shu-ju-yu-fen-bu-shi-gong-shi-jue-ce/#yi-wen-ti-ding-yi">一、 问题定义</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-yi-rong-yu-shu-ju-yu-fen-bu-shi-gong-shi-jue-ce/#xue-shu-yan-jin-ding-yi">学术严谨定义</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-yi-rong-yu-shu-ju-yu-fen-bu-shi-gong-shi-jue-ce/#gong-cheng-shi-jian-fan-hua">工程实践泛化</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-yi-rong-yu-shu-ju-yu-fen-bu-shi-gong-shi-jue-ce/#er-rong-yu-shu-ju-cun-chu-dao-zhi-de-yi-zhi-xing-wen-ti">二、 冗余数据存储导致的一致性问题</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-yi-rong-yu-shu-ju-yu-fen-bu-shi-gong-shi-jue-ce/#2-1-wen-ti-chan-sheng-tiao-jian">2.1 问题产生条件</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-yi-rong-yu-shu-ju-yu-fen-bu-shi-gong-shi-jue-ce/#2-2-dian-xing-chang-jing">2.2 典型场景</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-yi-rong-yu-shu-ju-yu-fen-bu-shi-gong-shi-jue-ce/#2-3-jie-jue-si-lu-fan-shi">2.3 解决思路范式</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-yi-rong-yu-shu-ju-yu-fen-bu-shi-gong-shi-jue-ce/#2-4-chang-jian-jie-jue-fang-an-pou-xi">2.4 常见解决方案剖析</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-yi-rong-yu-shu-ju-yu-fen-bu-shi-gong-shi-jue-ce/#san-fen-bu-shi-gong-shi-jue-ce-zhong-de-yi-zhi-xing-wen-ti">三、 分布式共识决策中的一致性问题</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-yi-rong-yu-shu-ju-yu-fen-bu-shi-gong-shi-jue-ce/#3-1-fen-bu-shi-huan-jing-de-he-xin-wen-ti-bu-ke-kao-de-wang-luo">3.1 分布式环境的核心问题：不可靠的网络</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-yi-rong-yu-shu-ju-yu-fen-bu-shi-gong-shi-jue-ce/#3-2-fen-bu-shi-gong-shi-suan-fa">3.2 分布式共识算法</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-yi-rong-yu-shu-ju-yu-fen-bu-shi-gong-shi-jue-ce/#3-3-gong-cheng-shi-jian-fen-bu-shi-gong-shi-de-ying-yong">3.3 工程实践：分布式共识的应用</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/yi-zhi-xing-wen-ti-yi-rong-yu-shu-ju-yu-fen-bu-shi-gong-shi-jue-ce/#si-xiao-jie">四、 小结</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

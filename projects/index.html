@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                Projects
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="AliasJeff" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link id="darkModeStyle"
+              rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                setTheme(getSavedTheme());
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+            <a id="dark-mode-toggle"
+               onclick="toggleTheme(); event.preventDefault();"
+               href="#">
+                <img src="https://aliasjeff.github.io/icons/sun.svg" id="sun-icon" alt="Light" />
+                <img src="https://aliasjeff.github.io/icons/moon.svg"
+                     id="moon-icon"
+                     style="filter: invert(1)"
+                     alt="Dark" />
+                <img src="https://aliasjeff.github.io/icons/auto.svg"
+                     id="auto-icon"
+                     style="filter: invert(1)"
+                     alt="Auto" />
+            </a>
+
+            <!-- Initialize the theme toggle icons -->
+            <script>
+                updateItemToggleTheme()
+            </script>
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    
+        <div class="page-header">
+            Projects
+        </div>
+    
+
+
+    
+
+    <main>
+    
+    
+    <div class="cards"
+         style="--columns: 1;
+                --media-height: 250px">
+
+        <div class="card">
+                
+
+                <div class="card-content">
+                    <h1 class="card-title">
+                        
+                            <a href=https://aliasjeff.github.io/projects/project-1/>仿PDD的高并发电商交易系统 (拼单&#x2F;秒杀)</a>
+                        
+                    </h1>
+
+                    
+                        <p class="card-tagline">
+                            参考拼多多拼单模式设计的分布式交易系统，覆盖拼单成团、支付结算、退款等核心链路，通过消息队列与一致性方案保障复杂业务下的数据可靠性。
+                        </p>
+                    
+
+                    
+                        <div class="card-footer">
+                            
+                                <div class="card-links">
+                                    
+                                        
+    
+        <a href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;pin-mate-buy"
+           class="icon-button "
+           target="_blank"
+           rel="noopener">
+            
+                <img src="https://aliasjeff.github.io/icons/social/github.svg" alt="github" />
+            
+            GitHub
+        </a>
+    
+
+                                    
+                                    
+                                        
+    
+        <a href="http:&#x2F;&#x2F;alias-studio.natapp1.cc&#x2F;"
+           class="icon-button "
+           target="_blank"
+           rel="noopener">
+            
+                <img src="https://aliasjeff.github.io/icons/social/globe.svg" alt="globe" />
+            
+            Demo
+        </a>
+    
+
+                                    
+                                </div>
+                            
+
+                            
+                                <div class="card-tags"><span class="card-tag">#Java</span><span class="card-tag">#DDD</span><span class="card-tag">#Redis</span><span class="card-tag">#消息队列</span></div>
+                            
+                        </div>
+                    
+                </div>
+            </div>
+        <div class="card">
+                
+
+                <div class="card-content">
+                    <h1 class="card-title">
+                        
+                            <a href=https://aliasjeff.github.io/projects/project-2/>可扩展的高性能 RPC 框架</a>
+                        
+                    </h1>
+
+                    
+                        <p class="card-tagline">
+                            自研基于 Vert.x 的高性能 RPC 通信框架，支持动态代理、服务注册发现、负载均衡与容错扩展。
+                        </p>
+                    
+
+                    
+                        <div class="card-footer">
+                            
+                                <div class="card-links">
+                                    
+                                        
+    
+        <a href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;alias-rpc"
+           class="icon-button "
+           target="_blank"
+           rel="noopener">
+            
+                <img src="https://aliasjeff.github.io/icons/social/github.svg" alt="github" />
+            
+            GitHub
+        </a>
+    
+
+                                    
+                                    
+                                </div>
+                            
+
+                            
+                                <div class="card-tags"><span class="card-tag">#RPC</span><span class="card-tag">#SPI</span><span class="card-tag">#注册中心</span><span class="card-tag">#负载均衡</span></div>
+                            
+                        </div>
+                    
+                </div>
+            </div>
+        <div class="card">
+                
+
+                <div class="card-content">
+                    <h1 class="card-title">
+                        
+                            <a href=https://aliasjeff.github.io/projects/project-3/>实习 - Taelor</a>
+                        
+                    </h1>
+
+                    
+                        <p class="card-tagline">
+                            Intern. Men’s clothing rental company.
+                        </p>
+                    
+
+                    
+                        <div class="card-footer">
+                            
+
+                            
+                                <div class="card-tags"><span class="card-tag">#实习</span></div>
+                            
+                        </div>
+                    
+                </div>
+            </div>
+        <div class="card">
+                
+
+                <div class="card-content">
+                    <h1 class="card-title">
+                        
+                            <a href=https://aliasjeff.github.io/projects/project-4/>记账小星球</a>
+                        
+                    </h1>
+
+                    
+                        <p class="card-tagline">
+                            多人合作记账微信小程序，已上线。
+                        </p>
+                    
+
+                    
+                        <div class="card-footer">
+                            
+
+                            
+                                <div class="card-tags"><span class="card-tag">#Java</span><span class="card-tag">#DevOps</span><span class="card-tag">#小程序</span></div>
+                            
+                        </div>
+                    
+                </div>
+            </div>
+        <div class="card">
+                
+
+                <div class="card-content">
+                    <h1 class="card-title">
+                        
+                            <a href=https://aliasjeff.github.io/projects/project-5/>智能数据可视化平台</a>
+                        
+                    </h1>
+
+                    
+                        <p class="card-tagline">
+                            搭建前后端分离的智能数据可视化系统，使用AI能力实现多数据源接入、动态仪表盘配置与交互式数据分析展示。
+                        </p>
+                    
+
+                    
+                        <div class="card-footer">
+                            
+                                <div class="card-links">
+                                    
+                                        
+    
+        <a href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;ai-plots-backend"
+           class="icon-button "
+           target="_blank"
+           rel="noopener">
+            
+                <img src="https://aliasjeff.github.io/icons/social/github.svg" alt="github" />
+            
+            GitHub
+        </a>
+    
+
+                                    
+                                    
+                                </div>
+                            
+
+                            
+                                <div class="card-tags"><span class="card-tag">#Java</span><span class="card-tag">#Redis</span><span class="card-tag">#消息队列</span><span class="card-tag">#线程池</span></div>
+                            
+                        </div>
+                    
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    
+
+
+            
+                
+            
+
+            
+        </div>
+
+        <div class="right-content">
+            
+            
+        </div>
+    </body>
+
+</html>
