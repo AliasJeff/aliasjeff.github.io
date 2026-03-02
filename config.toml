@@ -45,7 +45,7 @@ favicon = "code.svg"
 
 # Giscus Comments Configuration
 [extra.giscus]
-repo = "AliasJeff/alias-studio.github.io"
+repo = "AliasJeff/aliasjeff.github.io"
 repo_id = "R_kgDOQs_HFw"
 category = "General"
 category_id = "DIC_kwDOQs_HF84C0Hvj"
