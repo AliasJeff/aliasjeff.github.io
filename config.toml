@@ -47,7 +47,7 @@ favicon = "code.svg"
 [extra.giscus]
 repo = "AliasJeff/aliasjeff.github.io"
 repo_id = "R_kgDOQs_HFw"
-category = "General"
+category = "Announcements"
 category_id = "DIC_kwDOQs_HF84C0Hvj"
 mapping = "pathname"
 strict = "0"
