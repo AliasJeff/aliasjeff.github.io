@@ -130,16 +130,21 @@ comment = true
 
 **High-Concurrency Group-Buying Trading System (PDD-like)** | <u>[Github Link](https://github.com/AliasJeff/pin-mate-buy)</u>
 
-* **Tech Stack:** Spring Boot, MyBatis, MySQL, Redis, RabbitMQ, Guava, XXL-Job, Docker.
-* **Description:** Modeled after e-commerce platforms like Pinduoduo, realizing the full business lifecycle: Discount Calculation → Order Locking → Payment → Refund. Simulated high-traffic promotional events, solving issues like order-grabbing lag, inventory shortages, and slow responses via module splitting, caching, and async processing.
+**Tech Stack:** Spring Boot, MyBatis, MySQL, Redis, RabbitMQ, Guava, XXL-Job, Docker.
+
+**Description:** Modeled after e-commerce platforms like Pinduoduo, realizing the full business lifecycle: Discount Calculation → Order Locking → Payment → Refund. Simulated high-traffic promotional events, solving issues like order-grabbing lag, inventory shortages, and slow responses via module splitting, caching, and async processing.
+
 * **Inventory Safety (Anti-overselling):** Implemented **Redis Segmented Locks** during the order-locking phase to reduce database row lock contention, significantly improving system concurrency while guaranteeing zero overselling.
 * **Consistency Guarantee:** Adopted the **"Local Message Table + RabbitMQ"** pattern. Synchronously persisted pending messages during business transaction commits, and utilized scheduled/async tasks to push messages to MQ, ensuring reliable delivery and eventual consistency of group-buying statuses.
 * **Dynamic Configuration:** Built a dynamic configuration center using the **Redis Pub/Sub** model. Combined with Spring AOP and custom annotations, enabled **second-level hot updates** (without restarts) for promotional toggles and downgrade strategies.
 
+
 **RAG-Driven AI Code Review Agent** | <u>[Github Link](https://github.com/AliasJeff/alias-rag-review)</u>
 
-* **Tech Stack:** Spring AI, RAG, Agent, PgVector, Tool Calling, SSE, React.
-* **Description:** Built a code knowledge base using RAG, integrated with a ReAct Agent workflow for context retrieval, LLM reasoning, and automated decision-making. Automatically posts Code Review comments via the GitHub API. Features a conversational UI with SSE stream responses for multi-turn interactive reviews.
+**Tech Stack:** Spring AI, RAG, Agent, PgVector, Tool Calling, SSE, React.
+
+**Description:** Built a code knowledge base using RAG, integrated with a ReAct Agent workflow for context retrieval, LLM reasoning, and automated decision-making. Automatically posts Code Review comments via the GitHub API. Features a conversational UI with SSE stream responses for multi-turn interactive reviews.
+
 * **RAG Knowledge Base:** Supported file uploads and GitHub repository imports. Implemented document chunking, Embedding vectorization, and **PgVector HNSW index** construction. Enabled precise knowledge base access via tags to improve the Agent's execution accuracy.
 * **Agent Workflow:** Developed a multi-step Agent workflow (**ReAct + Tool Calling**) bridging code context retrieval → LLM reasoning → automated decision → Review comment generation, creating a closed-loop intelligent review process.
 * **Conversational UI:** Built an interactive frontend with **SSE streaming**, allowing developers to engage in multi-turn dialogues with the AI Reviewer to deeply understand review suggestions and optimization strategies.
