@@ -11,14 +11,26 @@ comment = true
 
 
 
-I love dark wood furniture, bearing the rustic warmth of time’s slow settling.
-
-我喜欢深色的木制家具，带着有一种在岁月中反复沉淀的质朴与温暖
 
 
 I admire words that are both clean and beautiful.
 
 我喜欢既简洁又漂亮的文字
+
+
+I delight in wild, unbridled metaphors.
+
+我喜欢天马行空的修辞
+
+
+I love songs woven with the sound of strings.
+
+我喜欢听编曲里有弦乐的歌
+
+
+I love dark wood furniture, bearing the rustic warmth of time’s slow settling.
+
+我喜欢深色的木制家具，带着有一种在岁月中反复沉淀的质朴与温暖
 
 
 I admire the intricate green landscapes of old circuit boards.
@@ -41,9 +53,9 @@ I favor navy blue and warm browns.
 我喜欢藏青色和棕色
 
 
-I love songs woven with the sound of strings.
+I love capturing moments through a lens.
 
-我喜欢听编曲里有弦乐的歌
+我喜欢拍照
 
 
 I love morning TV—a luxury reserved for the idle days of holiday.
@@ -56,19 +68,9 @@ I walk to a rhythmic beat, pretending I am the lead in a movie.
 我喜欢在走路的时候听有节奏感的歌，假装自己是电影主角
 
 
-I delight in wild, unbridled metaphors.
-
-我喜欢天马行空的修辞
-
-
 I am drawn to the cool gleam of silver metal.
 
 我喜欢银色的金属
-
-
-I love capturing moments through a lens.
-
-我喜欢拍照
 
 
 I crave dark chocolate; the darker, the better.
@@ -99,8 +101,3 @@ I dislike roundabout words and hollow pleasantries.
 I dread the red anxiety of a dying battery.
 
 我不喜欢手机电量变红时的焦虑
-
-
-I despise forced laughter just to fit in—a sound far more awkward than silence.
-
-我不喜欢为了合群而必须要发出的笑声，那比沉默还要尴尬一百倍
