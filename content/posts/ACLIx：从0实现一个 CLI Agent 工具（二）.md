@@ -1,6 +1,6 @@
 +++
 title = "ACLIx：从0实现一个 CLI Agent 工具（二、多子智能体协作与状态管理）"
-date = "2026-04-11"
+date = "2026-04-02"
 
 [taxonomies]
 tags=["AI", "大模型应用"]
