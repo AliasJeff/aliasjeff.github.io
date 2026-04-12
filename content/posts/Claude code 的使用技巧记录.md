@@ -1,6 +1,6 @@
 +++
 title = "Claude code 的使用技巧记录"
-date = "2026-04-10"
+date = "2026-02-20"
 
 [taxonomies]
 tags=["AI"]

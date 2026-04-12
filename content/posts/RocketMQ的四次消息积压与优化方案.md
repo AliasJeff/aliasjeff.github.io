@@ -3,7 +3,7 @@ title = "RocketMQ 的四次消息积压与深度优化"
 date = "2026-01-02"
 
 [taxonomies]
-tags=["消息队列", "架构设计", "性能调优"]
+tags=["消息队列", "架构设计", "性能调优", "问题排查"]
 
 [extra]
 comment = true

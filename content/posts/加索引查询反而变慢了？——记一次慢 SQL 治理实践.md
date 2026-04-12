@@ -3,7 +3,7 @@ title = "加索引查询反而变慢了？——记一次慢 SQL 治理实践"
 date = "2024-07-19"
 
 [taxonomies]
-tags=["数据库", "性能调优"]
+tags=["数据库", "性能调优", "问题排查"]
 
 [extra]
 comment = true
