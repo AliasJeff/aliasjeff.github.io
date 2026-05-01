@@ -1,3 +1,6 @@
 # alias-studio
 
-A personal blog website for @AliasJeff
+Personal blog by @AliasJeff  
+🌐 https://aliasjeff.github.io/
+
+Built with Zola • Theme: Apollo • Hosted on GitHub Pages
