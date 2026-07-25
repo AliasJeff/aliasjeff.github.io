@@ -24,17 +24,21 @@ include_content = true
 index_format = "elasticlunr_json"
 
 [extra]
-theme = "toggle"
+theme = "auto"
+stylesheets = [
+  "site-polish.css",
+]
 socials = [
   { name = "github", url = "https://github.com/AliasJeff/", icon = "github" }
 ]
 menu = [
   { name = "Home", url = "/", weight = 1 },
   { name = "Posts", url = "/posts", weight = 2 },
-  { name = "About", url = "/about", weight = 3 },
-  { name = "Projects", url = "/projects", weight = 4 },
-  { name = "Résumé", url = "/resume", weight = 5 },
-  { name = "Tags", url = "/tags", weight = 6 },
+  { name = "Papers", url = "/papers", weight = 3 },
+  { name = "About", url = "/about", weight = 4 },
+  { name = "Projects", url = "/projects", weight = 5 },
+  { name = "Résumé", url = "/resume", weight = 6 },
+  { name = "Tags", url = "/tags", weight = 7 },
 ]
 
 toc = true
