@@ -1,7 +1,7 @@
 +++
 title = "智能数据可视化平台"
 description = "搭建前后端分离的智能数据可视化系统，使用AI能力实现多数据源接入、动态仪表盘配置与交互式数据分析展示。"
-weight = 6
+weight = 7
 
 [extra]
 local_image = ""

@@ -1,7 +1,7 @@
 +++
 title = "记账小星球"
 description = "多人合作记账微信小程序，已上线。"
-weight = 5
+weight = 6
 
 [extra]
 local_image = ""

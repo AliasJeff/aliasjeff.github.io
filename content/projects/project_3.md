@@ -1,5 +1,5 @@
 +++
-title = "实习 - Taelor"
+title = "Taelor - 实习"
 description = "Intern. Men’s clothing rental company."
 weight = 4
 
