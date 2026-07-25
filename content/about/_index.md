@@ -5,7 +5,7 @@ title = "About"
 comment = true
 +++
 
-## Zhexun Chen (陈喆勋)
+## Zhexun Chen (Jeffery)
 
 M.S. student in Software Engineering at Xidian University. My research focuses on recommender systems, particularly generative recommendation, retrieval-augmented learning, and temporal interest modeling. I previously interned as a full-stack developer at [Taelor](https://taelor.style/) and as a backend developer at Tencent IEG, and I am pursuing my graduate research under the supervision of Prof. Guangneng Hu.
 
