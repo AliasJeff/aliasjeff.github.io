@@ -4,7 +4,7 @@ title = "系统性能问题总结和调优 (二) —— IO瓶颈与并发竞态"
 date = "2026-04-20"
 
 [taxonomies]
-tags=["性能调优", "高并发"]
+tags=["性能调优", "高并发", "Redis"]
 
 [extra]
 comment = true

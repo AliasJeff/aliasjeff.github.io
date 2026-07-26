@@ -3,7 +3,7 @@ title = "DDD 架构设计实践"
 date = "2025-11-07"
 
 [taxonomies]
-tags=["架构设计", "高并发"]
+tags=["架构设计", "高并发", "Redis"]
 
 [extra]
 comment = true
