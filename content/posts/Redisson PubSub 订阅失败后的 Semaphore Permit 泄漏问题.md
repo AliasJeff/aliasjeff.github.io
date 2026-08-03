@@ -9,7 +9,9 @@ tags=["Redis", "Redisson", "问题排查", "高并发"]
 comment = true
 +++
 
-Redisson Issue #7264 描述的是一个 Pub/Sub 订阅锁泄漏问题：某次订阅失败或超时后，`PublishSubscribeService.locks[]` 中某个 channel stripe 的 `AsyncSemaphore` permit 可能永久丢失。之后 hash 到同一个 stripe 的 channel，再做订阅或取消订阅时会一直拿不到锁，最终固定在 `subscriptionTimeout` 后失败。
+PR: https://github.com/redisson/redisson/pull/7278
+
+Redisson Issue [#7264](https://github.com/redisson/redisson/issues/7264) 描述的是一个 Pub/Sub 订阅锁泄漏问题：某次订阅失败或超时后，`PublishSubscribeService.locks[]` 中某个 channel stripe 的 `AsyncSemaphore` permit 可能永久丢失。之后 hash 到同一个 stripe 的 channel，再做订阅或取消订阅时会一直拿不到锁，最终固定在 `subscriptionTimeout` 后失败。
 
 这篇文章会从 issue 的现象开始，解释 Redisson Pub/Sub 的 channel stripe semaphore 是怎么用的，再展开这次修复中能确定复现的一条路径：`subscribeNoTimeout(...)` 在 `MasterSlaveEntry == null` 时提前返回，但没有释放外层已经拿到的 semaphore。
 
