@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                Agent = Model + Harness：AI 系统工程的新范式
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="Agent = Model + Harness：AI 系统工程的新范式" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            Agent = Model + Harness：AI 系统工程的新范式
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2026-04-05</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/ai/"
+                                       class="post-tag">AI</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/da-mo-xing-ying-yong/"
+                                       class="post-tag">大模型应用</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <h2 id="ai-gong-cheng-de-yan-jin"><a class="zola-anchor" href="#ai-gong-cheng-de-yan-jin" aria-label="Anchor link for: ai-gong-cheng-de-yan-jin">AI 工程的演进</a></h2>
+<p>过去两年，AI 工程其实经历了三次很明显的演进，它们分别对应了 AI 系统发展的三个阶段性问题，并且是一层一层往外扩张的 ：</p>
+<h3 id="1-prompt-engineering-ti-shi-ci-gong-cheng-jie-jue-biao-da-wen-ti"><a class="zola-anchor" href="#1-prompt-engineering-ti-shi-ci-gong-cheng-jie-jue-biao-da-wen-ti" aria-label="Anchor link for: 1-prompt-engineering-ti-shi-ci-gong-cheng-jie-jue-biao-da-wen-ti">1. Prompt Engineering（提示词工程）：解决表达问题</a></h3>
+<p>在大模型刚火的时候，大家发现换一种说法，模型给的结果就截然不同 。于是大家开始疯狂研究角色设定、约束、Few-shot 示例等 。</p>
+<ul>
+<li><strong>本质</strong>：用提示词工程塑造一个局部的概率空间 。</li>
+<li><strong>局限：</strong> 它擅长约束输出、激发模型已有能力，但它无法弥补缺失的知识，也处理不了长链路任务里的状态 。有些事不是你说清楚就行，而是模型得知道事实本身 。</li>
+</ul>
+<h3 id="2-context-engineering-shang-xia-wen-gong-cheng-jie-jue-xin-xi-wen-ti"><a class="zola-anchor" href="#2-context-engineering-shang-xia-wen-gong-cheng-jie-jue-xin-xi-wen-ti" aria-label="Anchor link for: 2-context-engineering-shang-xia-wen-gong-cheng-jie-jue-xin-xi-wen-ti">2. Context Engineering（上下文工程）：解决信息问题</a></h3>
+<p>当 Agent 开始火了，模型需要进入真实环境做事，要多轮对话、调用 API、传递中间结果 。此时，仅靠一句提示词已经无法解决问题了。</p>
+<ul>
+<li><strong>核心：</strong> 这里的 Context 代表了所有影响模型当前决策的“信息总和”，包括用户输入、历史对话、检索结果、工具返回、系统规则等（Prompt 其实只是 Context 的一部分） 。</li>
+<li><strong>高级实践：</strong> 比如 RAG（检索增强生成）就是一种典型实践 。再比如现在很火的 Agent Skills，采用了<strong>渐进式披露</strong>的思路：不把所有工具参数一次性塞给模型（避免注意力涣散），而是按需给、分层给，这也是上下文优化的高级形态 。</li>
+</ul>
+<h3 id="3-harness-engineering-jie-jue-zhi-xing-yu-jiu-pian-wen-ti"><a class="zola-anchor" href="#3-harness-engineering-jie-jue-zhi-xing-yu-jiu-pian-wen-ti" aria-label="Anchor link for: 3-harness-engineering-jie-jue-zhi-xing-yu-jiu-pian-wen-ti">3. Harness Engineering：解决执行与纠偏问题</a></h3>
+<p>就算信息给对了，模型也不一定能稳定执行 。它可能计划做得很好，但执行跑偏了，或者调用工具理解错了 。</p>
+<ul>
+<li><strong>核心痛点：</strong> 当模型开始连续行动时，谁来监督它、约束它、纠偏它？</li>
+<li><strong>本质：</strong> Analyze（Harness 原意是马具、约束装置），在 AI 系统里就是提醒我们：系统不仅要喂信息，还要能驾驭整个执行过程，跑偏了能拉回来 。</li>
+</ul>
+<blockquote>
+<p><strong>一个通俗的比喻：派一个新人去拜访重要客户</strong> <strong>Prompt Engineering：</strong> 把任务讲清楚（先寒暄，再介绍方案，最后确认下一步）。重点是<strong>把话说明白</strong> 。 <strong>Context Engineering：</strong> 把资料准备齐全（客户背景、历史沟通记录、报价）。重点是<strong>把信息给对</strong> 。<strong>Harness Engineering：</strong> 给他一套执行机制（带上 Checklist，关键节点实时汇报，会后核实录音，发现偏差马上纠正）。重点是<strong>持续观测、纠偏和验收结果</strong> 。</p>
+</blockquote>
+<p><strong>Agent = Model + Harness</strong>（或者说 Harness = Agent - Model）。除了模型本身，几乎所有决定它能不能稳定交付的东西，都是 Harness 。</p>
+<hr />
+<h2 id="yi-ge-cheng-shou-de-harness-dao-di-bao-gua-na-liu-ceng"><a class="zola-anchor" href="#yi-ge-cheng-shou-de-harness-dao-di-bao-gua-na-liu-ceng" aria-label="Anchor link for: yi-ge-cheng-shou-de-harness-dao-di-bao-gua-na-liu-ceng">一个成熟的 Harness 到底包括哪六层？</a></h2>
+<p>如果把 Harness 拆开来看，一个成熟的工程化体系通常包含以下六个层面 ：</p>
+<ul>
+<li><strong>第一层：重新组织 Context（信息边界）</strong>
+<ul>
+<li>明确角色目标和成功标准 。</li>
+<li>信息的裁剪和选择（越相关越好，不是越多越好）。</li>
+<li>结构化组织（固定的规则、当前任务状态、外部证据要分层清晰，避免模型自我污染）。</li>
+</ul>
+</li>
+<li><strong>第二层：工具系统（挂载与管控）</strong>
+<ul>
+<li>给什么工具（太多会乱用，太少能力不够）。</li>
+<li>控制调用时机（该查证时查，不该查时别乱查）。</li>
+<li>结果重写（工具返回的几十条结果要提炼筛选后再喂回模型）。</li>
+</ul>
+</li>
+<li><strong>第三层：执行编排（任务轨道）</strong>
+<ul>
+<li>解决模型下一步该做什么的问题，避免模型想到哪做到哪 。</li>
+<li>完整的轨道包括：理解目标 -&gt; 判断信息 -&gt; 补充信息 -&gt; 采取行动 -&gt; 检查输出 -&gt; 重新修正 。</li>
+</ul>
+</li>
+<li><strong>第四层：记忆和状态管理</strong>
+<ul>
+<li>让 Agent 分清三类东西：当前任务状态、对话中间结果、长期记忆与偏好 。没有状态的 Agent 每一轮都会像失忆一样 。</li>
+</ul>
+</li>
+<li><strong>第五层：评估和观测</strong>
+<ul>
+<li>包含输出验证、自动化测试、日志指标和错误归因 。系统不仅要会做，还得知道自己做得好不好，避免陷入“自我感觉良好”的状态 。</li>
+</ul>
+</li>
+<li><strong>第六层：约束、校验、失败与恢复（决定能否上线的关键）</strong>
+<ul>
+<li>明确哪些能做、哪些不能做 。</li>
+<li>输出前后的检查机制 。</li>
+<li>失败后的恢复机制（比如 API 超时后如何回滚到稳定状态，而不是每次都从头再来）。</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="yi-xian-da-han-shi-zen-me-zuo-harness-de"><a class="zola-anchor" href="#yi-xian-da-han-shi-zen-me-zuo-harness-de" aria-label="Anchor link for: yi-xian-da-han-shi-zen-me-zuo-harness-de">一线大厂是怎么做 Harness 的？</a></h2>
+<h3 id="anthropic-jie-jue-chang-wen-ben-jiao-lu-yu-zi-ping-shi-zhen"><a class="zola-anchor" href="#anthropic-jie-jue-chang-wen-ben-jiao-lu-yu-zi-ping-shi-zhen" aria-label="Anchor link for: anthropic-jie-jue-chang-wen-ben-jiao-lu-yu-zi-ping-shi-zhen">Anthropic：解决长文本焦虑与自评失真</a></h3>
+<ul>
+<li><strong>Context Reflection（应对上下文焦虑）：</strong> 任务执行时间长了，上下文满了，模型会丢细节甚至急于收尾。Anthropic 发现简单的上下文压缩不够用，于是采用了类似“内存泄漏后重启进程”的思路：换一个干净的、新的 Agent，把工作交接给它 。</li>
+<li><strong>生产与验收分离（应对自评失真）：</strong> 模型自己干活自己打分容易偏乐观。Anthropic 将干活的（Planer/Director）和验收的（Evaluator）分开。Evaluator 会像真实的 QA 一样去操作页面、检查交互，形成一个“生成 -&gt; 检查 -&gt; 修复 -&gt; 再检查”的有效循环 。</li>
+</ul>
+<h3 id="openai-zhong-xin-ding-yi-gong-cheng-shi-zai-agent-shi-dai-de-gong-zuo"><a class="zola-anchor" href="#openai-zhong-xin-ding-yi-gong-cheng-shi-zai-agent-shi-dai-de-gong-zuo" aria-label="Anchor link for: openai-zhong-xin-ding-yi-gong-cheng-shi-zai-agent-shi-dai-de-gong-zuo">OpenAI：重新定义工程师在 Agent 时代的工作</a></h3>
+<ul>
+<li><strong>工程师只需设计“环境”：</strong> OpenAI 用 Agent 从零构建了超百万行代码的系统。工程师的工作变成了拆解小任务，当 Agent 失败时，不是让它“更努力一点”，而是排查环境里“缺了什么结构性能力”，并建立反馈链路 。</li>
+<li><strong>渐进式披露：</strong> 早期他们也犯过错，把所有规范塞进一个巨大的 <code>Agent.md</code> 里，结果 Agent 更糊涂了。后来改成了只有索引的目录页，详细规范拆到了子文档里，让 Agent 按需钻进去查看 。</li>
+<li><strong>让 Agent 拥有完整的观测环境：</strong> 给 Agent 接上浏览器、日志系统和监控指标，让它能够独立跑起来看结果、查 Log、修 Bug 再验证，这是一套极其完整的 Harness 观测约束系统 。</li>
+</ul>
+<hr />
+<h2 id="zong-jie"><a class="zola-anchor" href="#zong-jie" aria-label="Anchor link for: zong-jie">总结</a></h2>
+<ul>
+<li><strong>Prompt Engineering</strong> 解决的是<strong>怎么把任务讲清楚</strong> 。</li>
+<li><strong>Context Engineering</strong> 解决的是<strong>怎么把信息都给对</strong> 。</li>
+<li><strong>Harness Engineering</strong> 解决的是<strong>怎么让模型在真实的执行中持续作对</strong> 。</li>
+</ul>
+<p>Harness 不是取代前两者，而是在更大的系统边界上把它们包含进来 。当模型真正进入了长链路、低容错的真实场景，Harness 是不可避免的。AI 落地的核心挑战，正在从<strong>让模型看起来更聪明</strong>，转向<strong>让模型在真实世界里稳定地工作</strong> 。</p>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/aliasjeff.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/agent-model-harness-ai-xi-tong-gong-cheng-de-xin-fan-shi/#ai-gong-cheng-de-yan-jin">AI 工程的演进</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/agent-model-harness-ai-xi-tong-gong-cheng-de-xin-fan-shi/#1-prompt-engineering-ti-shi-ci-gong-cheng-jie-jue-biao-da-wen-ti">1. Prompt Engineering（提示词工程）：解决表达问题</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/agent-model-harness-ai-xi-tong-gong-cheng-de-xin-fan-shi/#2-context-engineering-shang-xia-wen-gong-cheng-jie-jue-xin-xi-wen-ti">2. Context Engineering（上下文工程）：解决信息问题</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/agent-model-harness-ai-xi-tong-gong-cheng-de-xin-fan-shi/#3-harness-engineering-jie-jue-zhi-xing-yu-jiu-pian-wen-ti">3. Harness Engineering：解决执行与纠偏问题</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/agent-model-harness-ai-xi-tong-gong-cheng-de-xin-fan-shi/#yi-ge-cheng-shou-de-harness-dao-di-bao-gua-na-liu-ceng">一个成熟的 Harness 到底包括哪六层？</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/agent-model-harness-ai-xi-tong-gong-cheng-de-xin-fan-shi/#yi-xian-da-han-shi-zen-me-zuo-harness-de">一线大厂是怎么做 Harness 的？</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/agent-model-harness-ai-xi-tong-gong-cheng-de-xin-fan-shi/#anthropic-jie-jue-chang-wen-ben-jiao-lu-yu-zi-ping-shi-zhen">Anthropic：解决长文本焦虑与自评失真</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/agent-model-harness-ai-xi-tong-gong-cheng-de-xin-fan-shi/#openai-zhong-xin-ding-yi-gong-cheng-shi-zai-agent-shi-dai-de-gong-zuo">OpenAI：重新定义工程师在 Agent 时代的工作</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/agent-model-harness-ai-xi-tong-gong-cheng-de-xin-fan-shi/#zong-jie">总结</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

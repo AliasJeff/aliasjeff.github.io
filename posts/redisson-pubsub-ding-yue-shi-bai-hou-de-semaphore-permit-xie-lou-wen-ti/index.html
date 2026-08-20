@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                Redisson Pub&#x2F;Sub 订阅失败后的 Semaphore Permit 泄漏问题
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="Redisson Pub&#x2F;Sub 订阅失败后的 Semaphore Permit 泄漏问题" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            Redisson Pub&#x2F;Sub 订阅失败后的 Semaphore Permit 泄漏问题
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2026-08-01</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/redis/"
+                                       class="post-tag">Redis</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/redisson/"
+                                       class="post-tag">Redisson</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/wen-ti-pai-cha/"
+                                       class="post-tag">问题排查</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/gao-bing-fa/"
+                                       class="post-tag">高并发</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>PR: https://github.com/redisson/redisson/pull/7278</p>
+<p>Redisson Issue <a href="https://github.com/redisson/redisson/issues/7264">#7264</a> 描述的是一个 Pub/Sub 订阅锁泄漏问题：某次订阅失败或超时后，<code>PublishSubscribeService.locks[]</code> 中某个 channel stripe 的 <code>AsyncSemaphore</code> permit 可能永久丢失。之后 hash 到同一个 stripe 的 channel，再做订阅或取消订阅时会一直拿不到锁，最终固定在 <code>subscriptionTimeout</code> 后失败。</p>
+<p>这篇文章会从 issue 的现象开始，解释 Redisson Pub/Sub 的 channel stripe semaphore 是怎么用的，再展开这次修复中能确定复现的一条路径：<code>subscribeNoTimeout(...)</code> 在 <code>MasterSlaveEntry == null</code> 时提前返回，但没有释放外层已经拿到的 semaphore。</p>
+<p>需要先说明边界：这个修复不是覆盖 issue 里提到的所有风险路径，而是修复其中一条明确、可复现、能用单元测试证明的 permit 泄漏路径。</p>
+<h2 id="wen-ti-bei-jing"><a class="zola-anchor" href="#wen-ti-bei-jing" aria-label="Anchor link for: wen-ti-bei-jing">问题背景</a></h2>
+<p>issue 中的核心现象是：</p>
+<ul>
+<li>Redis 节点整体可用；</li>
+<li>大部分 Pub/Sub channel 仍然正常；</li>
+<li>一小部分 channel 的订阅或取消订阅持续超时；</li>
+<li>超时信息集中在获取 subscription lock 这一步；</li>
+<li>JVM 重启后恢复。</li>
+</ul>
+<p>报错类似：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">org.redisson.client.RedisTimeoutException:
+Unable to acquire subscription lock after &lt;subscriptionTimeout&gt;ms.
+Try to increase &#x27;subscriptionTimeout&#x27;, &#x27;subscriptionsPerConnection&#x27;,
+&#x27;subscriptionConnectionPoolSize&#x27; parameters.
+</code></pre>
+<p>从报错看，很容易先怀疑是 <code>subscriptionTimeout</code> 太小、订阅连接池不够、Redis 变慢，或者网络抖动。但 issue 的关键点不在 Redis 命令执行慢，而在客户端内部的订阅锁拿不到。</p>
+<p>如果只是 Redis 短暂不可用，后续重试或下一次订阅应该还有机会恢复。现在的问题是部分 channel 会持续失败，直到进程重启。这更像是客户端内部某个 permit、锁或状态被卡住了。</p>
+<h2 id="channel-stripe-semaphore-shi-shen-me"><a class="zola-anchor" href="#channel-stripe-semaphore-shi-shen-me" aria-label="Anchor link for: channel-stripe-semaphore-shi-shen-me">Channel Stripe Semaphore 是什么</a></h2>
+<p>Redisson Pub/Sub 里不是每个 channel 都有一个独立锁，而是使用一组 <code>AsyncSemaphore</code> 做分片。代码里可以看到：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">AsyncSemaphore getSemaphore(ChannelName channelName) {
+    return locks[Math.abs(channelName.hashCode() % locks.length)];
+}
+</code></pre>
+<p>这意味着：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">channelName
+  -&gt; hashCode
+  -&gt; 映射到 locks[] 的某个下标
+  -&gt; 使用该下标上的 AsyncSemaphore 串行化订阅相关操作
+</code></pre>
+<p>这种做法的目的很直接：避免同一个 channel 或同一组映射到相同 stripe 的 channel 在订阅、取消订阅、entry 复用等流程中并发修改共享状态。</p>
+<p>所以这个 semaphore 不是普通临时对象。它是 Pub/Sub 服务内部长期存在的 stripe 锁。某一次失败路径如果拿了 permit 但没有归还，会影响之后所有落到同一 stripe 的操作。</p>
+<h2 id="asyncsemaphore-zai-zhe-li-zen-me-gong-zuo"><a class="zola-anchor" href="#asyncsemaphore-zai-zhe-li-zen-me-gong-zuo" aria-label="Anchor link for: asyncsemaphore-zai-zhe-li-zen-me-gong-zuo">AsyncSemaphore 在这里怎么工作</a></h2>
+<p><code>AsyncSemaphore</code> 可以理解成异步版信号量：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">CompletableFuture&lt;Void&gt; future = semaphore.acquire();
+</code></pre>
+<p>有 permit 时，future 立即完成；没有 permit 时，future 会一直 pending，等其他路径调用：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">semaphore.release();
+</code></pre>
+<p>在 Pub/Sub 订阅链路里，外层先拿 stripe semaphore，然后进入真正的订阅逻辑：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">PublishSubscribe.subscribe(...)
+  -&gt; service.getSemaphore(new ChannelName(channelName))
+  -&gt; semaphore.acquire()
+  -&gt; service.subscribeNoTimeout(..., semaphore, listener)
+</code></pre>
+<p>关键点是：<code>subscribeNoTimeout(...)</code> 收到的 <code>semaphore</code> 已经是外层拿到的 permit。进入这个方法后，如果流程提前失败，它必须负责把 permit 还回去。否则外层没有别的地方能替它释放。</p>
+<h2 id="wen-ti-diao-yong-lian"><a class="zola-anchor" href="#wen-ti-diao-yong-lian" aria-label="Anchor link for: wen-ti-diao-yong-lian">问题调用链</a></h2>
+<p>锁订阅路径在 <code>PublishSubscribe.subscribe(...)</code> 中：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">public CompletableFuture&lt;E&gt; subscribe(String entryName, String channelName, int permits) {
+    AsyncSemaphore semaphore = service.getSemaphore(new ChannelName(channelName));
+    CompletableFuture&lt;E&gt; newPromise = new CompletableFuture&lt;&gt;();
+
+    semaphore.acquire().thenAccept(c -&gt; {
+        ...
+        CompletableFuture&lt;PubSubConnectionEntry&gt; s =
+                service.subscribeNoTimeout(LongCodec.INSTANCE, channelName, semaphore, listener);
+        ...
+    });
+
+    return newPromise;
+}
+</code></pre>
+<p>这个方法先根据 channel 找到 stripe semaphore，然后 acquire。拿到 permit 后，它会创建 entry，再调用：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">service.subscribeNoTimeout(LongCodec.INSTANCE, channelName, semaphore, listener);
+</code></pre>
+<p>注意这里没有在调用后立刻释放 semaphore。原因是订阅流程还没结束，后面的异步逻辑要继续持有这把锁，直到订阅成功、失败或超时路径明确处理完成。</p>
+<p>问题发生在 <code>PublishSubscribeService.subscribeNoTimeout(...)</code> 的早退分支：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">CompletableFuture&lt;PubSubConnectionEntry&gt; subscribeNoTimeout(Codec codec, String channelName,
+                                                            AsyncSemaphore semaphore,
+                                                            RedisPubSubListener&lt;?&gt;... listeners) {
+    MasterSlaveEntry entry = getEntry(new ChannelName(channelName));
+    if (entry == null) {
+        int slot = connectionManager.calcSlot(channelName);
+        return connectionManager.getServiceManager().createNodeNotFoundFuture(channelName, slot);
+    }
+
+    ...
+}
+</code></pre>
+<p>旧逻辑在 <code>entry == null</code> 时直接返回一个 node-not-found failed future。这个 future 表达了“订阅失败”，但它没有处理“前面拿到的 semaphore 要归还”。</p>
+<p>完整问题链路是：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">PublishSubscribe.subscribe(entryName, channelName)
+  -&gt; 根据 channelName 找到 stripe semaphore
+  -&gt; semaphore.acquire() 成功，permit 从 1 变成 0
+  -&gt; 调用 subscribeNoTimeout(...)
+  -&gt; getEntry(new ChannelName(channelName)) 返回 null
+  -&gt; 旧代码直接返回 createNodeNotFoundFuture(...)
+  -&gt; semaphore.release() 没有执行
+  -&gt; 这个 stripe 的 permit 永久停在 0
+  -&gt; 后续相同 stripe 的订阅&#x2F;取消订阅一直 pending
+  -&gt; 等到 subscriptionTimeout 后报 Unable to acquire subscription lock
+</code></pre>
+<p>这就是 issue 中“一部分 channel 固定超时、重启恢复”的合理解释。不是每个 channel 都失败，因为 semaphore 是按 stripe 分片的；只有落到同一把 semaphore 的 channel 会被影响。</p>
+<h2 id="zhe-shi-cai-ce-huan-shi-que-ding-de-wen-ti"><a class="zola-anchor" href="#zhe-shi-cai-ce-huan-shi-que-ding-de-wen-ti" aria-label="Anchor link for: zhe-shi-cai-ce-huan-shi-que-ding-de-wen-ti">这是猜测还是确定的问题</a></h2>
+<p>对这条 <code>entry == null</code> 路径来说，permit 泄漏不是猜测，而是代码行为直接推出的结果。</p>
+<p>旧代码满足三个条件：</p>
+<ol>
+<li>外层已经调用 <code>semaphore.acquire()</code>；</li>
+<li><code>subscribeNoTimeout(...)</code> 收到了这个已经被占用的 semaphore；</li>
+<li><code>entry == null</code> 分支直接 <code>return</code>，没有 <code>semaphore.release()</code>。</li>
+</ol>
+<p>在 <code>AsyncSemaphore(1)</code> 的情况下，第一次 acquire 后可用 permit 变成 0。如果没有 release，第二次 acquire 返回的 future 就不会完成。这一点可以不依赖真实 Redis，用单元测试确定性复现。</p>
+<p>不过也要区分两件事：</p>
+<ul>
+<li>这条路径本身会泄漏 permit，是确定的；</li>
+<li>线上 issue 的所有现象是否全部由这条路径造成，仅靠当前单元测试不能证明。</li>
+</ul>
+<p>所以这次 PR 的描述应该克制：修复 <code>entry == null</code> 这个直接泄漏路径，而不是宣称已经覆盖 #7264 中所有可能路径。</p>
+<h2 id="wei-shen-me-entry-hui-shi-null"><a class="zola-anchor" href="#wei-shen-me-entry-hui-shi-null" aria-label="Anchor link for: wei-shen-me-entry-hui-shi-null">为什么 entry 会是 null</a></h2>
+<p><code>getEntry(new ChannelName(channelName))</code> 最终依赖当前连接管理器里的 Redis 节点映射。集群拓扑变化、slot 覆盖暂时不可用、节点发现还没完成，或者连接管理器还没有对应写 entry 时，都可能让这里拿不到 <code>MasterSlaveEntry</code>。</p>
+<p>Redisson 原本也知道这种情况可能发生，所以旧代码没有继续订阅，而是返回：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">connectionManager.getServiceManager().createNodeNotFoundFuture(channelName, slot)
+</code></pre>
+<p>这个返回值本身没问题。问题是这个失败发生在外层已经拿到 stripe semaphore 之后。失败可以直接返回，但资源也要一起释放。</p>
+<h2 id="xiu-fu-fang-an"><a class="zola-anchor" href="#xiu-fu-fang-an" aria-label="Anchor link for: xiu-fu-fang-an">修复方案</a></h2>
+<p>修复很小，只在 <code>entry == null</code> 分支返回前归还 semaphore：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">CompletableFuture&lt;PubSubConnectionEntry&gt; subscribeNoTimeout(Codec codec, String channelName,
+                                                            AsyncSemaphore semaphore,
+                                                            RedisPubSubListener&lt;?&gt;... listeners) {
+    MasterSlaveEntry entry = getEntry(new ChannelName(channelName));
+    if (entry == null) {
+        semaphore.release();
+        int slot = connectionManager.calcSlot(channelName);
+        return connectionManager.getServiceManager().createNodeNotFoundFuture(channelName, slot);
+    }
+
+    ...
+}
+</code></pre>
+<p>这个位置释放是合理的，因为 <code>entry == null</code> 时订阅流程没有进入后续异步链路，也没有创建真实的 pub/sub connection entry。当前方法已经决定提前失败返回，继续持有 stripe semaphore 没有意义。</p>
+<p>修复后的流程变成：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">entry == null
+  -&gt; release stripe semaphore
+  -&gt; 返回 node-not-found failed future
+</code></pre>
+<p>也就是说，业务结果仍然是失败，异常语义没有变；只是失败路径不再把内部锁泄漏掉。</p>
+<h2 id="dan-yuan-ce-shi"><a class="zola-anchor" href="#dan-yuan-ce-shi" aria-label="Anchor link for: dan-yuan-ce-shi">单元测试</a></h2>
+<p>新增测试是：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">PublishSubscribeTest.testSubscribeNoTimeoutReleasesSemaphoreIfEntryIsMissing
+</code></pre>
+<p>测试没有启动 Redis，也没有搭 Redis Cluster。它做的是更小的确定性复现：直接模拟 <code>getEntry(...) == null</code>。</p>
+<p>核心步骤是：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">AsyncSemaphore semaphore = new AsyncSemaphore(1);
+
+&#x2F;&#x2F; Simulate the caller already holding the semaphore permit.
+semaphore.acquire().join();
+CompletableFuture&lt;Void&gt; waiter = semaphore.acquire();
+assertFalse(waiter.isDone());
+
+CompletableFuture&lt;PubSubConnectionEntry&gt; subscribeFuture =
+        service.subscribeNoTimeout(LongCodec.INSTANCE, channelName, semaphore, new BaseRedisPubSubListener());
+
+assertSame(failedFuture, subscribeFuture);
+assertTrue(subscribeFuture.isCompletedExceptionally());
+assertTrue(waiter.isDone());
+</code></pre>
+<p>这里先手动 acquire 一次 semaphore，是为了模拟外层 <code>PublishSubscribe.subscribe(...)</code> 已经持有 stripe permit 的真实调用状态。然后再发起第二次 acquire，得到一个 pending 的 waiter。</p>
+<p>如果 <code>subscribeNoTimeout(...)</code> 在失败路径没有 release，<code>waiter</code> 会一直 pending。修复后，<code>entry == null</code> 分支会 release，<code>waiter</code> 立即完成。</p>
+<p>测试：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">订阅失败是允许的；
+node-not-found future 也是允许的；
+但失败路径不能吞掉 channel stripe semaphore permit。
+</code></pre>
+<h2 id="wei-shen-me-zhe-shi-you-xiao-fu-xian"><a class="zola-anchor" href="#wei-shen-me-zhe-shi-you-xiao-fu-xian" aria-label="Anchor link for: wei-shen-me-zhe-shi-you-xiao-fu-xian">为什么这是有效复现</a></h2>
+<p>这个测试没有复现线上所有条件，比如 Redis Cluster 拓扑变化、真实节点下线、高并发订阅等。但它真实还原了当前修复对应的最小场景：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">外层已经持有 semaphore
+  -&gt; subscribeNoTimeout(...) 查不到 MasterSlaveEntry
+  -&gt; 方法提前返回 failed future
+  -&gt; 验证 semaphore 是否归还
+</code></pre>
+<p>这比集成测试更适合保护这条早退路径。集成测试可能更接近生产环境，但要稳定制造 <code>getEntry(...) == null</code> 很难，而且容易被网络、Redis 启动速度、slot 分配等因素影响。这里的 bug 本质是一个资源释放遗漏，用单元测试直接卡住这个分支更准确。</p>
+<p>如果 reviewer 追问 “这个测试是不是完整复现 #7264”，答案应该是：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">No. It reproduces one direct leak path described in #7264:
+subscribeNoTimeout(...) returns early when no MasterSlaveEntry is available,
+after the caller has already acquired the channel stripe semaphore.
+</code></pre>
+<p>精确复现一条子路径，而不是完整复现所有可能路径</p>
+<p>目标测试：</p>
+<pre data-lang="bash" class="language-bash "><code class="language-bash" data-lang="bash">mvn -pl redisson -Punit-test -DskipITs -Dtest=org.redisson.pubsub.PublishSubscribeTest test
+</code></pre>
+<p>格式和项目检查：</p>
+<pre data-lang="bash" class="language-bash "><code class="language-bash" data-lang="bash">mvn -pl redisson -Punit-test -DskipITs checkstyle:check
+mvn -pl redisson -Punit-test -DskipITs license:check
+</code></pre>
+<h2 id="jie-lun"><a class="zola-anchor" href="#jie-lun" aria-label="Anchor link for: jie-lun">结论</a></h2>
+<p>Issue #7264 的核心风险是 Pub/Sub channel stripe semaphore 的 permit 泄漏。当前修复确认并解决了一条明确路径：外层已经拿到 semaphore 后，<code>subscribeNoTimeout(...)</code> 因为找不到 <code>MasterSlaveEntry</code> 提前失败返回，但旧代码没有 release。</p>
+<p>修复只是在早退前补上 <code>semaphore.release()</code>。业务仍然返回 node-not-found failed future，但内部 stripe semaphore 不会被永久占住。对应单元测试证明了旧逻辑会让后续 acquire 卡住，而修复后 waiter 能立即完成。</p>
+<h2 id="xiang-guan-wen-jian"><a class="zola-anchor" href="#xiang-guan-wen-jian" aria-label="Anchor link for: xiang-guan-wen-jian">相关文件</a></h2>
+<ul>
+<li><code>redisson/src/main/java/org/redisson/pubsub/PublishSubscribe.java</code></li>
+<li><code>redisson/src/main/java/org/redisson/pubsub/PublishSubscribeService.java</code></li>
+<li><code>redisson/src/test/java/org/redisson/pubsub/PublishSubscribeTest.java</code></li>
+<li><code>redisson/src/main/java/org/redisson/misc/AsyncSemaphore.java</code></li>
+</ul>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/aliasjeff.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-pubsub-ding-yue-shi-bai-hou-de-semaphore-permit-xie-lou-wen-ti/#wen-ti-bei-jing">问题背景</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-pubsub-ding-yue-shi-bai-hou-de-semaphore-permit-xie-lou-wen-ti/#channel-stripe-semaphore-shi-shen-me">Channel Stripe Semaphore 是什么</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-pubsub-ding-yue-shi-bai-hou-de-semaphore-permit-xie-lou-wen-ti/#asyncsemaphore-zai-zhe-li-zen-me-gong-zuo">AsyncSemaphore 在这里怎么工作</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-pubsub-ding-yue-shi-bai-hou-de-semaphore-permit-xie-lou-wen-ti/#wen-ti-diao-yong-lian">问题调用链</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-pubsub-ding-yue-shi-bai-hou-de-semaphore-permit-xie-lou-wen-ti/#zhe-shi-cai-ce-huan-shi-que-ding-de-wen-ti">这是猜测还是确定的问题</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-pubsub-ding-yue-shi-bai-hou-de-semaphore-permit-xie-lou-wen-ti/#wei-shen-me-entry-hui-shi-null">为什么 entry 会是 null</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-pubsub-ding-yue-shi-bai-hou-de-semaphore-permit-xie-lou-wen-ti/#xiu-fu-fang-an">修复方案</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-pubsub-ding-yue-shi-bai-hou-de-semaphore-permit-xie-lou-wen-ti/#dan-yuan-ce-shi">单元测试</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-pubsub-ding-yue-shi-bai-hou-de-semaphore-permit-xie-lou-wen-ti/#wei-shen-me-zhe-shi-you-xiao-fu-xian">为什么这是有效复现</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-pubsub-ding-yue-shi-bai-hou-de-semaphore-permit-xie-lou-wen-ti/#jie-lun">结论</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-pubsub-ding-yue-shi-bai-hou-de-semaphore-permit-xie-lou-wen-ti/#xiang-guan-wen-jian">相关文件</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                Redisson 虚拟线程高并发下的 Netty Event Loop 阻塞问题
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="Redisson 虚拟线程高并发下的 Netty Event Loop 阻塞问题" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            Redisson 虚拟线程高并发下的 Netty Event Loop 阻塞问题
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2026-07-26</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/redis/"
+                                       class="post-tag">Redis</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/wen-ti-pai-cha/"
+                                       class="post-tag">问题排查</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/gao-bing-fa/"
+                                       class="post-tag">高并发</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>Redisson Issue #7155 描述了一个典型的高并发问题：应用使用 Java 虚拟线程后，在运行一段时间后偶发出现 <code>Command still hasn't been written into connection!</code>。表面看，这是 Redis 命令写入超时；深入线程栈后可以看到，真正的问题发生在 Redisson 连接释放路径上：Netty event loop 线程在释放连接时同步进入连接池等待队列，并卡在一个 <code>ReentrantLock</code> 上。</p>
+<p>这篇文章会从问题现象开始，逐步解释 Redisson 连接池、<code>AsyncSemaphore</code>、<code>FastRemovalQueue</code>、Netty event loop 的关系，最后说明修复方案、测试方式和 trade-off。</p>
+<h2 id="wen-ti-bei-jing"><a class="zola-anchor" href="#wen-ti-bei-jing" aria-label="Anchor link for: wen-ti-bei-jing">问题背景</a></h2>
+<p>issue 中的用户场景是：</p>
+<ul>
+<li>使用 Java virtual threads；</li>
+<li>高并发访问 Redis；</li>
+<li>Redisson 运行一段时间后报错；</li>
+<li>同样业务换成普通线程池后问题不容易出现。</li>
+</ul>
+<p>报错信息的关键部分是：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">org.redisson.client.RedisTimeoutException: Command still hasn&#x27;t been written into connection!
+Netty pending tasks: 1704
+command: (GET)
+</code></pre>
+<p>这不是 Redis 返回慢，也不是 Redis 命令执行失败，而是 Redisson 已经准备发送命令，但命令没有及时写到连接里。</p>
+<p>更关键的是用户提供的线程栈：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">redisson-netty-8-5
+  at java.util.concurrent.locks.ReentrantLock.lock
+  at org.redisson.misc.WrappedLock.execute
+  at org.redisson.misc.FastRemovalQueue$DoublyLinkedList.removeFirst
+  at org.redisson.misc.FastRemovalQueue.poll
+  at org.redisson.misc.AsyncSemaphore.tryRun
+  at org.redisson.misc.AsyncSemaphore.tryForkAndRun
+  at org.redisson.misc.AsyncSemaphore.release
+  at org.redisson.connection.ConnectionsHolder.releaseConnection
+  at org.redisson.connection.ClientConnectionsEntry.returnConnection
+  at org.redisson.connection.MasterSlaveEntry.releaseWrite
+  at org.redisson.command.RedisExecutor.release
+</code></pre>
+<p>这里最重要的信号是：<code>redisson-netty-*</code> 线程卡在 <code>ReentrantLock.lock()</code>。</p>
+<p>Netty event loop 是 Redisson 网络 IO 的核心线程。它负责处理 socket 读写、channel 回调和网络事件。如果它被普通业务锁阻塞，后续 Redis 命令就可能排队但写不出去，最终形成 <code>Command still hasn't been written into connection!</code>。</p>
+<h2 id="redisson-lian-jie-chi-de-da-zhi-gong-zuo-fang-shi"><a class="zola-anchor" href="#redisson-lian-jie-chi-de-da-zhi-gong-zuo-fang-shi" aria-label="Anchor link for: redisson-lian-jie-chi-de-da-zhi-gong-zuo-fang-shi">Redisson 连接池的大致工作方式</a></h2>
+<p>Redisson 不会每条 Redis 命令都新建 TCP 连接。它维护连接池：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">业务请求
+  -&gt; 申请连接池 permit
+  -&gt; 拿空闲 RedisConnection 或创建新连接
+  -&gt; 发送 Redis 命令
+  -&gt; 命令完成后归还连接
+  -&gt; 释放连接池 permit
+</code></pre>
+<p>在这个流程里，连接池使用 <code>AsyncSemaphore</code> 控制并发连接数。</p>
+<p>相关类是：</p>
+<ul>
+<li><code>ConnectionsHolder</code>：管理某个 Redis 节点的连接集合；</li>
+<li><code>AsyncSemaphore</code>：异步信号量，用于控制连接池最大并发；</li>
+<li><code>FastRemovalQueue</code>：保存等待 permit 的 future 队列；</li>
+<li><code>RedisExecutor</code>：负责命令执行、连接获取和释放。</li>
+</ul>
+<h2 id="asyncsemaphore-de-jiao-se"><a class="zola-anchor" href="#asyncsemaphore-de-jiao-se" aria-label="Anchor link for: asyncsemaphore-de-jiao-se">AsyncSemaphore 的角色</a></h2>
+<p><code>AsyncSemaphore</code> 可以理解成异步版信号量。</p>
+<p>传统信号量可能是：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">semaphore.acquire(); &#x2F;&#x2F; 没 permit 时阻塞当前线程
+</code></pre>
+<p>Redisson 这里不能直接阻塞线程，所以它返回一个 future：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">CompletableFuture&lt;Void&gt; f = semaphore.acquire();
+</code></pre>
+<p>如果有 permit，future 会完成；如果没有 permit，future 会进入等待队列。等别人调用 <code>release()</code> 时，再完成等待队列里的某个 future。</p>
+<p>核心字段如下：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">private final ExecutorService executorService;
+private final AtomicInteger tasksLatch = new AtomicInteger(1);
+private final AtomicInteger stackSize = new AtomicInteger();
+
+private final AtomicInteger counter;
+private final FastRemovalQueue&lt;CompletableFuture&lt;Void&gt;&gt; listeners = new FastRemovalQueue&lt;&gt;();
+</code></pre>
+<p>含义分别是：</p>
+<ul>
+<li><code>counter</code>：当前可用 permit 数；</li>
+<li><code>listeners</code>：等待 permit 的 future 队列；</li>
+<li><code>executorService</code>：可选 executor，用于把部分唤醒工作放到其他线程；</li>
+<li><code>stackSize</code> / <code>tasksLatch</code>：原有逻辑中用于避免 future 回调递归过深。</li>
+</ul>
+<h2 id="yuan-shi-release-luo-ji-de-wen-ti"><a class="zola-anchor" href="#yuan-shi-release-luo-ji-de-wen-ti" aria-label="Anchor link for: yuan-shi-release-luo-ji-de-wen-ti">原始 release 逻辑的问题</a></h2>
+<p>修复前的 <code>release()</code> 逻辑很短：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">public void release() {
+    counter.incrementAndGet();
+    tryForkAndRun();
+}
+</code></pre>
+<p><code>tryForkAndRun()</code> 的逻辑是：如果当前 future completion 嵌套太深，就把 <code>tryRun()</code> 提交到 executor；否则直接执行 <code>tryRun()</code>。</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">private void tryForkAndRun() {
+    if (executorService != null) {
+        int val = tasksLatch.get();
+        if (stackSize.get() &gt; 25 * val
+                &amp;&amp; tasksLatch.compareAndSet(val, val+1)) {
+            executorService.submit(() -&gt; {
+                tasksLatch.decrementAndGet();
+                tryRun();
+            });
+            return;
+        }
+    }
+
+    tryRun();
+}
+</code></pre>
+<p>这段代码原本有合理用意：避免 future 回调链嵌套过深。但是它不能解决当前 issue，因为大多数情况下它仍然会同步执行：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">tryRun();
+</code></pre>
+<p>如果 <code>release()</code> 的调用线程是 Netty event loop，那么 Netty event loop 就会同步进入 <code>tryRun()</code>。</p>
+<p>而 <code>tryRun()</code> 会调用：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">CompletableFuture&lt;Void&gt; future = listeners.poll();
+</code></pre>
+<p>这正是线程栈里的阻塞点。</p>
+<h2 id="listeners-poll-wei-shen-me-hui-zu-sai"><a class="zola-anchor" href="#listeners-poll-wei-shen-me-hui-zu-sai" aria-label="Anchor link for: listeners-poll-wei-shen-me-hui-zu-sai">listeners.poll() 为什么会阻塞</a></h2>
+<p><code>listeners</code> 的类型是：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">private final FastRemovalQueue&lt;CompletableFuture&lt;Void&gt;&gt; listeners = new FastRemovalQueue&lt;&gt;();
+</code></pre>
+<p><code>FastRemovalQueue.poll()</code> 的代码是：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">public E poll() {
+    Node&lt;E&gt; node = list.removeFirst();
+    if (node != null) {
+        index.remove(node.value);
+        return node.value;
+    }
+    return null;
+}
+</code></pre>
+<p>这里调用了 <code>list.removeFirst()</code>。</p>
+<p><code>DoublyLinkedList</code> 内部有锁：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">static class DoublyLinkedList&lt;E&gt; implements Iterable&lt;E&gt; {
+    private final WrappedLock lock = new WrappedLock();
+</code></pre>
+<p><code>removeFirst()</code> 会通过 <code>lock.execute(...)</code> 修改链表头尾指针：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">public Node&lt;E&gt; removeFirst() {
+    return lock.execute(() -&gt; {
+        Node&lt;E&gt; currentHead = head;
+        if (head == tail) {
+            head = null;
+            tail = null;
+        } else {
+            head = head.next;
+            head.prev = null;
+        }
+        if (currentHead != null) {
+            currentHead.setDeleted();
+        }
+        return currentHead;
+    });
+}
+</code></pre>
+<p><code>WrappedLock</code> 本质上是一个 <code>ReentrantLock</code>：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">private final Lock lock = new ReentrantLock();
+
+public &lt;T&gt; T execute(Supplier&lt;T&gt; r) {
+    lock.lock();
+    try {
+        return r.get();
+    } finally {
+        lock.unlock();
+    }
+}
+</code></pre>
+<p>因此调用链是：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">listeners.poll()
+  -&gt; FastRemovalQueue.poll()
+  -&gt; DoublyLinkedList.removeFirst()
+  -&gt; WrappedLock.execute()
+  -&gt; ReentrantLock.lock()
+</code></pre>
+<p>如果另一个线程正在持有这把锁，比如正在 <code>add</code>、<code>remove</code> 或 <code>poll</code>，当前线程调用 <code>lock.lock()</code> 时就会被 park，等待锁释放。</p>
+<p>普通线程等待这把锁通常只是延迟。但 Netty event loop 等待这把锁，就可能让网络写任务堆积。</p>
+<h2 id="wei-shen-me-xu-ni-xian-cheng-geng-rong-yi-bao-lu-wen-ti"><a class="zola-anchor" href="#wei-shen-me-xu-ni-xian-cheng-geng-rong-yi-bao-lu-wen-ti" aria-label="Anchor link for: wei-shen-me-xu-ni-xian-cheng-geng-rong-yi-bao-lu-wen-ti">为什么虚拟线程更容易暴露问题</a></h2>
+<p>虚拟线程不是问题本身。问题本身是 Netty event loop 不应该同步竞争连接池等待队列的锁。</p>
+<p>但虚拟线程会放大并发程度。相比固定大小线程池，虚拟线程场景可能同时产生更多 Redis 调用。这样会造成：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">更多 acquire -&gt; listeners.add()
+更多 timeout&#x2F;cancel -&gt; listeners.remove()
+更多 release -&gt; listeners.poll()
+</code></pre>
+<p>这些操作都围绕 <code>FastRemovalQueue</code> 的链表锁。并发越高，Netty event loop 在 release 路径上撞到锁竞争的概率越大。</p>
+<p>这解释了 issue 里的现象：普通线程池不容易出现，虚拟线程高并发更容易出现。</p>
+<h2 id="getgroup-he-getexecutor-de-qu-bie"><a class="zola-anchor" href="#getgroup-he-getexecutor-de-qu-bie" aria-label="Anchor link for: getgroup-he-getexecutor-de-qu-bie">getGroup 和 getExecutor 的区别</a></h2>
+<p>原来的 <code>ConnectionsHolder</code> 构造方法使用：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">this.freeConnectionsCounter = new AsyncSemaphore(poolMaxSize, serviceManager.getGroup());
+</code></pre>
+<p><code>serviceManager.getGroup()</code> 返回 Netty <code>EventLoopGroup</code>。这是网络 IO 线程组，负责 Redis 连接的读写。</p>
+<p>修复后改成：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">this.freeConnectionsCounter = new AsyncSemaphore(poolMaxSize, serviceManager.getExecutor());
+</code></pre>
+<p><code>serviceManager.getExecutor()</code> 是 Redisson 的普通 worker executor。它更适合执行非网络 IO 的内部调度任务。</p>
+<p>可以简单区分：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">getGroup()    -&gt; Netty 网络线程，不能阻塞
+getExecutor() -&gt; Redisson worker 线程，可以做普通后台任务
+</code></pre>
+<p>为什么 <code>getGroup()</code> 更危险？</p>
+<p>不是因为它更容易拿不到锁，而是因为它一旦卡住，后果更严重。</p>
+<p>如果 worker executor 卡住，影响的是普通后台任务或连接等待者唤醒速度。如果 Netty event loop 卡住，影响的是 Redis 命令写入、响应读取和网络事件处理。issue 中的 <code>Netty pending tasks: 1704</code> 就说明 Netty 任务已经堆积。</p>
+<h2 id="xiu-fu-fang-an"><a class="zola-anchor" href="#xiu-fu-fang-an" aria-label="Anchor link for: xiu-fu-fang-an">修复方案</a></h2>
+<p>修复包含两部分。</p>
+<h3 id="1-xiu-gai-asyncsemaphore-release"><a class="zola-anchor" href="#1-xiu-gai-asyncsemaphore-release" aria-label="Anchor link for: 1-xiu-gai-asyncsemaphore-release">1. 修改 AsyncSemaphore.release()</a></h3>
+<p>修复后的代码：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">public void release() {
+    counter.incrementAndGet();
+    if (listeners.isEmpty()) {
+        return;
+    }
+    if (executorService != null) {
+        try {
+            executorService.execute(this::tryRun);
+            return;
+        } catch (RejectedExecutionException e) {
+            &#x2F;&#x2F; fallback to the caller thread during shutdown
+        }
+    }
+    tryRun();
+}
+</code></pre>
+<p>这段代码做了几件事：</p>
+<ol>
+<li><code>counter.incrementAndGet()</code> 仍然先归还 permit；</li>
+<li>如果没有等待者，直接返回，避免无意义进入队列锁；</li>
+<li>如果有 executor，把唤醒等待者的 <code>tryRun()</code> 提交到 executor；</li>
+<li>如果 executor 拒绝任务，比如 shutdown 期间，就 fallback 到当前线程执行 <code>tryRun()</code>，避免 permit 丢失。</li>
+</ol>
+<p>这和原来的 <code>tryForkAndRun()</code> 不同。<code>tryForkAndRun()</code> 是“递归过深才异步”，而这里需要的是“release 有 executor 时尽量不要同步执行”。这是为保护 Netty event loop 做出的明确调整。</p>
+<h3 id="2-xiu-gai-connectionsholder-de-executor-xuan-ze"><a class="zola-anchor" href="#2-xiu-gai-connectionsholder-de-executor-xuan-ze" aria-label="Anchor link for: 2-xiu-gai-connectionsholder-de-executor-xuan-ze">2. 修改 ConnectionsHolder 的 executor 选择</a></h3>
+<p>原来：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">this.freeConnectionsCounter = new AsyncSemaphore(poolMaxSize, serviceManager.getGroup());
+</code></pre>
+<p>修复后：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">this.freeConnectionsCounter = new AsyncSemaphore(poolMaxSize, serviceManager.getExecutor());
+</code></pre>
+<p>这使连接池等待者唤醒不再使用 Netty event loop，而是使用 Redisson worker executor。</p>
+<h2 id="hui-gui-ce-shi-she-ji"><a class="zola-anchor" href="#hui-gui-ce-shi-she-ji" aria-label="Anchor link for: hui-gui-ce-shi-she-ji">回归测试设计</a></h2>
+<h3 id="asyncsemaphoretest"><a class="zola-anchor" href="#asyncsemaphoretest" aria-label="Anchor link for: asyncsemaphoretest">AsyncSemaphoreTest</a></h3>
+<p>新增测试 <code>testReleaseWithExecutorCompletesWaiterAsynchronously</code>：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">ExecutorService executor = Executors.newSingleThreadExecutor();
+CountDownLatch taskStarted = new CountDownLatch(1);
+CountDownLatch unblock = new CountDownLatch(1);
+
+executor.execute(() -&gt; {
+    taskStarted.countDown();
+    unblock.await();
+});
+assertThat(taskStarted.await(1, TimeUnit.SECONDS)).isTrue();
+
+AsyncSemaphore semaphore = new AsyncSemaphore(0, executor);
+
+CompletableFuture&lt;Void&gt; waiter = semaphore.acquire();
+semaphore.release();
+
+assertThat(waiter).isNotDone();
+
+unblock.countDown();
+waiter.get(1, TimeUnit.SECONDS);
+
+assertThat(waiter).isCompleted();
+</code></pre>
+<p>这个测试证明：有 executor 时，<code>release()</code> 不会同步完成等待者，而是提交任务。</p>
+<p>新增测试 <code>testReleaseFallsBackIfExecutorRejectsWakeup</code>：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">ExecutorService executor = Executors.newSingleThreadExecutor();
+executor.shutdown();
+AsyncSemaphore semaphore = new AsyncSemaphore(0, executor);
+
+CompletableFuture&lt;Void&gt; waiter = semaphore.acquire();
+
+assertThatCode(semaphore::release).doesNotThrowAnyException();
+assertThat(waiter).isCompleted();
+assertThat(semaphore.getCounter()).isZero();
+</code></pre>
+<p>这个测试覆盖 executor shutdown 或拒绝任务的 fallback 场景，确保不抛异常、不丢 permit。</p>
+<h3 id="connectionsholdertest"><a class="zola-anchor" href="#connectionsholdertest" aria-label="Anchor link for: connectionsholdertest">ConnectionsHolderTest</a></h3>
+<p>新增测试 <code>testConnectionCounterUsesServiceExecutorToWakeWaiter</code>：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue&lt;&gt;());
+CountDownLatch taskStarted = new CountDownLatch(1);
+CountDownLatch unblock = new CountDownLatch(1);
+MasterSlaveConnectionManager manager = buildManager(executor);
+
+executor.execute(() -&gt; {
+    taskStarted.countDown();
+    unblock.await();
+});
+Assertions.assertThat(taskStarted.await(1, TimeUnit.SECONDS)).isTrue();
+
+ConnectionsHolder&lt;RedisConnection&gt; holder =
+        new ConnectionsHolder&lt;&gt;(null, 1, r -&gt; new CompletableFuture&lt;&gt;(), manager.getServiceManager(), false);
+AsyncSemaphore counter = holder.getFreeConnectionsCounter();
+
+CompletableFuture&lt;Void&gt; acquired = counter.acquire();
+Assertions.assertThat(acquired).isCompleted();
+
+CompletableFuture&lt;Void&gt; waiter = counter.acquire();
+Assertions.assertThat(waiter).isNotDone();
+
+counter.release();
+
+Assertions.assertThat(waiter).isNotDone();
+Assertions.assertThat(executor.getQueue()).hasSize(1);
+
+unblock.countDown();
+
+waiter.get(1, TimeUnit.SECONDS);
+Assertions.assertThat(waiter).isCompleted();
+</code></pre>
+<p>这个测试保护的是连接池集成路径。它证明 <code>ConnectionsHolder</code> 的 semaphore 使用的是 <code>serviceManager.getExecutor()</code>，而不是 Netty group。</p>
+<h2 id="ce-shi-jie-guo"><a class="zola-anchor" href="#ce-shi-jie-guo" aria-label="Anchor link for: ce-shi-jie-guo">测试结果</a></h2>
+<p>运行：</p>
+<pre data-lang="bash" class="language-bash "><code class="language-bash" data-lang="bash">mvn -pl redisson -Punit-test -DskipITs -Dtest=org.redisson.misc.AsyncSemaphoreTest#testReleaseWithExecutorCompletesWaiterAsynchronously,org.redisson.connection.ConnectionsHolderTest#testConnectionCounterUsesServiceExecutorToWakeWaiter test
+</code></pre>
+<p>结果：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">Tests run: 2, Failures: 2, Errors: 0, Skipped: 0
+</code></pre>
+<p>恢复修复后运行完整相关测试：</p>
+<pre data-lang="bash" class="language-bash "><code class="language-bash" data-lang="bash">mvn -pl redisson -Punit-test -DskipITs -Dtest=org.redisson.misc.AsyncSemaphoreTest,org.redisson.connection.ConnectionsHolderTest test
+</code></pre>
+<p>结果：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">Tests run: 8, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+</code></pre>
+<p>这说明测试具备回归价值：修复前失败，修复后通过。</p>
+<h2 id="trade-off-yu-feng-xian"><a class="zola-anchor" href="#trade-off-yu-feng-xian" aria-label="Anchor link for: trade-off-yu-feng-xian">Trade-off 与风险</a></h2>
+<h3 id="trade-off-1-duo-liao-yi-ci-executor-diao-du"><a class="zola-anchor" href="#trade-off-1-duo-liao-yi-ci-executor-diao-du" aria-label="Anchor link for: trade-off-1-duo-liao-yi-ci-executor-diao-du">Trade-off 1：多了一次 executor 调度</a></h3>
+<p>原来 <code>release()</code> 大多数时候直接同步执行 <code>tryRun()</code>。修复后，只要存在等待者且配置了 executor，就会提交 executor task。</p>
+<p>这会增加一次调度成本，但换来的是 Netty event loop 不再同步抢等待队列锁。对于网络 IO 线程来说，这是值得的。</p>
+<h3 id="trade-off-2-service-executor-bian-de-geng-zhong-yao"><a class="zola-anchor" href="#trade-off-2-service-executor-bian-de-geng-zhong-yao" aria-label="Anchor link for: trade-off-2-service-executor-bian-de-geng-zhong-yao">Trade-off 2：service executor 变得更重要</a></h3>
+<p><code>ConnectionsHolder</code> 现在使用 <code>serviceManager.getExecutor()</code> 唤醒连接等待者。</p>
+<p>如果用户配置了很小、很慢或经常阻塞的 executor，连接等待者唤醒可能变慢。但这比阻塞 Netty event loop 更可控。</p>
+<h3 id="trade-off-3-mei-you-zhong-gou-fastremovalqueue"><a class="zola-anchor" href="#trade-off-3-mei-you-zhong-gou-fastremovalqueue" aria-label="Anchor link for: trade-off-3-mei-you-zhong-gou-fastremovalqueue">Trade-off 3：没有重构 FastRemovalQueue</a></h3>
+<p>保留 <code>FastRemovalQueue</code> 意味着队列内部仍然有锁。修复不是消除锁，而是避免 Netty event loop 直接同步等待这把锁。</p>
+<p>这是一个更小范围、更安全的修复。</p>
+<h2 id="jie-lun"><a class="zola-anchor" href="#jie-lun" aria-label="Anchor link for: jie-lun">结论</a></h2>
+<p>Issue #7155 的根因不是简单的 Redis 超时，也不是虚拟线程本身有问题，而是虚拟线程高并发放大了 Redisson 连接池等待队列的锁竞争，导致 Netty event loop 在连接释放路径上可能被阻塞。</p>
+<p>修复的关键原则是：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">Netty event loop 不应该执行可能阻塞的连接池等待队列唤醒逻辑。
+</code></pre>
+<p>具体落地为：</p>
+<ul>
+<li><code>AsyncSemaphore.release()</code> 在有 executor 时异步执行 <code>tryRun()</code>；</li>
+<li><code>ConnectionsHolder</code> 使用 Redisson worker executor，而不是 Netty event loop group；</li>
+<li>增加回归测试，证明修复前失败、修复后通过。</li>
+</ul>
+<p>这个修复没有扩大 API，没有引入依赖，也没有重写共享队列结构，属于针对根因的局部修复。</p>
+<h2 id="xiang-guan-wen-jian"><a class="zola-anchor" href="#xiang-guan-wen-jian" aria-label="Anchor link for: xiang-guan-wen-jian">相关文件</a></h2>
+<ul>
+<li><code>redisson/src/main/java/org/redisson/misc/AsyncSemaphore.java</code></li>
+<li><code>redisson/src/main/java/org/redisson/connection/ConnectionsHolder.java</code></li>
+<li><code>redisson/src/main/java/org/redisson/misc/FastRemovalQueue.java</code></li>
+<li><code>redisson/src/main/java/org/redisson/misc/WrappedLock.java</code></li>
+<li><code>redisson/src/test/java/org/redisson/misc/AsyncSemaphoreTest.java</code></li>
+<li><code>redisson/src/test/java/org/redisson/connection/ConnectionsHolderTest.java</code></li>
+</ul>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/aliasjeff.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#wen-ti-bei-jing">问题背景</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#redisson-lian-jie-chi-de-da-zhi-gong-zuo-fang-shi">Redisson 连接池的大致工作方式</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#asyncsemaphore-de-jiao-se">AsyncSemaphore 的角色</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#yuan-shi-release-luo-ji-de-wen-ti">原始 release 逻辑的问题</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#listeners-poll-wei-shen-me-hui-zu-sai">listeners.poll() 为什么会阻塞</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#wei-shen-me-xu-ni-xian-cheng-geng-rong-yi-bao-lu-wen-ti">为什么虚拟线程更容易暴露问题</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#getgroup-he-getexecutor-de-qu-bie">getGroup 和 getExecutor 的区别</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#xiu-fu-fang-an">修复方案</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#1-xiu-gai-asyncsemaphore-release">1. 修改 AsyncSemaphore.release()</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#2-xiu-gai-connectionsholder-de-executor-xuan-ze">2. 修改 ConnectionsHolder 的 executor 选择</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#hui-gui-ce-shi-she-ji">回归测试设计</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#asyncsemaphoretest">AsyncSemaphoreTest</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#connectionsholdertest">ConnectionsHolderTest</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#ce-shi-jie-guo">测试结果</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#trade-off-yu-feng-xian">Trade-off 与风险</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#trade-off-1-duo-liao-yi-ci-executor-diao-du">Trade-off 1：多了一次 executor 调度</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#trade-off-2-service-executor-bian-de-geng-zhong-yao">Trade-off 2：service executor 变得更重要</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#trade-off-3-mei-you-zhong-gou-fastremovalqueue">Trade-off 3：没有重构 FastRemovalQueue</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#jie-lun">结论</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redisson-xu-ni-xian-cheng-gao-bing-fa-xia-de-netty-event-loop-zu-sai-wen-ti/#xiang-guan-wen-jian">相关文件</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>
