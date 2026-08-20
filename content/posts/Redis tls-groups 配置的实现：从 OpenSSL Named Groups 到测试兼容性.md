@@ -1,5 +1,5 @@
 +++
-title = "Redis tls-groups 配置的实现：从 OpenSSL Named Groups 到测试兼容性"
+title = "Redis tls-groups 配置的实现"
 date = "2026-08-20"
 
 [taxonomies]
@@ -13,7 +13,7 @@ PR: https://github.com/redis/redis/pull/15556
 
 Redis Issue [#15502](https://github.com/redis/redis/issues/15502) 提到一个 TLS 配置缺口：Redis 已经支持配置 `tls-protocols`、`tls-ciphers` 和 `tls-ciphersuites`，但没有对应的选项来控制 OpenSSL TLS handshake 中使用的 group / curve preferences。对于需要满足平台 TLS 策略、合规要求，或者希望启用特定 PQC group 的部署来说，这会让 Redis 的 TLS 配置不够完整。
 
-这次 PR 最终引入的是 `tls-groups`，不是最初 issue 里提到的 `tls-curve-preferences`。它用于设置 OpenSSL named groups 列表，并把这个配置应用到 Redis server TLS context，以及 Redis 自身作为 TLS client 时使用的 context，例如 replication、cluster 和其他 server-to-server TLS 连接。
+这次 PR 最终引入的是 `tls-groups`。它用于设置 OpenSSL named groups 列表，并把这个配置应用到 Redis server TLS context，以及 Redis 自身作为 TLS client 时使用的 context，例如 replication、cluster 和其他 server-to-server TLS 连接。
 
 这篇文章会从需求背景开始，解释为什么这个选项叫 `tls-groups`，然后展开服务端配置、OpenSSL API 兼容、`redis-cli` / `redis-benchmark` 支持、测试设计，以及几个容易踩到的边界问题。
 
