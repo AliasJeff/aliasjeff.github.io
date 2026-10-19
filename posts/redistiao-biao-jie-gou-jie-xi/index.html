@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                Redis 跳跃表结构解析
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="Redis 跳跃表结构解析" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            Redis 跳跃表结构解析
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2026-09-07</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/redis/"
+                                       class="post-tag">Redis</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/shu-ju-jie-gou/"
+                                       class="post-tag">数据结构</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>跳跃表（skiplist）是一种随机化的有序数据结构，由 William Pugh 在论文《Skip lists: a probabilistic alternative to balanced trees》中提出。它通过在有序链表之上增加多层索引，让查找、插入和删除操作的平均复杂度达到 <code>O(log N)</code>，实现却比平衡树更直观。</p>
+<p>Redis 使用跳跃表作为有序集合（sorted set）的底层实现之一。当有序集合中的元素较多，或者成员字符串较长时，Redis 会使用跳跃表和字典共同保存数据。</p>
+<h2 id="cong-you-xu-lian-biao-dao-tiao-yue-biao"><a class="zola-anchor" href="#cong-you-xu-lian-biao-dao-tiao-yue-biao" aria-label="Anchor link for: cong-you-xu-lian-biao-dao-tiao-yue-biao">从有序链表到跳跃表</a></h2>
+<p>有序链表中的节点按照递增或递减顺序排列，每个节点通过 <code>next</code> 指针指向下一个节点。</p>
+<p>假设链表中的元素为：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">1 -&gt; 8 -&gt; 11 -&gt; 12 -&gt; 26 -&gt; 31 -&gt; 61
+</code></pre>
+<p>如果查找 <code>31</code>，只能从头开始逐个比较，查找路径是 <code>1 -&gt; 8 -&gt; 11 -&gt; 12 -&gt; 26 -&gt; 31</code>，时间复杂度为 <code>O(N)</code>。</p>
+<p>如果将部分节点抽出来组成更高层的有序链表，查找时先从最高层开始向后移动；当下一个节点大于目标值，或者已经到达当前层末尾时，再下降一层继续查找，就可以跳过大量节点。</p>
+<p>例如查找 <code>31</code> 时：</p>
+<ol>
+<li>从最高层的 <code>1</code> 开始，移动到 <code>11</code>；</li>
+<li>最高层的下一个节点为空，下降到下一层；</li>
+<li>在下一层从 <code>11</code> 移动到 <code>26</code>；</li>
+<li><code>26</code> 的下一个节点是 <code>61</code>，大于 <code>31</code>，继续下降；</li>
+<li>在第 0 层从 <code>26</code> 移动到 <code>31</code>，找到目标节点。</li>
+</ol>
+<p>这就是跳跃表的基本思想：底层保存所有元素，上层保存部分元素作为索引，查找过程中通过“向右移动、向下下降”来减少比较次数。</p>
+<h2 id="tiao-yue-biao-de-ji-ben-xing-zhi"><a class="zola-anchor" href="#tiao-yue-biao-de-ji-ben-xing-zhi" aria-label="Anchor link for: tiao-yue-biao-de-ji-ben-xing-zhi">跳跃表的基本性质</a></h2>
+<p>Redis 的跳跃表具有以下特点：</p>
+<ul>
+<li>最底层 <code>Level 0</code> 包含所有节点；</li>
+<li>每一层都是按 <code>score</code> 递增排列的有序链表；</li>
+<li>上层出现的节点一定会在下层出现；</li>
+<li>跳跃表有一个固定最多 32 层的头节点；</li>
+<li>除头节点外，最高节点的层数决定跳跃表的当前高度 <code>level</code>；</li>
+<li><code>tail</code> 指针指向最底层的最后一个节点；</li>
+<li>每层最后一个节点的 <code>forward</code> 都指向 <code>NULL</code>。</li>
+</ul>
+<p><code>level</code> 表示当前实际使用的最高层数，头节点虽然有 32 层，但头节点本身不计入跳跃表高度。</p>
+<h2 id="tiao-yue-biao-jie-gou"><a class="zola-anchor" href="#tiao-yue-biao-jie-gou" aria-label="Anchor link for: tiao-yue-biao-jie-gou">跳跃表结构</a></h2>
+<p>Redis 中跳跃表的结构体定义如下：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">typedef struct zskiplist {
+    &#x2F;&#x2F; 表头节点和表尾节点
+    struct zskiplistNode *header, *tail;
+
+    &#x2F;&#x2F; 表中节点的数量
+    unsigned long length;
+
+    &#x2F;&#x2F; 表中层数最大的节点的层数
+    int level;
+} zskiplist;
+</code></pre>
+<p>各字段的含义如下：</p>
+<ul>
+<li><code>header</code>：指向头节点。头节点最多拥有 32 个层级，不保存实际的 <code>score</code> 和成员对象；</li>
+<li><code>tail</code>：指向最底层的最后一个节点；</li>
+<li><code>length</code>：第 0 层中实际节点的数量，不包括头节点；</li>
+<li><code>level</code>：除头节点外，当前最高节点的层数。</li>
+</ul>
+<p>头节点和普通节点使用相同的节点结构，但头节点的 <code>score</code>、成员对象和后退指针不会用于保存实际数据。</p>
+<h2 id="tiao-yue-biao-jie-dian"><a class="zola-anchor" href="#tiao-yue-biao-jie-dian" aria-label="Anchor link for: tiao-yue-biao-jie-dian">跳跃表节点</a></h2>
+<p>节点定义如下：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">typedef struct zskiplistNode {
+    &#x2F;&#x2F; 成员对象
+    robj *obj;
+
+    &#x2F;&#x2F; 分值
+    double score;
+
+    &#x2F;&#x2F; 后退指针
+    struct zskiplistNode *backward;
+
+    &#x2F;&#x2F; 层
+    struct zskiplistLevel {
+        &#x2F;&#x2F; 前进指针
+        struct zskiplistNode *forward;
+
+        &#x2F;&#x2F; 跨度
+        unsigned int span;
+    } level[];
+} zskiplistNode;
+</code></pre>
+<h3 id="score"><a class="zola-anchor" href="#score" aria-label="Anchor link for: score"><code>score</code></a></h3>
+<p><code>score</code> 是一个 <code>double</code> 类型的分值，跳跃表中的节点首先按照 <code>score</code> 从小到大排序。</p>
+<h3 id="obj"><a class="zola-anchor" href="#obj" aria-label="Anchor link for: obj"><code>obj</code></a></h3>
+<p><code>obj</code> 是节点的成员对象，指向一个 Redis 字符串对象。字符串对象底层通常保存着一个 SDS。</p>
+<p>当多个节点的 <code>score</code> 相同时，Redis 会继续比较成员对象的字典序，以确定节点顺序。</p>
+<h3 id="backward"><a class="zola-anchor" href="#backward" aria-label="Anchor link for: backward"><code>backward</code></a></h3>
+<p><code>backward</code> 是后退指针，只存在于节点的底层关系中，用于从表尾向表头方向遍历。头节点和第一个实际节点的 <code>backward</code> 都指向 <code>NULL</code>。</p>
+<h3 id="level"><a class="zola-anchor" href="#level" aria-label="Anchor link for: level"><code>level</code></a></h3>
+<p><code>level</code> 是一个动态柔性数组。每个节点根据随机算法获得不同的高度，数组中的每个元素保存一个 <code>forward</code> 指针和一个 <code>span</code>：</p>
+<ul>
+<li><code>forward</code>：指向当前层的下一个节点；</li>
+<li><code>span</code>：记录从当前节点到 <code>forward</code> 节点之间跨越的节点数量。</li>
+</ul>
+<p><code>span</code> 不仅能支持跳跃式查找，还能帮助 Redis 根据排名查找元素。</p>
+<h2 id="sui-ji-sheng-cheng-jie-dian-gao-du"><a class="zola-anchor" href="#sui-ji-sheng-cheng-jie-dian-gao-du" aria-label="Anchor link for: sui-ji-sheng-cheng-jie-dian-gao-du">随机生成节点高度</a></h2>
+<p>每插入一个新节点，Redis 都会随机为它分配一个高度。节点高度一旦确定，后续不会再改变。</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">#define ZSKIPLIST_MAXLEVEL 32 &#x2F;* Should be enough for 2^32 elements *&#x2F;
+#define ZSKIPLIST_P 0.25      &#x2F;* Skiplist P = 1&#x2F;4 *&#x2F;
+
+int zslRandomLevel(void) {
+    int level = 1;
+
+    while ((random() &amp; 0xFFFF) &lt; (ZSKIPLIST_P * 0xFFFF))
+        level += 1;
+
+    return (level &lt; ZSKIPLIST_MAXLEVEL)
+        ? level
+        : ZSKIPLIST_MAXLEVEL;
+}
+</code></pre>
+<p>这里 <code>level</code> 从 1 开始。每次随机结果满足条件，就晋升到更高一层；否则停止。Redis 将最大层数限制为 32，避免节点层级无限增长。</p>
+<p>由于 <code>ZSKIPLIST_P</code> 为 <code>0.25</code>，严格按照这段代码，节点继续向上一层晋升的概率约为四分之一。因此节点高度越高，出现的概率越低，跳跃表整体会保持比较稀疏的高层索引。</p>
+<h2 id="chuang-jian-tiao-yue-biao"><a class="zola-anchor" href="#chuang-jian-tiao-yue-biao" aria-label="Anchor link for: chuang-jian-tiao-yue-biao">创建跳跃表</a></h2>
+<p>创建跳跃表主要分为三步：</p>
+<ol>
+<li>分配并初始化 <code>zskiplist</code>；</li>
+<li>设置 <code>level = 1</code>、<code>length = 0</code>，并令 <code>tail = NULL</code>；</li>
+<li>创建一个拥有 32 层的头节点，将每一层的 <code>forward</code> 和 <code>span</code> 初始化为 0 或 <code>NULL</code>。</li>
+</ol>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">zskiplistNode *zslCreateNode(int level, double score, robj *obj) {
+    zskiplistNode *zn =
+        zmalloc(sizeof(*zn) + level * sizeof(struct zskiplistLevel));
+
+    zn-&gt;score = score;
+    zn-&gt;obj = obj;
+    return zn;
+}
+
+zskiplist *zslCreate(void) {
+    int j;
+    zskiplist *zsl = zmalloc(sizeof(*zsl));
+
+    zsl-&gt;level = 1;
+    zsl-&gt;length = 0;
+
+    zsl-&gt;header = zslCreateNode(ZSKIPLIST_MAXLEVEL, 0, NULL);
+    for (j = 0; j &lt; ZSKIPLIST_MAXLEVEL; j++) {
+        zsl-&gt;header-&gt;level[j].forward = NULL;
+        zsl-&gt;header-&gt;level[j].span = 0;
+    }
+
+    zsl-&gt;header-&gt;backward = NULL;
+    zsl-&gt;tail = NULL;
+    return zsl;
+}
+</code></pre>
+<h2 id="cha-ru-jie-dian"><a class="zola-anchor" href="#cha-ru-jie-dian" aria-label="Anchor link for: cha-ru-jie-dian">插入节点</a></h2>
+<p>插入一个节点时，Redis 会完成以下工作：</p>
+<ol>
+<li>从最高层开始查找插入位置，并记录每一层最后访问的节点；</li>
+<li>记录查找过程中跨越的节点数量；</li>
+<li>随机生成新节点的高度，必要时增加跳跃表的当前高度；</li>
+<li>修改新节点和前驱节点的 <code>forward</code>；</li>
+<li>更新相关节点的 <code>span</code>；</li>
+<li>设置新节点的 <code>backward</code>，必要时更新 <code>tail</code>；</li>
+<li>增加 <code>length</code>。</li>
+</ol>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">zskiplistNode *zslInsert(zskiplist *zsl, double score, robj *obj) {
+    zskiplistNode *update[ZSKIPLIST_MAXLEVEL], *x;
+    unsigned int rank[ZSKIPLIST_MAXLEVEL];
+    int i, level;
+
+    x = zsl-&gt;header;
+    for (i = zsl-&gt;level - 1; i &gt;= 0; i--) {
+        rank[i] = (i == zsl-&gt;level - 1) ? 0 : rank[i + 1];
+
+        while (x-&gt;level[i].forward &amp;&amp;
+               (x-&gt;level[i].forward-&gt;score &lt; score ||
+                (x-&gt;level[i].forward-&gt;score == score &amp;&amp;
+                 compareStringObjects(x-&gt;level[i].forward-&gt;obj, obj) &lt; 0))) {
+            rank[i] += x-&gt;level[i].span;
+            x = x-&gt;level[i].forward;
+        }
+
+        update[i] = x;
+    }
+
+    level = zslRandomLevel();
+    if (level &gt; zsl-&gt;level) {
+        for (i = zsl-&gt;level; i &lt; level; i++) {
+            rank[i] = 0;
+            update[i] = zsl-&gt;header;
+            update[i]-&gt;level[i].span = zsl-&gt;length;
+        }
+        zsl-&gt;level = level;
+    }
+
+    x = zslCreateNode(level, score, obj);
+    for (i = 0; i &lt; level; i++) {
+        x-&gt;level[i].forward = update[i]-&gt;level[i].forward;
+        update[i]-&gt;level[i].forward = x;
+
+        x-&gt;level[i].span =
+            update[i]-&gt;level[i].span - (rank[0] - rank[i]);
+        update[i]-&gt;level[i].span = (rank[0] - rank[i]) + 1;
+    }
+
+    for (i = level; i &lt; zsl-&gt;level; i++)
+        update[i]-&gt;level[i].span++;
+
+    x-&gt;backward = (update[0] == zsl-&gt;header) ? NULL : update[0];
+    if (x-&gt;level[0].forward)
+        x-&gt;level[0].forward-&gt;backward = x;
+    else
+        zsl-&gt;tail = x;
+
+    zsl-&gt;length++;
+    return x;
+}
+</code></pre>
+<h3 id="wei-shen-me-yao-wei-hu-update-he-rank"><a class="zola-anchor" href="#wei-shen-me-yao-wei-hu-update-he-rank" aria-label="Anchor link for: wei-shen-me-yao-wei-hu-update-he-rank">为什么要维护 <code>update</code> 和 <code>rank</code></a></h3>
+<p><code>update[i]</code> 保存第 <code>i</code> 层中，新节点应该插入位置的前驱节点。插入时，Redis 可以直接修改这些节点的指针，不需要再次遍历。</p>
+<p><code>rank[i]</code> 保存从头节点到当前位置已经跨过的节点数。插入节点后，Redis 根据不同层级的距离重新计算 <code>span</code>，这样才能继续支持按排名查找。</p>
+<h2 id="shan-chu-jie-dian"><a class="zola-anchor" href="#shan-chu-jie-dian" aria-label="Anchor link for: shan-chu-jie-dian">删除节点</a></h2>
+<p>真正删除节点时，需要修复所有受影响层级的 <code>forward</code> 和 <code>span</code>，然后更新后退指针、尾指针、跳跃表高度和节点数量。</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">void zslDeleteNode(zskiplist *zsl,
+                   zskiplistNode *x,
+                   zskiplistNode **update) {
+    int i;
+
+    for (i = 0; i &lt; zsl-&gt;level; i++) {
+        if (update[i]-&gt;level[i].forward == x) {
+            update[i]-&gt;level[i].span += x-&gt;level[i].span - 1;
+            update[i]-&gt;level[i].forward = x-&gt;level[i].forward;
+        } else {
+            update[i]-&gt;level[i].span -= 1;
+        }
+    }
+
+    if (x-&gt;level[0].forward)
+        x-&gt;level[0].forward-&gt;backward = x-&gt;backward;
+    else
+        zsl-&gt;tail = x-&gt;backward;
+
+    while (zsl-&gt;level &gt; 1 &amp;&amp;
+           zsl-&gt;header-&gt;level[zsl-&gt;level - 1].forward == NULL)
+        zsl-&gt;level--;
+
+    zsl-&gt;length--;
+}
+</code></pre>
+<p>如果 <code>update[i]</code> 的 <code>forward</code> 正好指向待删除节点 <code>x</code>，就把它改成 <code>x</code> 的后继节点，并将原有跨度合并；否则说明这一层没有直接经过 <code>x</code>，只需要把跨度减一。</p>
+<p>删除节点后，如果最高层已经没有实际节点，Redis 会降低跳跃表的当前高度，但不会缩小头节点固定的 32 层数组。</p>
+<h2 id="shan-chu-zhi-ding-cheng-yuan"><a class="zola-anchor" href="#shan-chu-zhi-ding-cheng-yuan" aria-label="Anchor link for: shan-chu-zhi-ding-cheng-yuan">删除指定成员</a></h2>
+<p><code>zslDelete</code> 先按照 <code>score</code> 和成员对象的字典序查找节点，同时记录各层的前驱节点。找到同时满足 <code>score</code> 和成员对象的节点后，调用 <code>zslDeleteNode</code> 完成删除。</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">int zslDelete(zskiplist *zsl, double score, robj *obj) {
+    zskiplistNode *update[ZSKIPLIST_MAXLEVEL], *x;
+    int i;
+
+    x = zsl-&gt;header;
+    for (i = zsl-&gt;level - 1; i &gt;= 0; i--) {
+        while (x-&gt;level[i].forward &amp;&amp;
+               (x-&gt;level[i].forward-&gt;score &lt; score ||
+                (x-&gt;level[i].forward-&gt;score == score &amp;&amp;
+                 compareStringObjects(x-&gt;level[i].forward-&gt;obj, obj) &lt; 0))) {
+            x = x-&gt;level[i].forward;
+        }
+        update[i] = x;
+    }
+
+    x = x-&gt;level[0].forward;
+    if (x &amp;&amp; score == x-&gt;score &amp;&amp; equalStringObjects(x-&gt;obj, obj)) {
+        zslDeleteNode(zsl, x, update);
+        zslFreeNode(x);
+        return 1;
+    }
+
+    return 0;
+}
+</code></pre>
+<p>同一个 <code>score</code> 可以对应多个成员，所以只比较分值是不够的，必须同时比较成员对象。</p>
+<h2 id="chang-yong-api-yu-fu-za-du"><a class="zola-anchor" href="#chang-yong-api-yu-fu-za-du" aria-label="Anchor link for: chang-yong-api-yu-fu-za-du">常用 API 与复杂度</a></h2>
+<table><thead><tr><th>函数</th><th>作用</th><th>平均复杂度</th></tr></thead><tbody>
+<tr><td><code>zslCreate</code></td><td>创建跳跃表</td><td><code>O(1)</code></td></tr>
+<tr><td><code>zslFree</code></td><td>释放跳跃表及所有节点</td><td><code>O(N)</code></td></tr>
+<tr><td><code>zslInsert</code></td><td>插入节点</td><td><code>O(log N)</code></td></tr>
+<tr><td><code>zslDelete</code></td><td>删除指定节点</td><td><code>O(log N)</code></td></tr>
+<tr><td><code>zslFirstInRange</code></td><td>返回范围内第一个节点</td><td><code>O(log N)</code></td></tr>
+<tr><td><code>zslLastInRange</code></td><td>返回范围内最后一个节点</td><td><code>O(log N)</code></td></tr>
+<tr><td><code>zslIsInRange</code></td><td>判断分值范围是否可能命中</td><td><code>O(1)</code></td></tr>
+<tr><td><code>zslGetRank</code></td><td>获取节点排名</td><td><code>O(log N)</code></td></tr>
+<tr><td><code>zslGetElementByRank</code></td><td>按排名获取节点</td><td><code>O(log N)</code></td></tr>
+<tr><td><code>zslDeleteRangeByScore</code></td><td>按分值范围删除节点</td><td><code>O(log N + N)</code></td></tr>
+<tr><td><code>zslDeleteRangeByRank</code></td><td>按排名范围删除节点</td><td><code>O(log N + N)</code></td></tr>
+</tbody></table>
+<p>实际实现中，复杂度还会受到成员字符串比较成本的影响；当需要比较很长的成员字符串时，单次比较本身也可能消耗额外时间。</p>
+<h2 id="zong-jie"><a class="zola-anchor" href="#zong-jie" aria-label="Anchor link for: zong-jie">总结</a></h2>
+<p>跳跃表的核心并不在于某个复杂的平衡算法，而在于“多层有序链表”这一简单结构：</p>
+<ul>
+<li>第 0 层保存全部元素，保证顺序遍历；</li>
+<li>更高层保存部分节点，作为稀疏索引；</li>
+<li>随机高度使高层节点逐渐变少；</li>
+<li><code>forward</code> 支持向后查找，<code>backward</code> 支持反向遍历；</li>
+<li><code>span</code> 支持按排名定位；</li>
+<li>插入和删除只需要更新受影响路径上的节点。</li>
+</ul>
+<p>Redis 选择跳跃表，除了平均复杂度接近平衡树之外，也因为它的实现更容易和范围查询、排名查询结合。对于有序集合这种既需要按分值排序，又需要频繁插入、删除和按排名访问的场景，跳跃表是一个很实用的工程选择。</p>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/aliasjeff.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#cong-you-xu-lian-biao-dao-tiao-yue-biao">从有序链表到跳跃表</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#tiao-yue-biao-de-ji-ben-xing-zhi">跳跃表的基本性质</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#tiao-yue-biao-jie-gou">跳跃表结构</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#tiao-yue-biao-jie-dian">跳跃表节点</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#score">score</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#obj">obj</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#backward">backward</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#level">level</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#sui-ji-sheng-cheng-jie-dian-gao-du">随机生成节点高度</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#chuang-jian-tiao-yue-biao">创建跳跃表</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#cha-ru-jie-dian">插入节点</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#wei-shen-me-yao-wei-hu-update-he-rank">为什么要维护 update 和 rank</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#shan-chu-jie-dian">删除节点</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#shan-chu-zhi-ding-cheng-yuan">删除指定成员</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#chang-yong-api-yu-fu-za-du">常用 API 与复杂度</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redistiao-biao-jie-gou-jie-xi/#zong-jie">总结</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>
