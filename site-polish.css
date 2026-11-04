@@ -1,0 +1,479 @@
+html {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--border-color) 38%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--border-color) 28%, transparent) 1px, transparent 1px);
+  background-position: center top;
+  background-size: 96px 96px;
+}
+
+body .content {
+  position: relative;
+  width: min(var(--page-width), calc(100vw - 1.8rem));
+  max-width: min(var(--page-width), calc(100vw - 1.8rem));
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+nav {
+  margin-bottom: 1.5rem;
+}
+
+nav a,
+button {
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 3px;
+}
+
+.home-shell {
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-height: 680px;
+  overflow: hidden;
+  padding: 5rem 0 3rem;
+}
+
+.home-shell *,
+.home-shell *::before,
+.home-shell *::after {
+  box-sizing: border-box;
+}
+
+.home-geometry {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  color: var(--primary-color);
+  pointer-events: none;
+}
+
+.geometry-stage {
+  position: absolute;
+  top: -1.5rem;
+  left: 42%;
+  width: 1180px;
+  max-width: 128vw;
+  height: auto;
+  border: 0;
+  color: inherit;
+  opacity: 0.82;
+  transform: translateX(-50%);
+  animation: geometry-drift 22s ease-in-out infinite;
+}
+
+.geo-panel rect {
+  fill: color-mix(in srgb, var(--bg-0) 84%, transparent);
+  stroke: color-mix(in srgb, var(--primary-color) 28%, transparent);
+  stroke-width: 1;
+}
+
+.geo-panel path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.geo-panel .faint,
+.geo-panel .geo-arc {
+  stroke: var(--text-2);
+}
+
+.geo-tree {
+  opacity: 0.64;
+}
+
+.geo-tree .geo-ground {
+  stroke-width: 1.2;
+}
+
+.geo-fractal path {
+  stroke-dasharray: 86;
+  stroke-dashoffset: 86;
+  animation: tree-grow-up 8.5s ease-in-out infinite;
+  animation-fill-mode: both;
+}
+
+.geo-fractal .tree-depth-0 {
+  animation-delay: 0s;
+}
+
+.geo-fractal .tree-depth-1 {
+  animation-delay: 0.35s;
+}
+
+.geo-fractal .tree-depth-2 {
+  animation-delay: 0.75s;
+}
+
+.geo-fractal .tree-depth-3 {
+  animation-delay: 1.15s;
+}
+
+.geo-fractal .tree-depth-4 {
+  animation-delay: 1.55s;
+}
+
+.geo-fractal .tree-depth-5 {
+  animation-delay: 1.95s;
+}
+
+.geo-poly,
+.geo-terrain,
+.geo-signal {
+  opacity: 0.28;
+}
+
+.geo-poly path,
+.geo-terrain path,
+.geo-signal path {
+  stroke-dasharray: 18 12;
+  animation: signal-shift 18s linear infinite;
+}
+
+.home-hero {
+  max-width: 780px;
+  padding-top: 4.2rem;
+}
+
+.home-slogan {
+  margin: 0;
+  color: var(--text-0);
+  font-family: var(--header-font);
+  font-size: 6rem;
+  font-weight: 700;
+  line-height: 0.96;
+}
+
+.home-slogan::before {
+  content: none;
+}
+
+.home-slogan span {
+  display: block;
+}
+
+.home-slogan span:first-child {
+  color: var(--primary-color);
+}
+
+.home-slogan span:last-child {
+  color: var(--primary-color);
+}
+
+.home-slogan .slogan-outline {
+  color: var(--text-0);
+}
+
+@supports (-webkit-text-stroke: 1px currentColor) {
+  .home-slogan .slogan-outline {
+    color: transparent;
+    -webkit-text-stroke: 1px color-mix(in srgb, var(--text-0) 72%, transparent);
+    text-shadow: 0 0 18px color-mix(in srgb, var(--primary-color) 18%, transparent);
+  }
+}
+
+.home-intro {
+  max-width: 610px;
+  margin: 1.5rem 0 0;
+  color: var(--text-1);
+  font-size: 1.1rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.homepage-navigation {
+  margin: 4.5rem 0 2rem;
+  padding: 0 0 2rem;
+}
+
+.homepage-navigation h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  overflow-wrap: anywhere;
+}
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.nav-card {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--text-0) 10%, transparent);
+}
+
+.nav-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px color-mix(in srgb, var(--text-0) 15%, transparent);
+}
+
+.nav-card > span:first-child {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-0);
+  font-size: 1.25rem;
+}
+
+.nav-card p {
+  margin: 0 0 1rem;
+  color: var(--text-1);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.nav-link {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.nav-link:hover {
+  text-decoration: none;
+}
+
+/* ===== Papers ===== */
+
+.papers-list {
+  margin: 2rem 0;
+}
+
+.paper-entry {
+  padding: 1.75rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.paper-entry:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.paper-meta {
+  margin: 0 0 0.4rem;
+  font-family: var(--code-font), monospace;
+  font-size: 0.75rem;
+  color: var(--text-2);
+}
+
+.paper-venue {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.paper-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.paper-title a {
+  color: var(--text-0);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.paper-title a:hover {
+  color: var(--primary-color);
+}
+
+.paper-authors {
+  margin: 0 0 0.7rem;
+  font-size: 0.83rem;
+  color: var(--text-2);
+}
+
+.paper-abstract {
+  margin: 0 0 0.7rem;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--text-1);
+}
+
+.paper-keywords {
+  margin: 0;
+  font-family: var(--code-font), monospace;
+  font-size: 0.72rem;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+@keyframes geometry-drift {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(14px);
+  }
+}
+
+@keyframes signal-shift {
+  to {
+    stroke-dashoffset: -120;
+  }
+}
+
+@keyframes tree-grow-up {
+  0%,
+  8% {
+    stroke-dashoffset: 86;
+    opacity: 0;
+  }
+
+  25%,
+  72% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  100% {
+    stroke-dashoffset: -86;
+    opacity: 0;
+  }
+}
+
+@media (max-width: 992px) {
+  body {
+    display: block;
+  }
+
+  body .left-content,
+  body .right-content {
+    display: none;
+  }
+
+  body .content {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .home-shell {
+    min-height: 620px;
+    padding-top: 4rem;
+  }
+
+  .home-slogan {
+    font-size: 4.7rem;
+  }
+
+  .geo-signal {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  html {
+    background-size: 72px 72px;
+  }
+
+  .home-shell {
+    min-height: auto;
+    padding: 3rem 0 2rem;
+  }
+
+  .home-hero,
+  .homepage-navigation,
+  .home-intro {
+    width: calc(100vw - 2.8rem);
+    max-width: 100%;
+  }
+
+  .geometry-stage {
+    top: 0;
+    left: 38%;
+    max-width: 190vw;
+    opacity: 0.48;
+  }
+
+  .geo-poly,
+  .geo-terrain {
+    display: none;
+  }
+
+  .geo-tree {
+    opacity: 0.42;
+  }
+
+  .home-slogan {
+    font-size: 3.25rem;
+    line-height: 1;
+  }
+
+  .home-intro {
+    font-size: 1rem;
+  }
+
+  .nav-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0;
+  }
+
+  .homepage-navigation {
+    margin-top: 3rem;
+  }
+
+  .homepage-navigation h2 {
+    font-size: 1.45rem;
+  }
+
+  .nav-card {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .home-slogan {
+    font-size: 2.55rem;
+  }
+
+  .home-intro {
+    width: 280px;
+    max-width: 100%;
+  }
+
+  .nav-card {
+    min-height: 0;
+  }
+
+  .nav-card p {
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

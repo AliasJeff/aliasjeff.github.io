@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                大模型微调算法：从 SFT 到 GRPO
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="大模型微调算法：从 SFT 到 GRPO" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            大模型微调算法：从 SFT 到 GRPO
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2026-09-28</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/ai/"
+                                       class="post-tag">AI</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/da-mo-xing/"
+                                       class="post-tag">大模型</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/sft/"
+                                       class="post-tag">SFT</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/qiang-hua-xue-xi/"
+                                       class="post-tag">强化学习</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>我是在做 Agent 的过程中重新看这条训练链路的。</p>
+<p>平时调用模型、接工具、配参数并不难，真正容易卡住的是继续往下追问：SFT 到底在优化什么？PPO 为什么需要 KL 约束？GRPO 去掉了 Critic 之后，优势值从哪里来？DPO 少了奖励模型，为什么还能做偏好优化？</p>
+<p>这些问题如果只记结论，很快就会混在一起。于是我从预训练之后的几种方法重新梳理了一遍：先看 SFT，再看策略梯度和优势函数，最后把 REINFORCE、RLOO、REMAX、PPO、GRPO、REINFORCE++ 和 DPO 放回同一条演进线上。</p>
+<p>这篇文章不是论文复述。公式只保留理解算法所需要的部分，重点放在三个问题上：</p>
+<ul>
+<li>每种方法拿什么作为“好坏”的判断；</li>
+<li>它用什么方式估计优势值；</li>
+<li>它为了解决前一种方法的问题，又引入了什么成本。</li>
+</ul>
+<blockquote>
+<p>这是工程视角的学习笔记。推导以直觉和关键公式为主，严格证明请以原论文为准。</p>
+</blockquote>
+<h2 id="yi-yu-xun-lian-zhi-hou-mo-xing-huan-que-shen-me"><a class="zola-anchor" href="#yi-yu-xun-lian-zhi-hou-mo-xing-huan-que-shen-me" aria-label="Anchor link for: yi-yu-xun-lian-zhi-hou-mo-xing-huan-que-shen-me">一、预训练之后，模型还缺什么</a></h2>
+<p>预训练让模型掌握了大量语言、知识和模式，但它并不天然知道：</p>
+<ul>
+<li>用户的指令应该如何遵循；</li>
+<li>什么样的回答更符合人类偏好；</li>
+<li>数学题、代码题应该怎样完成并验证；</li>
+<li>输出格式、安全边界和产品约束是什么。</li>
+</ul>
+<p>后训练通常从下面这条链路开始：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">模型结构设计
+    -&gt; 预训练
+    -&gt; Base LLM
+    -&gt; SFT
+    -&gt; 偏好数据 &#x2F; 奖励模型
+    -&gt; RLHF、RLVR 或 DPO
+    -&gt; 评测、压缩、部署
+</code></pre>
+<p>实际项目里并不是严格走一遍就结束。更常见的方式是先用 SFT 冷启动，再做偏好优化或强化学习，把训练过程中发现的好答案和坏案例重新整理到下一轮数据里。</p>
+<h3 id="1-1-sft-he-rl-de-qu-bie"><a class="zola-anchor" href="#1-1-sft-he-rl-de-qu-bie" aria-label="Anchor link for: 1-1-sft-he-rl-de-qu-bie">1.1 SFT 和 RL 的区别</a></h3>
+<table><thead><tr><th>维度</th><th>SFT</th><th>RL（RLHF / RLVR）</th></tr></thead><tbody>
+<tr><td>数据</td><td>指令、输入、标准回答</td><td>偏好排序、奖励分数或可验证结果</td></tr>
+<tr><td>目标</td><td>最大化专家答案的似然</td><td>最大化期望奖励</td></tr>
+<tr><td>反馈粒度</td><td>token 级</td><td>通常是完整回答或轨迹级</td></tr>
+<tr><td>样本来源</td><td>固定的离线数据</td><td>模型在线生成的数据</td></tr>
+<tr><td>主要作用</td><td>学习格式、风格和基本行为</td><td>在多个可行答案中继续选择更好的答案</td></tr>
+<tr><td>优点</td><td>稳定、简单、成本低</td><td>能利用相对质量和探索结果</td></tr>
+<tr><td>风险</td><td>过拟合、暴露偏差、分布偏移</td><td>reward hacking、熵崩塌、训练不稳定</td></tr>
+</tbody></table>
+<p>简单说，SFT 解决的是“应该怎么回答”，RL 解决的是“多个回答里哪个更好”。</p>
+<p>这不是说 SFT 只能死记硬背，也不是说 RL 一定能带来泛化。它们处理的是不同的监督信号：SFT 有明确的示范答案，RL 只有奖励或偏好反馈。</p>
+<h2 id="er-sft-yong-shi-fan-da-an-su-zao-xing-wei"><a class="zola-anchor" href="#er-sft-yong-shi-fan-da-an-su-zao-xing-wei" aria-label="Anchor link for: er-sft-yong-shi-fan-da-an-su-zao-xing-wei">二、SFT：用示范答案塑造行为</a></h2>
+<h3 id="2-1-sft-zai-zuo-shen-me"><a class="zola-anchor" href="#2-1-sft-zai-zuo-shen-me" aria-label="Anchor link for: 2-1-sft-zai-zuo-shen-me">2.1 SFT 在做什么</a></h3>
+<p>SFT（Supervised Fine-Tuning）是在预训练模型的基础上，用标注好的输入输出样本继续训练。</p>
+<p>一个样本可以写成：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">输入：介绍一下量子力学
+回答：量子力学是研究微观粒子运动规律的物理学分支……
+</code></pre>
+<p>训练时，模型看到输入和回答前缀，预测下一个 token。目标是让标准回答的概率变大。</p>
+<p>如果一条样本包含输入 <code>x</code> 和标准回答 <code>y* = (y1, y2, ..., yT)</code>，常见的 SFT 损失是：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">L_SFT(θ) = - Σ_t log πθ(y_t | x, y_&lt;t)
+</code></pre>
+<p>其中 <code>y_&lt;t</code> 表示第 <code>t</code> 个 token 之前的回答内容。实际训练中通常只对回答部分计算损失，输入部分不参与监督。</p>
+<h3 id="2-2-shu-ju-zhi-liang-jue-ding-shang-xian"><a class="zola-anchor" href="#2-2-shu-ju-zhi-liang-jue-ding-shang-xian" aria-label="Anchor link for: 2-2-shu-ju-zhi-liang-jue-ding-shang-xian">2.2 数据质量决定上限</a></h3>
+<p>SFT 数据通常包含三部分：</p>
+<table><thead><tr><th>字段</th><th>含义</th><th>示例</th></tr></thead><tbody>
+<tr><td>Instruction</td><td>任务说明</td><td>将以下英文翻译成中文</td></tr>
+<tr><td>Input</td><td>任务输入，可选</td><td>一段英文</td></tr>
+<tr><td>Output</td><td>期望的高质量回答</td><td>翻译结果</td></tr>
+</tbody></table>
+<p>数据量不一定要特别大，但质量很敏感。指令是否清楚、回答是否正确、格式是否一致，都会直接反映到模型行为上。</p>
+<p>几千到几万条高质量数据，往往就能让模型明显改变风格或学会一项具体技能；但如果数据里混入大量错误答案、重复模板和互相冲突的规则，继续增加数量只会放大问题。</p>
+<h3 id="2-3-sft-de-you-dian-he-ju-xian"><a class="zola-anchor" href="#2-3-sft-de-you-dian-he-ju-xian" aria-label="Anchor link for: 2-3-sft-de-you-dian-he-ju-xian">2.3 SFT 的优点和局限</a></h3>
+<p>SFT 的优点很明确：</p>
+<ul>
+<li>训练稳定，优化过程和普通监督学习类似；</li>
+<li>工程链路简单，不需要在线采样和奖励模型；</li>
+<li>对格式、风格和领域术语的适配速度快；</li>
+<li>单模型训练，算力和显存压力相对较低。</li>
+</ul>
+<p>局限也很明确：</p>
+<table><thead><tr><th>问题</th><th>具体表现</th></tr></thead><tbody>
+<tr><td>泛化有限</td><td>学会了示范答案的分布，换一种问法可能表现下降</td></tr>
+<tr><td>暴露偏差</td><td>训练时一直看到正确前缀，推理时一旦生成错误 token，后续会在错误上下文中继续生成</td></tr>
+<tr><td>分布偏移</td><td>训练数据来自专家，推理数据来自模型自己的生成结果</td></tr>
+<tr><td>缺少探索</td><td>模型只被告知应该模仿什么，没有经历生成、评价和修正</td></tr>
+<tr><td>标注依赖</td><td>数据错误会直接进入模型行为</td></tr>
+</tbody></table>
+<p>因此，SFT 很适合做基础能力注入、格式对齐、领域适配和冷启动，但不一定适合单独解决开放式偏好、多步推理和复杂安全约束。</p>
+<h3 id="2-4-shen-me-shi-hou-shi-yong-sft"><a class="zola-anchor" href="#2-4-shen-me-shi-hou-shi-yong-sft" aria-label="Anchor link for: 2-4-shen-me-shi-hou-shi-yong-sft">2.4 什么时候使用 SFT</a></h3>
+<p>适合使用 SFT 的场景：</p>
+<ul>
+<li>翻译、摘要、信息抽取、SQL 生成；</li>
+<li>JSON、Markdown 或固定模板输出；</li>
+<li>领域术语和业务知识适配；</li>
+<li>模仿某种写作风格或对话语气；</li>
+<li>需要快速验证一个训练方案。</li>
+</ul>
+<p>如果任务的关键不在于复现某个答案，而在于从多个答案中挑出更好的一个，就需要引入偏好优化或强化学习。</p>
+<h2 id="san-ba-sft-fang-dao-qiang-hua-xue-xi-li-kan"><a class="zola-anchor" href="#san-ba-sft-fang-dao-qiang-hua-xue-xi-li-kan" aria-label="Anchor link for: san-ba-sft-fang-dao-qiang-hua-xue-xi-li-kan">三、把 SFT 放到强化学习里看</a></h2>
+<h3 id="3-1-ce-lue-ti-du"><a class="zola-anchor" href="#3-1-ce-lue-ti-du" aria-label="Anchor link for: 3-1-ce-lue-ti-du">3.1 策略梯度</a></h3>
+<p>在强化学习中，语言模型可以看成策略 <code>πθ</code>：</p>
+<ul>
+<li>状态 <code>s_t</code>：已经生成的 token 序列；</li>
+<li>动作 <code>a_t</code>：下一个 token；</li>
+<li>策略 <code>πθ(a_t | s_t)</code>：模型对下一个 token 的概率分布；</li>
+<li>奖励 <code>r</code>：奖励模型、规则或验证器给出的分数。</li>
+</ul>
+<p>策略梯度的简化形式是：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">∇θ J(θ) = E[∇θ log πθ(a | s) · A(s, a)]
+</code></pre>
+<p>这里有两部分：</p>
+<ul>
+<li><code>∇θ log πθ(a | s)</code> 决定参数更新的方向；</li>
+<li><code>A(s, a)</code> 是优势值，决定这次更新应该有多大。</li>
+</ul>
+<p>优势值为正，说明这个动作比基准更好，应当提高它的概率；优势值为负，说明它表现更差，应当降低它的概率。</p>
+<p>SFT 的梯度可以写成：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">-∇θ log πθ(y* | x)
+</code></pre>
+<p>它只告诉模型“把标准答案的概率提高”，并没有显式告诉模型“这次回答比另一个回答好多少”。</p>
+<h3 id="3-2-sft-de-yin-shi-jiang-li"><a class="zola-anchor" href="#3-2-sft-de-yin-shi-jiang-li" aria-label="Anchor link for: 3-2-sft-de-yin-shi-jiang-li">3.2 SFT 的隐式奖励</a></h3>
+<p>为了把 SFT 和策略梯度放到同一套表达里，可以把固定的专家数据看成来自一个数据分布，再用重要性采样改写梯度。</p>
+<p>直觉上，传统 SFT 相当于设置了一个非常严格的隐式奖励：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">r(x, y) = 1        if y == y*
+           0        otherwise
+</code></pre>
+<p>也就是说，只有生成结果和标准答案完全一致时才算正确。换一个表达、换一个同义词，甚至只改一个标点，都不会获得“部分正确”的反馈。</p>
+<p>进一步看，SFT 的更新还会受到模型当前概率的影响，可以理解为带有类似下面的权重：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">1 &#x2F; πθ(y | x)
+</code></pre>
+<p>这并不是说实际的 SFT 代码会显式计算这个奖励，而是从策略梯度角度观察它的隐式效果。这个视角有助于解释 SFT 的两个问题：</p>
+<ol>
+<li>奖励极其稀疏，无法区分“答对一部分”和“完全答错”；</li>
+<li>模型越不确定的正确样本，隐含的更新权重反而可能越大。</li>
+</ol>
+<p>因此，SFT 能很好地把模型推向示范数据，却不擅长表达“答案之间的相对好坏”。</p>
+<h3 id="3-3-cong-jue-dui-fen-shu-dao-xiang-dui-you-shi"><a class="zola-anchor" href="#3-3-cong-jue-dui-fen-shu-dao-xiang-dui-you-shi" aria-label="Anchor link for: 3-3-cong-jue-dui-fen-shu-dao-xiang-dui-you-shi">3.3 从绝对分数到相对优势</a></h3>
+<p>如果一个回答拿到 80 分，单看这个数字并不能说明它到底好不好。它可能是很高的分数，也可能只是因为这道题很难，所有答案都只有几十分。</p>
+<p>更有用的问题是：</p>
+<blockquote>
+<p>这个回答比当前策略通常生成的回答好多少？</p>
+</blockquote>
+<p>这就是优势函数的直觉。理想的奖励应该尽量满足：</p>
+<ul>
+<li>有一定密度，能够区分部分正确和完全错误；</li>
+<li>更新稳定，不因为一个低概率样本就产生巨大梯度；</li>
+<li>更关注相对质量，而不是脱离上下文的绝对分数。</li>
+</ul>
+<p>后面的算法差异，主要就是围绕“如何估计这个优势值”展开的。</p>
+<h2 id="si-qiang-hua-xue-xi-de-ji-ge-ji-ben-gai-nian"><a class="zola-anchor" href="#si-qiang-hua-xue-xi-de-ji-ge-ji-ben-gai-nian" aria-label="Anchor link for: si-qiang-hua-xue-xi-de-ji-ge-ji-ben-gai-nian">四、强化学习的几个基本概念</a></h2>
+<h3 id="4-1-mdp"><a class="zola-anchor" href="#4-1-mdp" aria-label="Anchor link for: 4-1-mdp">4.1 MDP</a></h3>
+<p>马尔可夫决策过程（MDP）通常包含以下要素：</p>
+<table><thead><tr><th>概念</th><th>符号</th><th>在语言模型中的对应</th></tr></thead><tbody>
+<tr><td>状态</td><td><code>s_t</code></td><td>输入和已经生成的 token</td></tr>
+<tr><td>动作</td><td><code>a_t</code></td><td>下一个 token</td></tr>
+<tr><td>策略</td><td><code>πθ(a_t | s_t)</code></td><td>语言模型</td></tr>
+<tr><td>奖励</td><td><code>r_t</code></td><td>奖励模型、规则或验证器的反馈</td></tr>
+<tr><td>轨迹</td><td><code>τ</code></td><td>一次完整回答</td></tr>
+</tbody></table>
+<p>语言模型从输入开始，每生成一个 token 就进入新的状态，直到生成结束。对于很多 LLM 后训练任务，奖励是在完整回答生成后一次性给出的，所以它更接近稀疏的序列级奖励。</p>
+<h3 id="4-2-hui-bao-jia-zhi-he-you-shi"><a class="zola-anchor" href="#4-2-hui-bao-jia-zhi-he-you-shi" aria-label="Anchor link for: 4-2-hui-bao-jia-zhi-he-you-shi">4.2 回报、价值和优势</a></h3>
+<p>从时间步 <code>t</code> 开始的折扣回报是：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">G_t = r_t + γr_{t+1} + γ²r_{t+2} + ...
+</code></pre>
+<p><code>γ</code> 是折扣因子。它越接近 1，越重视后面的奖励。</p>
+<p>状态价值函数：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">Vπ(s) = Eπ[G_t | s_t = s]
+</code></pre>
+<p>动作价值函数：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">Qπ(s, a) = Eπ[G_t | s_t = s, a_t = a]
+</code></pre>
+<p>优势函数：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">Aπ(s, a) = Qπ(s, a) - Vπ(s)
+</code></pre>
+<p>它回答的是：在这个状态下，采取动作 <code>a</code> 比策略平均水平好多少。</p>
+<h3 id="4-3-wei-shen-me-xu-yao-ji-xian"><a class="zola-anchor" href="#4-3-wei-shen-me-xu-yao-ji-xian" aria-label="Anchor link for: 4-3-wei-shen-me-xu-yao-ji-xian">4.3 为什么需要基线</a></h3>
+<p>直接用 <code>Q(s, a)</code> 做策略梯度，理论上可以保持无偏，但方差通常很大。奖励的绝对值一波动，梯度也会跟着剧烈变化。</p>
+<p>减去只依赖状态的基线 <code>V(s)</code> 后，留下的是相对好坏：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">A(s, a) = Q(s, a) - V(s)
+</code></pre>
+<p>这个操作不会改变梯度的期望，却能明显降低方差。PPO、RLOO、GRPO 和 REINFORCE++ 的一个核心区别，就是它们选择了不同的基线或归一化方式。</p>
+<h3 id="4-4-gae"><a class="zola-anchor" href="#4-4-gae" aria-label="Anchor link for: 4-4-gae">4.4 GAE</a></h3>
+<p>PPO 常用 GAE（Generalized Advantage Estimation）估计优势。先定义 TD 误差：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">δ_t = r_t + γV(s_{t+1}) - V(s_t)
+</code></pre>
+<p>再把多个时间步的 TD 误差按 <code>λ</code> 加权：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">Â_t = δ_t + (γλ)δ_{t+1} + (γλ)²δ_{t+2} + ...
+</code></pre>
+<ul>
+<li><code>λ</code> 接近 0：更依赖单步 TD 误差，方差小但偏差大；</li>
+<li><code>λ</code> 接近 1：更接近完整回报，偏差小但方差大。</li>
+</ul>
+<p>GAE 的代价是需要一个价值网络。对大模型来说，这个 Critic 往往和策略模型规模相近，显存成本很高，这也是 GRPO 想要去掉 Critic 的原因之一。</p>
+<h2 id="wu-suan-fa-yan-jin-yi-zhi-zai-huan-ji-xian"><a class="zola-anchor" href="#wu-suan-fa-yan-jin-yi-zhi-zai-huan-ji-xian" aria-label="Anchor link for: wu-suan-fa-yan-jin-yi-zhi-zai-huan-ji-xian">五、算法演进：一直在换基线</a></h2>
+<p>把这些方法放在一起看，主线大致是：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">REINFORCE
+    -&gt; 使用历史或常数基线
+RLOO &#x2F; REMAX &#x2F; REINFORCE++
+    -&gt; 使用同批次样本或组内样本构造相对优势
+PPO
+    -&gt; 引入 Critic，做 token 级优势估计，并限制策略更新幅度
+GRPO
+    -&gt; 去掉 Critic，用组内奖励估计优势，同时保留 KL 约束
+DPO
+    -&gt; 不再在线采样，直接用偏好数据优化策略
+</code></pre>
+<h3 id="5-1-reinforce"><a class="zola-anchor" href="#5-1-reinforce" aria-label="Anchor link for: 5-1-reinforce">5.1 REINFORCE</a></h3>
+<p>REINFORCE 是最直接的策略梯度方法：模型生成一个完整回答，拿到最终奖励，再用这个奖励更新生成过程中每个动作的概率。</p>
+<p>它不关心中间过程，只看最后结果。对于语言模型来说，这意味着一条回答通常要生成完之后才得到反馈。</p>
+<p>为了降低方差，可以减去一个基线：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">Â = R - b
+</code></pre>
+<p>最简单的 <code>b</code> 可以是历史平均奖励。但历史基线有一个问题：如果任务分布或生成风格发生变化，过去的平均分就不一定适合当前样本。</p>
+<h3 id="5-2-rloo"><a class="zola-anchor" href="#5-2-rloo" aria-label="Anchor link for: 5-2-rloo">5.2 RLOO</a></h3>
+<p>RLOO（Reinforcement Learning with Leave-One-Out）让同一个 prompt 生成多个回答，用其他回答的平均奖励作为当前回答的基线。</p>
+<p>假设同一个问题生成 4 个回答，奖励分别为：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">A = 80, B = 60, C = 90, D = 70
+</code></pre>
+<p>对回答 A，留一法基线是：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">b_A = (60 + 90 + 70) &#x2F; 3 = 73.3
+Â_A = 80 - 73.3 = 6.7
+</code></pre>
+<p>对回答 B：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">b_B = (80 + 90 + 70) &#x2F; 3 = 80
+Â_B = 60 - 80 = -20
+</code></pre>
+<p>RLOO 的好处是基线来自当前 prompt 的其他样本，比长期历史平均更贴近当前分布；同时不需要额外训练一个 Critic。</p>
+<h3 id="5-3-remax"><a class="zola-anchor" href="#5-3-remax" aria-label="Anchor link for: 5-3-remax">5.3 REMAX</a></h3>
+<p>REMAX 只保留一组样本中奖励最高的回答，用它更新策略。它的思路很简单：既然目标是找到高奖励回答，就直接学习当前最好的那个。</p>
+<p>问题也同样明显：</p>
+<ul>
+<li>其余样本被丢弃，采样成本没有被充分利用；</li>
+<li>如果奖励模型误判，最高分样本可能把策略带偏；</li>
+<li>它利用的是“第一名”，而不是整组样本的相对关系。</li>
+</ul>
+<p>因此，REMAX 更像一种选优策略，而 RLOO 更接近组内比较。</p>
+<h3 id="5-4-ppo"><a class="zola-anchor" href="#5-4-ppo" aria-label="Anchor link for: 5-4-ppo">5.4 PPO</a></h3>
+<p>PPO（Proximal Policy Optimization）解决的是策略更新过大的问题。</p>
+<p>普通策略梯度如果一次更新太多，模型可能迅速偏离原来的策略分布，导致训练不稳定。PPO 使用旧策略和新策略的概率比：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">r_t(θ) = πθ(a_t | s_t) &#x2F; πold(a_t | s_t)
+</code></pre>
+<p>再使用裁剪后的目标：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">L_clip = E[
+  min(
+    r_t(θ) Â_t,
+    clip(r_t(θ), 1 - ε, 1 + ε) Â_t
+  )
+]
+</code></pre>
+<p>当优势为正时，模型希望提高这个动作的概率，但提高幅度不能超过 <code>1 + ε</code>；当优势为负时，模型希望降低概率，但降低幅度不能低于 <code>1 - ε</code>。</p>
+<p>PPO 的核心不是让每次更新都正确，而是避免一次错误更新把策略推得太远。</p>
+<h3 id="5-5-grpo"><a class="zola-anchor" href="#5-5-grpo" aria-label="Anchor link for: 5-5-grpo">5.5 GRPO</a></h3>
+<p>GRPO（Group Relative Policy Optimization）针对的是 PPO 中 Critic 成本高的问题。</p>
+<p>对同一个 prompt，模型生成一组回答，得到奖励 <code>r_1, r_2, ..., r_G</code>。GRPO 用组内均值和标准差计算相对优势：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">Â_i = (r_i - mean(r)) &#x2F; (std(r) + ε)
+</code></pre>
+<p>这样不需要单独训练价值模型，就能知道每个回答在本组中的相对位置。</p>
+<p>GRPO 通常还会加入参考策略的 KL 约束，并保留 PPO 式的裁剪目标，防止模型为了追求奖励而迅速偏离参考模型。</p>
+<p>它的优势是省掉了 Critic，代价是同一个 prompt 需要生成多个回答，采样成本会随组大小 <code>G</code> 增长。</p>
+<p>需要注意一个实际问题：如果一组回答全部正确或全部错误，奖励的方差接近 0，组内相对优势就没有多少信息。这类样本会消耗采样资源，却很难产生有效梯度。</p>
+<h3 id="5-6-reinforce"><a class="zola-anchor" href="#5-6-reinforce" aria-label="Anchor link for: 5-6-reinforce">5.6 REINFORCE++</a></h3>
+<p>REINFORCE++ 通常把奖励和 KL 正则合并成一条样本级信号，再在 batch 维度做归一化，并使用带有 clip 的策略目标进行 token 级更新。</p>
+<p>它吸收了几种方法的思路：</p>
+<ul>
+<li>用 KL 项限制策略偏移；</li>
+<li>用 batch 内统计量降低奖励尺度变化；</li>
+<li>使用 PPO 的裁剪目标控制更新幅度。</li>
+</ul>
+<p>它和 GRPO 的差别在于归一化范围：GRPO 更强调同一个 prompt 的组内比较，REINFORCE++ 更强调 batch 内的归一化。</p>
+<h3 id="5-7-dpo"><a class="zola-anchor" href="#5-7-dpo" aria-label="Anchor link for: 5-7-dpo">5.7 DPO</a></h3>
+<p>DPO（Direct Preference Optimization）从一个不同的方向简化 RLHF：不在线生成，不单独训练奖励模型，直接用偏好数据优化策略。</p>
+<p>偏好数据通常是：</p>
+<pre data-lang="json" class="language-json "><code class="language-json" data-lang="json">{
+  &quot;prompt&quot;: &quot;解释量子计算&quot;,
+  &quot;chosen&quot;: &quot;量子计算利用量子比特……&quot;,
+  &quot;rejected&quot;: &quot;量子计算就是很快的计算……&quot;
+}
+</code></pre>
+<p>在带 KL 约束的 RLHF 目标下，最优策略可以写成：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">π*(y | x) ∝ πref(y | x) exp(r(x, y) &#x2F; β)
+</code></pre>
+<p>把这个关系反过来，可以用策略模型和参考模型的概率比表示隐式奖励：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">r(x, y) = β log [πθ(y | x) &#x2F; πref(y | x)] + β log Z(x)
+</code></pre>
+<p>代入 Bradley-Terry 偏好模型，就能得到 DPO 损失。忽略与样本无关的常数后，常见形式为：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">L_DPO =
+- log σ(
+  β [
+    log πθ(yw | x) - log πref(yw | x)
+    - log πθ(yl | x) + log πref(yl | x)
+  ]
+)
+</code></pre>
+<p>其中 <code>yw</code> 是 chosen，<code>yl</code> 是 rejected。</p>
+<p>DPO 的梯度会重点修正模型判断错误的偏好对；如果模型已经明显把 chosen 排在 rejected 前面，梯度就会自然减小。</p>
+<h2 id="liu-ppo-chai-jie"><a class="zola-anchor" href="#liu-ppo-chai-jie" aria-label="Anchor link for: liu-ppo-chai-jie">六、PPO 拆解</a></h2>
+<h3 id="6-1-ppo-zhong-de-si-ge-mo-xing"><a class="zola-anchor" href="#6-1-ppo-zhong-de-si-ge-mo-xing" aria-label="Anchor link for: 6-1-ppo-zhong-de-si-ge-mo-xing">6.1 PPO 中的四个模型</a></h3>
+<p>PPO 训练通常涉及四类模型：</p>
+<table><thead><tr><th>模型</th><th>作用</th><th>是否训练</th></tr></thead><tbody>
+<tr><td>Actor / Policy</td><td>生成回答，也是主要优化对象</td><td>是</td></tr>
+<tr><td>Reference</td><td>提供 KL 约束的参考分布，通常是 SFT 模型</td><td>否</td></tr>
+<tr><td>Reward Model</td><td>对完整回答打分</td><td>否</td></tr>
+<tr><td>Critic / Value Model</td><td>估计每个状态的价值，计算优势</td><td>是</td></tr>
+</tbody></table>
+<p>Reward Model 和 Critic 经常被混淆：</p>
+<ul>
+<li>Reward Model 通常在完整回答结束后给出一个序列级分数；</li>
+<li>Critic 在每个 token 位置估计“从当前状态继续生成，最后能拿到多少回报”。</li>
+</ul>
+<p>Critic 的存在主要是为了提供低方差的优势估计，但它也带来了接近一个策略模型的额外显存开销。</p>
+<h3 id="6-2-ppo-de-sun-shi"><a class="zola-anchor" href="#6-2-ppo-de-sun-shi" aria-label="Anchor link for: 6-2-ppo-de-sun-shi">6.2 PPO 的损失</a></h3>
+<p>一个常见的 PPO 总损失可以写成：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">L = L_policy + c1 L_value - c2 S[πθ]
+</code></pre>
+<p>其中：</p>
+<ul>
+<li><code>L_policy</code> 是裁剪后的策略损失；</li>
+<li><code>L_value</code> 是价值函数损失；</li>
+<li><code>S[πθ]</code> 是策略熵，用于鼓励探索；</li>
+<li><code>c1</code> 和 <code>c2</code> 控制价值损失、熵正则的权重。</li>
+</ul>
+<p>价值函数通常使用均方误差：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">L_value = (Vφ(s_t) - V_target_t)^2
+</code></pre>
+<p>熵定义为：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">S[πθ] = -Σ_a πθ(a | s) log πθ(a | s)
+</code></pre>
+<p>熵较高，表示概率分布更分散，探索性更强；熵快速下降到接近 0，通常意味着输出开始模式坍缩。</p>
+<h3 id="6-3-chang-jian-chao-can-shu"><a class="zola-anchor" href="#6-3-chang-jian-chao-can-shu" aria-label="Anchor link for: 6-3-chang-jian-chao-can-shu">6.3 常见超参数</a></h3>
+<table><thead><tr><th>参数</th><th>作用</th><th>常见起点</th></tr></thead><tbody>
+<tr><td>学习率</td><td>控制参数更新步长</td><td>LLM 场景通常低于传统 RL</td></tr>
+<tr><td><code>γ</code></td><td>折扣因子</td><td><code>0.99</code> 左右</td></tr>
+<tr><td><code>λ</code></td><td>GAE 的偏差-方差权衡</td><td><code>0.95</code> 左右</td></tr>
+<tr><td><code>ε</code></td><td>PPO clip 范围</td><td><code>0.1 ~ 0.2</code></td></tr>
+<tr><td><code>K</code></td><td>每批样本重复更新次数</td><td><code>3 ~ 10</code></td></tr>
+<tr><td><code>c1</code></td><td>价值损失系数</td><td><code>0.5 ~ 1.0</code></td></tr>
+<tr><td><code>c2</code></td><td>熵系数</td><td>需要结合任务调节</td></tr>
+</tbody></table>
+<p>这些数值只能作为起点。LLM 后训练对奖励尺度、序列长度、采样温度和 batch size 都很敏感，不能把表格中的范围当成固定配置。</p>
+<h2 id="qi-grpo-chai-jie"><a class="zola-anchor" href="#qi-grpo-chai-jie" aria-label="Anchor link for: qi-grpo-chai-jie">七、GRPO 拆解</a></h2>
+<h3 id="7-1-si-ge-bu-zou"><a class="zola-anchor" href="#7-1-si-ge-bu-zou" aria-label="Anchor link for: 7-1-si-ge-bu-zou">7.1 四个步骤</a></h3>
+<p>GRPO 的一次训练迭代可以概括为：</p>
+<ol>
+<li>从数据集中采样一批 prompt；</li>
+<li>对每个 prompt 生成 <code>G</code> 个回答；</li>
+<li>对回答计算奖励，并在组内归一化；</li>
+<li>用相对优势更新策略，同时约束策略不要偏离参考模型太远。</li>
+</ol>
+<p>组内优势可以写成：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">Â_i = (r_i - μ_group) &#x2F; (σ_group + ε)
+</code></pre>
+<p>这里的 <code>μ_group</code> 和 <code>σ_group</code> 只由同一个 prompt 的回答计算得到。</p>
+<h3 id="7-2-kl-yue-shu"><a class="zola-anchor" href="#7-2-kl-yue-shu" aria-label="Anchor link for: 7-2-kl-yue-shu">7.2 KL 约束</a></h3>
+<p>如果只最大化奖励，模型可能会找到奖励模型的漏洞，而不是学会真正有用的能力。KL 约束提供了一个参考点：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">KL(πθ || πref)
+</code></pre>
+<p>它的作用不是让两个策略完全相同，而是限制策略更新速度和偏离程度。</p>
+<p>KL 太小，模型几乎不动，奖励很难提升；KL 太弱，模型可能过拟合奖励、输出同质化，甚至破坏 SFT 阶段已经学会的能力。</p>
+<p>在工程上，<code>β</code> 是控制这个权衡的主要参数：</p>
+<table><thead><tr><th><code>β</code></th><th>约束强度</th><th>可能的结果</th></tr></thead><tbody>
+<tr><td>接近 0</td><td>很弱</td><td>追求奖励，容易偏离和坍缩</td></tr>
+<tr><td>中等</td><td>平衡</td><td>通常作为初始搜索区间</td></tr>
+<tr><td>较大</td><td>很强</td><td>策略更保守，可能学不到新东西</td></tr>
+</tbody></table>
+<h3 id="7-3-shu-ju-yao-qiu"><a class="zola-anchor" href="#7-3-shu-ju-yao-qiu" aria-label="Anchor link for: 7-3-shu-ju-yao-qiu">7.3 数据要求</a></h3>
+<p>GRPO 需要同一个 prompt 对应多个回答。数据设计时要注意：</p>
+<ul>
+<li>回答之间应该有一定质量差异；</li>
+<li>不能让大数组全部正确或全部错误；</li>
+<li>组内评分标准要一致；</li>
+<li>prompt 要覆盖不同领域和难度；</li>
+<li>组大小越大，采样成本越高。</li>
+</ul>
+<p>一个简化的数据结构如下：</p>
+<pre data-lang="python" class="language-python "><code class="language-python" data-lang="python">grpo_data = [
+    {
+        &quot;prompt&quot;: &quot;解释量子计算&quot;,
+        &quot;responses&quot;: [
+            &quot;量子计算利用量子比特……&quot;,
+            &quot;量子计算就是很快的计算……&quot;,
+            &quot;我不懂量子计算&quot;,
+        ],
+        &quot;scores&quot;: [1.0, 0.3, 0.0],
+    }
+]
+</code></pre>
+<p>对数学、代码和 SQL 这类任务，奖励可以来自答案校验、单元测试、编译器或规则判断，这类训练通常称为 RLVR。</p>
+<h2 id="ba-dpo-chai-jie"><a class="zola-anchor" href="#ba-dpo-chai-jie" aria-label="Anchor link for: ba-dpo-chai-jie">八、DPO 拆解</a></h2>
+<h3 id="8-1-wei-shen-me-xu-yao-dpo"><a class="zola-anchor" href="#8-1-wei-shen-me-xu-yao-dpo" aria-label="Anchor link for: 8-1-wei-shen-me-xu-yao-dpo">8.1 为什么需要 DPO</a></h3>
+<p>PPO 的问题是重：Actor、Critic、Reference、Reward 四个角色都要维护，还要不断生成新样本。</p>
+<p>如果已经有大量“同一个 prompt 下，哪个回答更好”的离线数据，就不一定需要完整地跑在线 RL。DPO 直接在这些偏好对上训练策略。</p>
+<p>DPO 需要的核心数据是：</p>
+<pre data-lang="python" class="language-python "><code class="language-python" data-lang="python">dpo_data = [
+    {
+        &quot;prompt&quot;: &quot;解释量子计算&quot;,
+        &quot;chosen&quot;: &quot;量子计算利用量子比特……&quot;,
+        &quot;rejected&quot;: &quot;量子计算就是很快的计算……&quot;,
+    }
+]
+</code></pre>
+<p>训练时通常加载策略模型和冻结的参考模型。参考模型可以是 SFT 后的模型，用来约束策略不要偏离初始能力太远。</p>
+<h3 id="8-2-dpo-he-ppo-de-qu-bie"><a class="zola-anchor" href="#8-2-dpo-he-ppo-de-qu-bie" aria-label="Anchor link for: 8-2-dpo-he-ppo-de-qu-bie">8.2 DPO 和 PPO 的区别</a></h3>
+<table><thead><tr><th>维度</th><th>PPO / RLHF</th><th>DPO</th></tr></thead><tbody>
+<tr><td>奖励模型</td><td>需要</td><td>不需要</td></tr>
+<tr><td>在线采样</td><td>需要</td><td>不需要</td></tr>
+<tr><td>主要数据</td><td>在线生成和奖励</td><td>离线 chosen / rejected 偏好对</td></tr>
+<tr><td>模型角色</td><td>Actor、Critic、Reference、Reward</td><td>Policy、Reference</td></tr>
+<tr><td>训练稳定性</td><td>超参数敏感</td><td>通常更稳定</td></tr>
+<tr><td>探索能力</td><td>可以持续在线探索</td><td>受离线数据分布限制</td></tr>
+<tr><td>工程成本</td><td>高</td><td>低</td></tr>
+</tbody></table>
+<p>DPO 的代价是它依赖偏好数据。如果数据覆盖不足，模型只能在已有偏好分布附近优化，无法像在线 RL 那样主动探索新的回答。</p>
+<h3 id="8-3-b-dui-dpo-de-ying-xiang"><a class="zola-anchor" href="#8-3-b-dui-dpo-de-ying-xiang" aria-label="Anchor link for: 8-3-b-dui-dpo-de-ying-xiang">8.3 <code>β</code> 对 DPO 的影响</a></h3>
+<p>在 DPO 中，<code>β</code> 仍然控制策略偏离参考模型的程度：</p>
+<ul>
+<li><code>β</code> 较小，偏好损失的作用更强，策略更容易追逐 chosen；</li>
+<li><code>β</code> 较大，参考模型约束更强，训练更保守。</li>
+</ul>
+<p>实际训练时不能只盯着训练损失。还要看 chosen / rejected 的 log probability 差异、验证集偏好准确率、输出长度和人工质量。</p>
+<h2 id="jiu-gong-cheng-xuan-xing-he-chang-jian-wen-ti"><a class="zola-anchor" href="#jiu-gong-cheng-xuan-xing-he-chang-jian-wen-ti" aria-label="Anchor link for: jiu-gong-cheng-xuan-xing-he-chang-jian-wen-ti">九、工程选型和常见问题</a></h2>
+<h3 id="9-1-zen-me-xuan"><a class="zola-anchor" href="#9-1-zen-me-xuan" aria-label="Anchor link for: 9-1-zen-me-xuan">9.1 怎么选</a></h3>
+<table><thead><tr><th>场景</th><th>推荐方法</th><th>常见组合</th></tr></thead><tbody>
+<tr><td>指令遵循、格式对齐</td><td>SFT</td><td>SFT</td></tr>
+<tr><td>快速做偏好对齐</td><td>DPO</td><td>SFT → DPO</td></tr>
+<tr><td>开放式偏好、安全和有用性</td><td>PPO 或其他 RLHF</td><td>SFT → RM → PPO</td></tr>
+<tr><td>数学、代码、SQL 等可验证任务</td><td>GRPO / RLVR</td><td>SFT → GRPO</td></tr>
+<tr><td>算力有限、已有高质量偏好对</td><td>DPO</td><td>SFT → DPO</td></tr>
+</tbody></table>
+<p>这个表不能替代评测。真实项目里，先把 SFT 和数据质量验证清楚，通常比直接上复杂 RL 更重要。</p>
+<h3 id="9-2-rlhf-he-rlvr"><a class="zola-anchor" href="#9-2-rlhf-he-rlvr" aria-label="Anchor link for: 9-2-rlhf-he-rlvr">9.2 RLHF 和 RLVR</a></h3>
+<table><thead><tr><th>维度</th><th>RLHF</th><th>RLVR</th></tr></thead><tbody>
+<tr><td>奖励来源</td><td>奖励模型</td><td>规则、测试、编译器或答案验证器</td></tr>
+<tr><td>适合任务</td><td>对话、写作、安全、主观质量</td><td>数学、代码、SQL、结构化输出</td></tr>
+<tr><td>主要优点</td><td>能处理开放式偏好</td><td>奖励更客观，不需要训练 RM</td></tr>
+<tr><td>主要风险</td><td>reward hacking，奖励模型退化</td><td>只适用于有明确验证标准的任务</td></tr>
+</tbody></table>
+<p>RLHF 的难点是奖励模型是否真的代表目标；RLVR 的难点是验证器是否覆盖了任务真正关心的质量。</p>
+<h3 id="9-3-chang-jian-wen-ti"><a class="zola-anchor" href="#9-3-chang-jian-wen-ti" aria-label="Anchor link for: 9-3-chang-jian-wen-ti">9.3 常见问题</a></h3>
+<table><thead><tr><th>问题</th><th>典型现象</th><th>排查方向</th></tr></thead><tbody>
+<tr><td>Reward hacking</td><td>奖励上涨，但人工质量下降</td><td>增加 KL、更新奖励模型、加入长度和格式检查</td></tr>
+<tr><td>熵崩塌</td><td>输出越来越同质</td><td>降低学习率，调整熵系数和采样温度</td></tr>
+<tr><td>长度偏置</td><td>回答越来越长</td><td>做长度归一化，检查奖励模型是否偏爱长答案</td></tr>
+<tr><td>SFT 过强</td><td>RL 阶段奖励几乎不动</td><td>减少 SFT 训练轮数，保留一定生成多样性</td></tr>
+<tr><td>KL 过强</td><td>策略基本不变化</td><td>降低 KL 权重，检查参考模型和奖励尺度</td></tr>
+<tr><td>KL 过弱</td><td>模式坍缩或能力退化</td><td>提高 KL 约束，降低 RL 学习率</td></tr>
+<tr><td>组内全对或全错</td><td>GRPO 采样很多但梯度弱</td><td>调整题目难度和数据配比</td></tr>
+<tr><td>训练集污染评测集</td><td>指标虚高</td><td>严格隔离训练、验证和测试数据</td></tr>
+</tbody></table>
+<h3 id="9-4-yi-tiao-shi-ji-de-luo-di-lu-xian"><a class="zola-anchor" href="#9-4-yi-tiao-shi-ji-de-luo-di-lu-xian" aria-label="Anchor link for: 9-4-yi-tiao-shi-ji-de-luo-di-lu-xian">9.4 一条实际的落地路线</a></h3>
+<p>如果从零开始做一次后训练，我会按下面的顺序推进：</p>
+<ol>
+<li><strong>先建立评测集。</strong> 没有可靠的基线，后面很难判断模型是否真的变好。</li>
+<li><strong>用 SFT 冷启动。</strong> 目标是让模型具备可用的格式、行为和基本能力，不是把训练集背到极致。</li>
+<li><strong>选择奖励来源。</strong> 有明确标准时优先使用规则或验证器；没有标准时再考虑训练奖励模型。</li>
+<li><strong>选择优化方法。</strong> 有高质量偏好对、资源有限时先试 DPO；需要在线探索或可验证推理时再考虑 GRPO；多目标开放式偏好且资源充足时考虑 PPO。</li>
+<li><strong>持续监控。</strong> 至少同时观察奖励、KL、熵、输出长度和人工评测。</li>
+<li><strong>把结果回流数据。</strong> 把 RL 阶段发现的好答案整理成 SFT 数据，把典型 badcase 整理成偏好对，继续迭代。</li>
+</ol>
+<h2 id="shi-jie-yu"><a class="zola-anchor" href="#shi-jie-yu" aria-label="Anchor link for: shi-jie-yu">十、结语</a></h2>
+<p>SFT 和 RL 的区别，最终还是监督信号的区别。</p>
+<p>SFT 有标准答案，优化的是“让模型更像示范”；RL 没有唯一答案，优化的是“让模型更偏向高奖励结果”。前者适合建立行为和能力的基础，后者适合在多个可行结果之间继续做选择。</p>
+<p>从 REINFORCE 到 RLOO、PPO、GRPO，再到 DPO，算法变化看起来很多，但都绕不开几个问题：</p>
+<ul>
+<li>奖励从哪里来；</li>
+<li>基线如何构造；</li>
+<li>优势值如何估计；</li>
+<li>策略更新多大才不会失控；</li>
+<li>如何在探索新能力和保留原能力之间取平衡。</li>
+</ul>
+<p>所以，“SFT 负责记忆，RL 负责泛化”可以作为一个方便记忆的总结，但它不是绝对规律。最终效果仍然取决于数据、奖励、评测和训练配置。算法只是把这些因素组织起来的一套工具。</p>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/aliasjeff.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#yi-yu-xun-lian-zhi-hou-mo-xing-huan-que-shen-me">一、预训练之后，模型还缺什么</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#1-1-sft-he-rl-de-qu-bie">1.1 SFT 和 RL 的区别</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#er-sft-yong-shi-fan-da-an-su-zao-xing-wei">二、SFT：用示范答案塑造行为</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#2-1-sft-zai-zuo-shen-me">2.1 SFT 在做什么</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#2-2-shu-ju-zhi-liang-jue-ding-shang-xian">2.2 数据质量决定上限</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#2-3-sft-de-you-dian-he-ju-xian">2.3 SFT 的优点和局限</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#2-4-shen-me-shi-hou-shi-yong-sft">2.4 什么时候使用 SFT</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#san-ba-sft-fang-dao-qiang-hua-xue-xi-li-kan">三、把 SFT 放到强化学习里看</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#3-1-ce-lue-ti-du">3.1 策略梯度</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#3-2-sft-de-yin-shi-jiang-li">3.2 SFT 的隐式奖励</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#3-3-cong-jue-dui-fen-shu-dao-xiang-dui-you-shi">3.3 从绝对分数到相对优势</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#si-qiang-hua-xue-xi-de-ji-ge-ji-ben-gai-nian">四、强化学习的几个基本概念</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#4-1-mdp">4.1 MDP</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#4-2-hui-bao-jia-zhi-he-you-shi">4.2 回报、价值和优势</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#4-3-wei-shen-me-xu-yao-ji-xian">4.3 为什么需要基线</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#4-4-gae">4.4 GAE</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#wu-suan-fa-yan-jin-yi-zhi-zai-huan-ji-xian">五、算法演进：一直在换基线</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#5-1-reinforce">5.1 REINFORCE</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#5-2-rloo">5.2 RLOO</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#5-3-remax">5.3 REMAX</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#5-4-ppo">5.4 PPO</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#5-5-grpo">5.5 GRPO</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#5-6-reinforce">5.6 REINFORCE++</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#5-7-dpo">5.7 DPO</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#liu-ppo-chai-jie">六、PPO 拆解</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#6-1-ppo-zhong-de-si-ge-mo-xing">6.1 PPO 中的四个模型</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#6-2-ppo-de-sun-shi">6.2 PPO 的损失</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#6-3-chang-jian-chao-can-shu">6.3 常见超参数</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#qi-grpo-chai-jie">七、GRPO 拆解</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#7-1-si-ge-bu-zou">7.1 四个步骤</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#7-2-kl-yue-shu">7.2 KL 约束</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#7-3-shu-ju-yao-qiu">7.3 数据要求</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#ba-dpo-chai-jie">八、DPO 拆解</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#8-1-wei-shen-me-xu-yao-dpo">8.1 为什么需要 DPO</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#8-2-dpo-he-ppo-de-qu-bie">8.2 DPO 和 PPO 的区别</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#8-3-b-dui-dpo-de-ying-xiang">8.3 β 对 DPO 的影响</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#jiu-gong-cheng-xuan-xing-he-chang-jian-wen-ti">九、工程选型和常见问题</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#9-1-zen-me-xuan">9.1 怎么选</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#9-2-rlhf-he-rlvr">9.2 RLHF 和 RLVR</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#9-3-chang-jian-wen-ti">9.3 常见问题</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#9-4-yi-tiao-shi-ji-de-luo-di-lu-xian">9.4 一条实际的落地路线</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/da-mo-xing-wei-diao-suan-fa-cong-sftdao-grpo/#shi-jie-yu">十、结语</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>
