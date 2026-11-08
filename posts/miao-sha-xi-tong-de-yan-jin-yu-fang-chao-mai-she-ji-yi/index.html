@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                秒杀系统的演进与防超卖设计（一）
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="秒杀系统的演进与防超卖设计（一）" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            秒杀系统的演进与防超卖设计（一）
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2026-05-01</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/gao-bing-fa/"
+                                       class="post-tag">高并发</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/jia-gou-she-ji/"
+                                       class="post-tag">架构设计</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/shu-ju-ku/"
+                                       class="post-tag">数据库</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/xing-neng-diao-you/"
+                                       class="post-tag">性能调优</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/redis/"
+                                       class="post-tag">Redis</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>秒杀系统，10万人抢10件商品，背后是一整套复杂的系统设计问题：</p>
+<ul>
+<li>如何保证不超卖</li>
+<li>如何防止重复下单</li>
+<li>如何在高并发下保持高吞吐</li>
+<li>如何避免系统被瞬间流量击垮</li>
+<li>如何从单机平滑演进到分布式架构</li>
+</ul>
+<p>这篇文章我会从一段简单的秒杀系统问题代码出发，一步步拆解问题，完成三次关键演进：</p>
+<blockquote>
+<p><strong>单机错误实现 → 单机高并发优化 → 分布式 + Redis → 限流 &amp; 削峰体系</strong></p>
+</blockquote>
+<h2 id="yuan-shi-shi-xian-wen-ti-dai-ma"><a class="zola-anchor" href="#yuan-shi-shi-xian-wen-ti-dai-ma" aria-label="Anchor link for: yuan-shi-shi-xian-wen-ti-dai-ma">原始实现（问题代码）</a></h2>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">public class SeckillService {
+
+    &#x2F;&#x2F; 库存
+    private int stock = 10;
+
+    &#x2F;&#x2F; 已购买用户记录
+    private List&lt;String&gt; userList = new ArrayList&lt;&gt;();
+
+    &#x2F;&#x2F; 秒杀方法
+    public void doSeckill(String userId) {
+
+        &#x2F;&#x2F; 1. 判断用户是否已经买过
+        for (int i = 0; i &lt; userList.size(); i++) {
+            if (userList.get(i).equals(userId)) {
+                System.out.println(&quot;用户已购买，拒绝重复下单&quot;);
+                return;
+            }
+        }
+
+        &#x2F;&#x2F; 2. 判断库存
+        if (stock &gt; 0) {
+            &#x2F;&#x2F; 3. 扣减库存
+            stock--;
+
+            &#x2F;&#x2F; 4. 记录购买用户
+            userList.add(userId);
+
+            System.out.println(&quot;秒杀成功，剩余库存：&quot; + stock);
+        } else {
+            System.out.println(&quot;库存不足，秒杀失败&quot;);
+        }
+    }
+}
+</code></pre>
+<p>一个标准秒杀流程，本质是三个操作的组合：</p>
+<blockquote>
+<p><strong>查重（是否买过） + 扣库存 + 记录用户</strong></p>
+</blockquote>
+<p>技术的核心难点在于：如何在高并发下保证这三个操作的<strong>原子性 + 一致性 + 高性能</strong></p>
+<p>分析这段代码，存在 4 个致命缺陷：</p>
+<ol>
+<li>
+<p>Check-then-Act 竞态条件导致超卖</p>
+<ul>
+<li>代码中的 <code>if (stock &gt; 0) { stock--; }</code> 在底层分多步执行，不满足原子性。高并发下，假设库存仅剩 1 个，上千个线程同时查到 <code>stock=1</code> 并发执行扣减，会把库存扣成负数</li>
+</ul>
+</li>
+<li>
+<p>并发修改异常与数据丢失（线程安全）</p>
+<ul>
+<li>使用了非线程安全的 <code>ArrayList</code> 记录用户。多线程并发执行 <code>add()</code> 时，极易引发底层数组越界、抛出 <code>ConcurrentModificationException</code> 异常；而且会发生数据相互覆盖，导致大量已购用户记录丢失，无法防住重复购买</li>
+</ul>
+</li>
+<li>
+<p>接口性能问题（O(n) 的时间复杂度）</p>
+<ul>
+<li><code>for</code> 循环遍历 <code>List</code> 查重。随着购买的用户增加，每次请求的遍历耗时将逐步递增。会瞬间吃满服务器 CPU，导致系统吞吐量（QPS）下跌</li>
+</ul>
+</li>
+<li>
+<p>单机架构局限</p>
+<ul>
+<li><code>stock</code> 和 <code>userList</code> 被硬编码在单台机器的 JVM 堆内存中。在分布式集群下，节点间状态无法共享。</li>
+</ul>
+</li>
+</ol>
+<h2 id="v1-0-gai-zao-dan-ji-gao-bing-fa-fang-chao-mai"><a class="zola-anchor" href="#v1-0-gai-zao-dan-ji-gao-bing-fa-fang-chao-mai" aria-label="Anchor link for: v1-0-gai-zao-dan-ji-gao-bing-fa-fang-chao-mai">V1.0 改造（单机高并发防超卖）</a></h2>
+<ol>
+<li>使用 <strong>volatile</strong> 保值 stock 变量的<strong>可见性</strong>，避免重排序</li>
+<li>使用 <code>ConcurrentHashMap.newKeySet()</code> 替换 <code>ArrayList</code>，保证<strong>线程安全</strong>，并将查询时间复杂度降为 O(1)</li>
+<li>引入 <code>ReentrantLock</code> 进行<strong>双重检查锁定（DCL）</strong>，在保证原子性的同时最大化性能</li>
+</ol>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class SeckillServiceV1 {
+    &#x2F;&#x2F; volatile 保证多线程下的内存可见性
+    private volatile int stock = 10;
+    &#x2F;&#x2F; 线程安全的 Set，查询复杂度 O(1)
+    private Set&lt;String&gt; userSet = ConcurrentHashMap.newKeySet();
+    private final Lock lock = new ReentrantLock();
+
+    public void doSeckill(String userId) {
+        &#x2F;&#x2F; 第一重拦截：无锁判断，快速失败 (极其重要，挡掉绝大部分无效请求)
+        if (stock &lt;= 0 || userSet.contains(userId)) {
+            System.out.println(&quot;商品已售罄或您已购买过&quot;);
+            return;
+        }
+
+        lock.lock();
+        try {
+            &#x2F;&#x2F; 第二重拦截：防止排队等待的线程在获取锁后重复购买或超卖
+            if (stock &lt;= 0 || !userSet.add(userId)) {
+                System.out.println(&quot;商品已售罄或您已购买过&quot;);
+                return;
+            }
+            
+            &#x2F;&#x2F; 真正安全的扣减库存
+            stock--;
+            System.out.println(&quot;秒杀成功，剩余库存: &quot; + stock);
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+</code></pre>
+<ol>
+<li>
+<p>为什么不使用 Synchronized 或 Redis 分布式锁</p>
+<ol>
+<li>Synchronized 能用，但在高并发场景下性能和可控性不够好（不能中断、不能设置超时、不能公平锁、无法感知锁状态），系统容易被锁等待阻塞拖垮</li>
+<li>分布式锁的网络 + IO 太重，并且复杂性高。本质上不需要“锁”，而是需要<strong>原子性</strong>，因此<strong>使用 Lua 脚本 原子执行 是更优解</strong></li>
+</ol>
+</li>
+<li>
+<p>为什么使用 volatile 而不是 AtomicInteger？</p>
+<p>在并发编程中，像 <code>stock--</code> 这样的一行代码，在 CPU 指令层面其实分为三个独立的步骤：</p>
+<ol>
+<li><strong>Read（读）</strong>：从主内存读取 <code>stock</code> 的值到 CPU 本地缓存。</li>
+<li><strong>Modify（改）</strong>：在 CPU 寄存器内将值减 1。</li>
+<li><strong>Write（写）</strong>：将减去 1 的新值写回主内存。</li>
+</ol>
+<p>给变量加上 <code>volatile</code> 后，相当于加上了硬件级别的<strong>内存屏障</strong>。它强制要求线程每次读取都必须去主内存拿最新值，每次修改也必须立刻刷新回主内存。它打破了多核 CPU 的本地缓存黑盒，让所有线程的数据保持同步。但是 <code>volatile</code> 无法保证原子性</p>
+<p><code>AtomicInteger</code> 是原子类，内部也维护了一个 <code>volatile int value</code> ，他的累加或递减操作（如 <code>decrementAndGet()</code>）基于 CAS 指令</p>
+<p>真实的秒杀逻辑是 <strong>【查重防重 + 扣减库存 + 记录用户】</strong> 这 3 个动作的组合。<code>AtomicInteger</code> 只能保证库存扣减是安全的。但它无法保证多个独立变量（库存 + 用户集合）组合在一起依然是原子的，如果不加锁，同一个用户同时发起两个请求，依然有可能导致超卖，示例代码如下：</p>
+<pre data-lang="java" class="language-java "><code class="language-java" data-lang="java">&#x2F;&#x2F; 错误示范
+private AtomicInteger stock = new AtomicInteger(10);
+private Set&lt;String&gt; userSet = ConcurrentHashMap.newKeySet();
+
+public void doSeckill(String userId) {
+    if (userSet.contains(userId)) return;     &#x2F;&#x2F; 动作1：判断是否重复下单
+    
+    &#x2F;&#x2F; 假设还剩最后 1 个库存，同一用户利用脚本发送并发请求 A 和 B，同时来到这里，都发现自己还没买过。
+    
+    if (stock.decrementAndGet() &gt;= 0) {       &#x2F;&#x2F; 动作2：A 和 B 都在极其安全地扣库存
+        userSet.add(userId);                  &#x2F;&#x2F; 动作3：记录用户
+        System.out.println(&quot;秒杀成功&quot;);
+    }
+}
+</code></pre>
+<p>因此，既然业务要求必须保护多个变量的组合状态一致性，就<strong>必须在外部加互斥锁（<code>ReentrantLock</code> 或 Redis 分布式锁）</strong>。</p>
+<ul>
+<li>有了互斥锁，代码块内部天然就串行化了，再用 <code>AtomicInteger</code> 去扣库存就多余了，白白增加 CAS 自旋的性能开销。普通的 <code>int</code> 就足够了。</li>
+<li>而把 <code>stock</code> 声明为 <code>volatile</code>，是为了在锁的<strong>最外层</strong>，配合 <code>if (stock &lt;= 0)</code> 提供极速的可见性判断。一旦库存归零，锁外排队的几万个线程瞬间就能“看见”，直接 <code>return</code> 拦截掉，连抢锁的资格都不用给。这就是大名鼎鼎的 <strong>Double-Checked Locking（DCL，双重检查锁定）</strong>。</li>
+</ul>
+<p><code>AtomicInteger</code> 的使用场景：</p>
+<ol>
+<li>
+<p><strong>纯粹的高并发计数</strong>：统计某个 API 的 QPS 请求总数、记录网站的 UV、生成自增的单据号。</p>
+</li>
+<li>
+<p><strong>无限制的库存扣减</strong>：如果业务<strong>仅仅只有扣减库存这一件事</strong>（不需要判断单个用户是否重复购买，不查重），就是纯粹的卖 10 万个商品谁抢到算谁的，单机环境下直接用 <code>AtomicInteger</code> 性能最高，完全不用加任何锁。</p>
+<blockquote>
+<p>其实在极高并发的单纯计数场景下（比如统计双十一当天的订单总数），连 <code>AtomicInteger</code> 都不推荐使用。 因为当上千个线程同时 CAS 争抢同一个 <code>AtomicInteger</code> 时，会导致大量线程失败并陷入死循环（自旋），白白打满 CPU。 在 JDK 8 之后，我会首选 <strong><code>LongAdder</code></strong>。它底层采用了<strong>分段锁</strong>的思想，将单一的热点数据分散到了一个 Cell 数组中，让不同的线程去修改不同的槽位，最后再把各个槽位的值求和。这在极端高并发下，性能比 <code>AtomicInteger</code> 更高</p>
+</blockquote>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="v2-0-fen-bu-shi-gao-bing-fa-yin-ru-redis-lua"><a class="zola-anchor" href="#v2-0-fen-bu-shi-gao-bing-fa-yin-ru-redis-lua" aria-label="Anchor link for: v2-0-fen-bu-shi-gao-bing-fa-yin-ru-redis-lua">V2.0 分布式高并发（引入 Redis + Lua）</a></h2>
+<p>当应用部署多台机器时，状态（库存、购买记录）必须从 JVM <strong>外移到分布式缓存 Redis 中</strong>。必须使用 Lua 脚本，利用 Redis 单线程执行脚本的特性，保证多条指令的绝对原子性。</p>
+<ol>
+<li>
+<p><strong>编写 Lua 脚本 (<code>seckill.lua</code>)：</strong></p>
+<pre data-lang="lua" class="language-lua "><code class="language-lua" data-lang="lua">local stockKey = KEYS[1]
+local userSetKey = KEYS[2]
+local userId = ARGV[1]
+
+-- 1. 判断是否重复购买 (SISMEMBER, O(1))
+if redis.call(&#x27;sismember&#x27;, userSetKey, userId) == 1 then
+    return -1 -- 返回-1代表重复下单
+end
+
+-- 2. 判断库存是否大于0
+local stock = tonumber(redis.call(&#x27;get&#x27;, stockKey))
+if stock ~= nil and stock &gt; 0 then
+    -- 3. 扣减库存 &amp; 记录用户
+    redis.call(&#x27;decr&#x27;, stockKey)
+    redis.call(&#x27;sadd&#x27;, userSetKey, userId)
+    return 1 -- 返回1代表秒杀成功
+end
+
+return 0 -- 返回0代表库存不足
+</code></pre>
+</li>
+<li>
+<p><strong>Java 核心调用</strong></p>
+<pre data-lang="Java" class="language-Java "><code class="language-Java" data-lang="Java">@Service
+public class SeckillServiceV2 {
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    public String doSeckill(String userId, String goodsId) {
+        &#x2F;&#x2F; 执行 Lua 脚本，天生解决分布式超卖问题
+        Long result = redisTemplate.execute(seckillScript, 
+                Arrays.asList(&quot;stock:&quot; + goodsId, &quot;users:&quot; + goodsId), userId);
+
+        if (result == -1L) return &quot;您已参与过该活动&quot;;
+        if (result == 0L) return &quot;手慢了，商品已被抢光&quot;;
+        
+        &#x2F;&#x2F; 【注意】拿到资格后，千万不能在这里同步写 MySQL 创建订单！
+        return &quot;秒杀成功，正在排队生成订单...&quot;; 
+    }
+}
+</code></pre>
+</li>
+</ol>
+<p>Redis 单点能抗住大几万的 QPS，解决分布式超卖。但如果面对几十上百万的瞬时流量，Redis 网卡也会被打满，我们还需要最后一层终极演进。</p>
+<h2 id="v3-0-xian-liu-xue-feng-he-shu-ju-ku-dou-di"><a class="zola-anchor" href="#v3-0-xian-liu-xue-feng-he-shu-ju-ku-dou-di" aria-label="Anchor link for: v3-0-xian-liu-xue-feng-he-shu-ju-ku-dou-di">V3.0 限流、削峰和数据库兜底</a></h2>
+<p>我们要在请求到达 DB 之前，设立多道防线</p>
+<ol>
+<li>
+<p><strong>前端与网关层（阻挡恶意和多余流量）</strong></p>
+<ul>
+<li>
+<p><strong>前端防护</strong>：点击按钮立刻置灰（防手抖连点）；秒杀链接动态下发（防止黑客用脚本提前刷接口）。</p>
+</li>
+<li>
+<p><strong>网关限流</strong>：使用 <strong>Sentinel</strong> 或 Nginx，按 IP 和 UserID 进行严格限流（如单用户1秒最多放行1次请求），被限流的请求直接触发降级，返回“活动太火爆”。</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>防线二：JVM 本地内存标记</strong></p>
+<p>10 万人抢 10 部手机，当库存为 0 后，剩下的 99,990 个请求再去查 Redis 是毫无意义的，白白浪费网络带宽。</p>
+<ul>
+<li><strong>优化方案</strong>：在 Java 服务中维护一个 <code>volatile boolean isSoldOut = false;</code> 或本地 Cache。一旦 Redis Lua 返回库存不足，立刻将本地标记设为 <code>true</code>。后续的海量请求直接在 Java 内存层被拦截，<strong>以 0 成本保护下游的 Redis</strong>。</li>
+</ul>
+</li>
+<li>
+<p><strong>MQ 异步解耦削峰（保护数据库）</strong></p>
+<p>Redis 扣减成功只代表用户<strong>获得了购买资格</strong>。如果此时去同步操作 MySQL 甚至加事务，MySQL 会瞬间宕机。</p>
+<ul>
+<li>
+<p><strong>优化方案</strong>：将获得资格的 <code>userId</code> 和 <code>goodsId</code> 封装成消息投递到 MQ，给前端快速响应“排队中”。</p>
+</li>
+<li>
+<p>后台的订单服务（消费者）按照 MySQL 能够平稳承受的速率（例如 1000 TPS），慢慢消费消息并创建订单。</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>数据库兜底（防击穿）</strong></p>
+<ul>
+<li>
+<p><strong>防重复下单</strong>：订单表添加唯一索引 <code>UNIQUE KEY(user_id, goods_id)</code>。</p>
+</li>
+<li>
+<p><strong>防超卖（乐观锁）</strong>：真正扣减物理库存时：<code>UPDATE goods SET stock = stock - 1 WHERE id = #{goodsId} AND stock &gt; 0;</code></p>
+</li>
+</ul>
+</li>
+</ol>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/aliasjeff.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/miao-sha-xi-tong-de-yan-jin-yu-fang-chao-mai-she-ji-yi/#yuan-shi-shi-xian-wen-ti-dai-ma">原始实现（问题代码）</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/miao-sha-xi-tong-de-yan-jin-yu-fang-chao-mai-she-ji-yi/#v1-0-gai-zao-dan-ji-gao-bing-fa-fang-chao-mai">V1.0 改造（单机高并发防超卖）</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/miao-sha-xi-tong-de-yan-jin-yu-fang-chao-mai-she-ji-yi/#v2-0-fen-bu-shi-gao-bing-fa-yin-ru-redis-lua">V2.0 分布式高并发（引入 Redis + Lua）</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/miao-sha-xi-tong-de-yan-jin-yu-fang-chao-mai-she-ji-yi/#v3-0-xian-liu-xue-feng-he-shu-ju-ku-dou-di">V3.0 限流、削峰和数据库兜底</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                积分兑换架构设计
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="积分兑换架构设计" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            积分兑换架构设计
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2026-04-09</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/jia-gou-she-ji/"
+                                       class="post-tag">架构设计</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/gao-bing-fa/"
+                                       class="post-tag">高并发</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <h3 id="ye-wu-mo-xing"><a class="zola-anchor" href="#ye-wu-mo-xing" aria-label="Anchor link for: ye-wu-mo-xing">业务模型</a></h3>
+<p>混合支付，本质是让一笔交易同时结算两种货币：<strong>现金</strong>（强一致性）与 <strong>积分</strong>（内部资产，弱一致性）。</p>
+<p>混合支付的公式很简单：</p>
+<blockquote>
+<p><strong>订单总额 = 现金支付额 + (消耗积分数 / 兑换汇率)</strong></p>
+</blockquote>
+<p>不过，这里会有两个问题：</p>
+<ol>
+<li><strong>汇率波动：</strong> 积分汇率是否动态？下单时100:1，支付时已变成200:1，咋搞？
+<ul>
+<li><strong>原则：下单锁定汇率。</strong> 在创建订单时，将当时的汇率固化在订单数据中。</li>
+</ul>
+</li>
+<li><strong>抵扣上限：</strong> 一般不会允许100%积分抵扣，要配置最大抵扣比例（例如最多抵扣50%）。</li>
+</ol>
+<hr />
+<h2 id="fen-bu-shi-shi-wu-chang-jing"><a class="zola-anchor" href="#fen-bu-shi-shi-wu-chang-jing" aria-label="Anchor link for: fen-bu-shi-shi-wu-chang-jing">分布式事务场景</a></h2>
+<p>用户点击支付按钮，系统要处理两个事：</p>
+<ol>
+<li>调用第三方支付网关扣用户的钱</li>
+<li>调用内部积分服务扣用户的分</li>
+</ol>
+<p>两个动作，一个在外部，一个在内部，怎么保证原子性？</p>
+<p>先扣钱，后扣分？如果钱扣了，分没扣成功（服务挂了），用户白嫖了积分？或者反过来，分扣了，钱没付，用户亏了？</p>
+<p>TCC 还是 Saga？这种高频C端场景，上太重的分布式事务框架，性能扛不住。</p>
+<p><strong>推荐方案：积分预扣 + 异步实扣。</strong></p>
+<hr />
+<h2 id="jiao-yi-liu-cheng-she-ji"><a class="zola-anchor" href="#jiao-yi-liu-cheng-she-ji" aria-label="Anchor link for: jiao-yi-liu-cheng-she-ji">交易流程设计</a></h2>
+<p>流程围绕用户体验和资金安全，分三步：下单锁分、支付回调、异常回滚。</p>
+<script src=https://aliasjeff.github.io/js/mermaid.js></script>
+
+<pre class="mermaid">
+  sequenceDiagram
+    actor User as 用户
+    participant Order as 订单系统
+    participant Point as 积分服务
+    participant Pay as 第三方支付网关
+    participant MQ as 延迟队列/定时任务
+
+    User->>Order: 1. 提交订单 (现金+积分)
+    Order->>Point: 2. 预扣/冻结对应积分
+    
+    alt 预扣失败
+        Point-->>Order: 返回失败
+        Order-->>User: 阻断下单，提示失败
+    else 预扣成功
+        Point-->>Order: 返回成功
+        Order->>MQ: 投递延迟关单消息
+        Order-->>User: 状态置为WAIT_PAY，唤起收银台
+    end
+
+    alt 正常支付成功
+        User->>Pay: 完成现金支付
+        Pay->>Order: 3. 支付成功回调 (核对金额)
+        Order->>Order: 更新订单状态为 PAID_SUCCESS
+        Order-)Point: 异步通知积分服务实扣积分
+    else 超时未支付 / 主动取消
+        MQ->>Order: 4. 触发超时关单逻辑
+        Order->>Order: 订单状态流转为已取消
+        Order->>Point: 发起解冻积分 (返还用户)
+        Order->>Order: 释放商品库存
+    end
+</pre>
+<h3 id="1-xia-dan-suo-fen"><a class="zola-anchor" href="#1-xia-dan-suo-fen" aria-label="Anchor link for: 1-xia-dan-suo-fen">1. 下单锁分</a></h3>
+<p>支付成功后再扣积分，会有并发扣减压力和超卖风险。用户提交订单时，调用积分服务进行<strong>预扣</strong>。</p>
+<ul>
+<li><strong>成功：</strong> 订单状态流转为 <code>WAIT_PAY</code>，生成支付参数，唤起收银台。</li>
+<li><strong>失败：</strong> 阻断下单，提示用户。</li>
+</ul>
+<h3 id="2-zhi-fu-hui-diao"><a class="zola-anchor" href="#2-zhi-fu-hui-diao" aria-label="Anchor link for: 2-zhi-fu-hui-diao">2. 支付回调</a></h3>
+<p>用户在第三方完成支付后，支付网关回调系统。</p>
+<ul>
+<li><strong>核对金额：</strong> 确保回调金额与订单现金一致。</li>
+<li><strong>更新订单：</strong> 状态变更为 <code>PAID_SUCCESS</code>。</li>
+<li><strong>实扣积分：</strong> 异步通知积分服务，将预扣的积分真正扣除。</li>
+</ul>
+<h3 id="3-yi-chang-hui-gun"><a class="zola-anchor" href="#3-yi-chang-hui-gun" aria-label="Anchor link for: 3-yi-chang-hui-gun">3. 异常回滚</a></h3>
+<p>对于下单后一直没支付或主动取消订单的：</p>
+<ul>
+<li><strong>超时关单：</strong> 延迟队列触发关单逻辑。</li>
+<li><strong>释放库存：</strong> 回滚商品库存。</li>
+<li><strong>解冻积分：</strong> 通知积分服务，将预扣的积分返还用户账户。</li>
+</ul>
+<hr />
+<h2 id="xi-tong-jia-gou-fen-ceng-she-ji"><a class="zola-anchor" href="#xi-tong-jia-gou-fen-ceng-she-ji" aria-label="Anchor link for: xi-tong-jia-gou-fen-ceng-she-ji">系统架构分层设计</a></h2>
+<p>流程梳理完，接下来就是系统设计。</p>
+<script src=https://aliasjeff.github.io/js/mermaid.js></script>
+
+<pre class="mermaid">
+  graph TD
+    Client[客户端] --> Agg[商城聚合层]
+    Agg -- 计算“现金+积分”\n混合明细 --> Domain
+    
+    subgraph Domain [领域服务层]
+        direction LR
+        Order[订单域\n状态机维护/交易流转]
+        Point[积分域\n账户增删改查/冻结解冻流水]
+        Pay[支付域\n对接微信支付宝/对账退款]
+    end
+
+    Agg --> Order
+    Order -. RPC调用: 预扣/实扣/解冻 .-> Point
+    Order -. RPC调用: 发起支付/退款 .-> Pay
+
+    subgraph Infra [基础设施层]
+        DB[(业务数据库)]
+        MQ[[消息队列 / 定时任务]]
+    end
+
+    Order --> DB
+    Point --> DB
+    Pay --> DB
+    Order -- 异步实扣/解冻/补偿机制 --> MQ
+    MQ --> Point
+</pre>
+<ul>
+<li><strong>商城聚合层：</strong> 计算“现金+积分”的混合明细。</li>
+<li><strong>订单域：</strong> 状态机维护，负责交易流转，不处理积分细节。</li>
+<li><strong>积分域：</strong> 负责积分账户的增删改查、冻结解冻流水。</li>
+<li><strong>支付域：</strong> 对接微信/支付宝，处理退款和对账。</li>
+</ul>
+<blockquote>
+<p><strong>核心原则：</strong> 各领域间相互解耦，订单系统不需要知道积分是怎么计算的，只需知道这单要扣多少分。</p>
+</blockquote>
+<hr />
+<h2 id="ding-dan-zhuang-tai-ji-yu-yi-zhi-xing"><a class="zola-anchor" href="#ding-dan-zhuang-tai-ji-yu-yi-zhi-xing" aria-label="Anchor link for: ding-dan-zhuang-tai-ji-yu-yi-zhi-xing">订单状态机与一致性</a></h2>
+<p>混合支付最怕状态不一致，那么，用状态机来约束流转。</p>
+<script src=https://aliasjeff.github.io/js/mermaid.js></script>
+
+<pre class="mermaid">
+  stateDiagram-v2
+    [*] --> CREATED: 用户提交订单
+    
+    CREATED --> POINTS_LOCKED: 积分预扣成功 (等待付款)
+    CREATED --> CLOSED: 积分预扣失败 (下单阻断)
+    
+    POINTS_LOCKED --> PAID_SUCCESS: 第三方支付回调成功\n(触发异步实扣积分)
+    POINTS_LOCKED --> CLOSED: 超时未支付 / 主动取消\n(触发解冻积分)
+    
+    PAID_SUCCESS --> REFUNDED: 发起退款完成\n(按行分摊退钱+退分)
+    
+    CLOSED --> [*]
+    REFUNDED --> [*]
+    
+    note right of PAID_SUCCESS
+        若支付成功但异步实扣积分失败，
+        由定时任务补偿重试，保证最终一致性。
+    end note
+</pre>
+<p><strong>关键状态流转：</strong></p>
+<ul>
+<li><code>CREATED</code>：订单创建</li>
+<li><code>POINTS_LOCKED</code>：积分预扣成功，等待付款</li>
+<li><code>PAID_SUCCESS</code>：钱已到账，积分已扣</li>
+<li><code>REFUNDED</code>：退款完成，交易关闭</li>
+</ul>
+<p><strong>一致性补偿：</strong> 引入补偿机制。遇到支付成功后扣积分失败的，就通过定时任务不断重试，保证数据最终一致性。</p>
+<hr />
+<h2 id="tui-kuan-luo-ji-she-ji"><a class="zola-anchor" href="#tui-kuan-luo-ji-she-ji" aria-label="Anchor link for: tui-kuan-luo-ji-she-ji">退款逻辑设计</a></h2>
+<p>混合支付退款难在<strong>分摊</strong>。</p>
+<p>假设用户买了两件商品：</p>
+<ul>
+<li><strong>商品A：</strong> 100元</li>
+<li><strong>商品B：</strong> 200元</li>
+<li><strong>总计：</strong> 300元。用户使用了 3000积分（抵扣30元） + 270元现金。</li>
+</ul>
+<p><strong>问题来了：</strong> 用户只退商品A，系统该退多少钱？多少分？</p>
+<h3 id="an-xing-fen-tan-yuan-ze"><a class="zola-anchor" href="#an-xing-fen-tan-yuan-ze" aria-label="Anchor link for: an-xing-fen-tan-yuan-ze">按行分摊原则</a></h3>
+<p>金额和积分的分摊，在下单的时候，就提前分摊到每行商品上。</p>
+<p>对于商品A（占总价1/3）：</p>
+<ul>
+<li><strong>应分摊现金：</strong> 270 * (100/300) = 90元</li>
+<li><strong>应分摊积分：</strong> 3000 * (100/300) = 1000分</li>
+</ul>
+<p>退款时，直接读取数据库中商品A的实付明细，<strong>退90元现金 + 返还1000积分</strong>。账目清晰，永不出错。</p>
+<hr />
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/aliasjeff.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ji-fen-dui-huan-jia-gou-she-ji/#ye-wu-mo-xing">业务模型</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ji-fen-dui-huan-jia-gou-she-ji/#fen-bu-shi-shi-wu-chang-jing">分布式事务场景</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ji-fen-dui-huan-jia-gou-she-ji/#jiao-yi-liu-cheng-she-ji">交易流程设计</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/ji-fen-dui-huan-jia-gou-she-ji/#1-xia-dan-suo-fen">1. 下单锁分</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/ji-fen-dui-huan-jia-gou-she-ji/#2-zhi-fu-hui-diao">2. 支付回调</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/ji-fen-dui-huan-jia-gou-she-ji/#3-yi-chang-hui-gun">3. 异常回滚</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ji-fen-dui-huan-jia-gou-she-ji/#xi-tong-jia-gou-fen-ceng-she-ji">系统架构分层设计</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ji-fen-dui-huan-jia-gou-she-ji/#ding-dan-zhuang-tai-ji-yu-yi-zhi-xing">订单状态机与一致性</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ji-fen-dui-huan-jia-gou-she-ji/#tui-kuan-luo-ji-she-ji">退款逻辑设计</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/ji-fen-dui-huan-jia-gou-she-ji/#an-xing-fen-tan-yuan-ze">按行分摊原则</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

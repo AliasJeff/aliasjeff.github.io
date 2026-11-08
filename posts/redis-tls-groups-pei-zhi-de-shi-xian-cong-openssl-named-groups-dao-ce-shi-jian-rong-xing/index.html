@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                Redis tls-groups 配置的实现
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="Redis tls-groups 配置的实现" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            Redis tls-groups 配置的实现
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2026-08-20</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/redis/"
+                                       class="post-tag">Redis</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/tls/"
+                                       class="post-tag">TLS</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/openssl/"
+                                       class="post-tag">OpenSSL</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/wen-ti-pai-cha/"
+                                       class="post-tag">问题排查</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>PR: https://github.com/redis/redis/pull/15556</p>
+<p>Redis Issue <a href="https://github.com/redis/redis/issues/15502">#15502</a> 提到一个 TLS 配置缺口：Redis 已经支持配置 <code>tls-protocols</code>、<code>tls-ciphers</code> 和 <code>tls-ciphersuites</code>，但没有对应的选项来控制 OpenSSL TLS handshake 中使用的 group / curve preferences。对于需要满足平台 TLS 策略、合规要求，或者希望启用特定 PQC group 的部署来说，这会让 Redis 的 TLS 配置不够完整。</p>
+<p>这次 PR 最终引入的是 <code>tls-groups</code>。它用于设置 OpenSSL named groups 列表，并把这个配置应用到 Redis server TLS context，以及 Redis 自身作为 TLS client 时使用的 context，例如 replication、cluster 和其他 server-to-server TLS 连接。</p>
+<p>这篇文章会从需求背景开始，解释为什么这个选项叫 <code>tls-groups</code>，然后展开服务端配置、OpenSSL API 兼容、<code>redis-cli</code> / <code>redis-benchmark</code> 支持、测试设计，以及几个容易踩到的边界问题。</p>
+<h2 id="wen-ti-bei-jing"><a class="zola-anchor" href="#wen-ti-bei-jing" aria-label="Anchor link for: wen-ti-bei-jing">问题背景</a></h2>
+<p>Redis TLS 原本已经有几类可配置项：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">tls-protocols      控制 TLS 协议版本，例如 TLSv1.2 &#x2F; TLSv1.3
+tls-ciphers        控制 TLSv1.2 及以下使用的 cipher list
+tls-ciphersuites   控制 TLSv1.3 ciphersuites
+</code></pre>
+<p>这些选项能覆盖协议版本和 cipher 选择，但不能控制 TLS key exchange 过程中使用哪些 named groups。</p>
+<p>在 OpenSSL 里，named groups 可以包括传统 ECC 曲线，例如：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">X25519
+prime256v1
+secp384r1
+</code></pre>
+<p>也可以包括新版本 OpenSSL 支持的其他 group。比如在支持 PQC hybrid group 的 OpenSSL 版本里，部署方可能希望配置：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">X25519MLKEM768:X25519:prime256v1
+</code></pre>
+<p>这里的核心诉求不是 Redis 自己理解每一个 group 的密码学含义，而是 Redis 要提供一个入口，把部署方指定的策略传给 OpenSSL。最终是否接受某个 group name、是否能和 peer 协商成功，由链接的 OpenSSL 版本和对端能力共同决定。</p>
+<h2 id="named-groups-shi-shen-me"><a class="zola-anchor" href="#named-groups-shi-shen-me" aria-label="Anchor link for: named-groups-shi-shen-me">Named Groups 是什么</a></h2>
+<p>TLS handshake 中，client 和 server 需要协商 key exchange 使用的 group。这个 group 决定了 ECDHE 或其他 key exchange 机制使用的曲线 / 参数集合。</p>
+<p>如果双方没有共同 group，TLS handshake 会失败。可以把它简化理解成：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">server: prime256v1
+client: secp384r1
+=&gt; 没有交集，handshake failure
+
+server: prime256v1:X25519
+client: X25519:secp384r1
+=&gt; 交集是 X25519，handshake 可以继续
+</code></pre>
+<p>这和 cipher / ciphersuite 是不同维度。cipher 控制加密算法组合，group 控制 key exchange 参数。一个 TLS 策略通常需要同时约束协议版本、cipher、ciphersuite 和 group。</p>
+<h2 id="wei-shen-me-jiao-tls-groups"><a class="zola-anchor" href="#wei-shen-me-jiao-tls-groups" aria-label="Anchor link for: wei-shen-me-jiao-tls-groups">为什么叫 tls-groups</a></h2>
+<p>最初需求里使用的是 curve preferences 这个表述，但最终配置名选择了 <code>tls-groups</code>。</p>
+<p>这个命名更贴近现代 OpenSSL 和 TLS 语义。早期 OpenSSL API 叫：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">SSL_CTX_set1_curves_list()
+</code></pre>
+<p>后来 OpenSSL 使用更通用的命名：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">SSL_CTX_set1_groups_list()
+</code></pre>
+<p>原因也很直接：TLS named groups 不一定只表示传统 elliptic curves。继续叫 <code>curve-preferences</code> 会把语义限制在 curve 上，而 <code>tls-groups</code> 更准确，也和 OpenSSL 新 API 的命名一致。</p>
+<p>所以这次实现里，对用户暴露的是：</p>
+<pre data-lang="conf" class="language-conf "><code class="language-conf" data-lang="conf">tls-groups X25519:prime256v1
+</code></pre>
+<p>内部优先使用 <code>SSL_CTX_set1_groups_list()</code>；如果 OpenSSL 头文件里没有这个新 API，但有旧的 <code>SSL_CTX_set1_curves_list()</code>，就回退到旧 API。</p>
+<h2 id="pei-zhi-ceng-she-ji"><a class="zola-anchor" href="#pei-zhi-ceng-she-ji" aria-label="Anchor link for: pei-zhi-ceng-she-ji">配置层设计</a></h2>
+<p>Redis 的 TLS context 配置集中在 <code>redisTLSContextConfig</code> 里。这次新增了一个字段：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">typedef struct redisTLSContextConfig {
+    char *cert_file;
+    char *key_file;
+    char *key_file_pass;
+    char *client_cert_file;
+    char *client_key_file;
+    char *client_key_file_pass;
+    char *dh_params_file;
+    char *ca_cert_file;
+    char *ca_cert_dir;
+    char *protocols;
+    char *ciphers;
+    char *ciphersuites;
+    char *groups;
+    int prefer_server_ciphers;
+    ...
+} redisTLSContextConfig;
+</code></pre>
+<p>然后在配置表里加入 <code>tls-groups</code>：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">createStringConfig(&quot;tls-groups&quot;, NULL, MODIFIABLE_CONFIG, EMPTY_STRING_IS_NULL,
+                   server.tls_ctx_config.groups, NULL, NULL, applyTlsCfg),
+</code></pre>
+<p>这里有几个细节：</p>
+<ul>
+<li><code>MODIFIABLE_CONFIG</code>：允许通过 <code>CONFIG SET tls-groups ...</code> 运行时修改；</li>
+<li><code>EMPTY_STRING_IS_NULL</code>：设置为空字符串时回到默认状态；</li>
+<li><code>applyTlsCfg</code>：修改后重新应用 TLS context 配置；</li>
+<li>没有额外 validator：group name 直接交给 OpenSSL 校验。</li>
+</ul>
+<p>不在 Redis 层维护一份 group 名称白名单，是一个重要选择。OpenSSL 版本之间支持的 group 会变化，尤其是 PQC / hybrid group 这类能力。如果 Redis 自己过滤，反而可能阻止新 OpenSSL 支持的新 group 被使用。</p>
+<p>因此 Redis 只做传递：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">用户配置 tls-groups
+  -&gt; Redis 保存字符串
+  -&gt; 创建 &#x2F; 重建 SSL_CTX 时传给 OpenSSL
+  -&gt; OpenSSL 判断字符串是否合法
+</code></pre>
+<p>如果 OpenSSL 不接受这个列表，TLS context 更新失败。比如：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">CONFIG SET tls-groups invalid-group
+=&gt; Unable to update TLS configuration
+</code></pre>
+<p>这比 Redis 静默忽略配置更安全。TLS 策略类配置一旦写错，应该显式失败，而不是让用户误以为策略已经生效。</p>
+<h2 id="openssl-api-jian-rong"><a class="zola-anchor" href="#openssl-api-jian-rong" aria-label="Anchor link for: openssl-api-jian-rong">OpenSSL API 兼容</a></h2>
+<p><code>tls-groups</code> 的实现需要兼容不同 OpenSSL 版本。</p>
+<p>新 API 是：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">SSL_CTX_set1_groups_list(ctx, list)
+</code></pre>
+<p>旧 API 是：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">SSL_CTX_set1_curves_list(ctx, list)
+</code></pre>
+<p>二者语义接近，但命名不同。Redis 的服务端 TLS 代码用一组宏统一这件事：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">#if defined(TLS_NO_GROUPS)
+#define CONN_TLS_SUPPORTS_GROUPS 0
+#elif defined(SSL_CTX_set1_groups_list)
+#define CONN_TLS_SUPPORTS_GROUPS 1
+#define redisTlsCtxSetGroupsList(ctx, list) SSL_CTX_set1_groups_list((ctx), (list))
+#elif defined(SSL_CTX_set1_curves_list)
+#define CONN_TLS_SUPPORTS_GROUPS 1
+#define redisTlsCtxSetGroupsList(ctx, list) SSL_CTX_set1_curves_list((ctx), (list))
+#else
+#error &quot;tls-groups requires OpenSSL with SSL_CTX_set1_groups_list or SSL_CTX_set1_curves_list. Define TLS_NO_GROUPS to build without TLS groups.&quot;
+#endif
+</code></pre>
+<p>这里有两层策略。</p>
+<p>第一层是默认严格：如果当前 OpenSSL 头文件既没有 <code>SSL_CTX_set1_groups_list</code>，也没有 <code>SSL_CTX_set1_curves_list</code>，Redis TLS build 会直接失败。</p>
+<p>这看起来有点强硬，但对 TLS 策略配置是合理的。否则 Redis 编译成功了，用户也看到了 <code>tls-groups</code> 配置项，但实际配置被忽略，会产生错误的安全预期。</p>
+<p>第二层是显式 opt-out：如果构建者确实要在不支持这个 API 的 OpenSSL 上构建 Redis，可以定义：</p>
+<pre data-lang="bash" class="language-bash "><code class="language-bash" data-lang="bash">make BUILD_TLS=yes CFLAGS=-DTLS_NO_GROUPS
+</code></pre>
+<p>此时 <code>CONN_TLS_SUPPORTS_GROUPS</code> 为 0，功能被编译掉。但如果运行时设置了非空 <code>tls-groups</code>，TLS context 配置仍然会失败，而不是悄悄忽略。</p>
+<p>这条规则可以总结成：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">默认：不支持 API 就编译失败
+显式 TLS_NO_GROUPS：允许编译，但设置 tls-groups 会失败
+</code></pre>
+<h2 id="ying-yong-dao-tls-context"><a class="zola-anchor" href="#ying-yong-dao-tls-context" aria-label="Anchor link for: ying-yong-dao-tls-context">应用到 TLS Context</a></h2>
+<p>真正把配置应用到 OpenSSL 的位置在 TLS context 创建流程里。</p>
+<p>简化后的逻辑是：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">if (ctx_config-&gt;groups) {
+#if CONN_TLS_SUPPORTS_GROUPS
+    if (!redisTlsCtxSetGroupsList(ctx, ctx_config-&gt;groups)) {
+        serverLog(LL_WARNING, &quot;Failed to configure TLS groups: %s&quot;, ctx_config-&gt;groups);
+        goto error;
+    }
+#else
+    serverLog(LL_WARNING, &quot;Failed to configure TLS groups: not supported by this build&quot;);
+    goto error;
+#endif
+}
+</code></pre>
+<p>也就是说，只有配置非空时才调用 OpenSSL API。配置为空时，Redis 不设置 group preference，让 OpenSSL 使用默认策略。</p>
+<p>这个配置会影响 Redis 创建的 TLS context，包括：</p>
+<ul>
+<li>对外提供 TLS 服务的 server context；</li>
+<li>Redis 自身作为 TLS client 使用的 client context；</li>
+<li>replication、cluster 等 server-to-server TLS 连接。</li>
+</ul>
+<p>这也意味着它是一个全局 TLS 策略配置。配置过窄时，可能不只是普通 client 连不上，replica、cluster node 或其他 Redis 内部 TLS 连接也可能因为没有共同 group 而 handshake 失败。</p>
+<p>例如只允许：</p>
+<pre data-lang="conf" class="language-conf "><code class="language-conf" data-lang="conf">tls-groups X25519MLKEM768
+</code></pre>
+<p>如果对端 OpenSSL 不支持这个 group，就会失败。实际部署时通常更稳妥的是提供 fallback list：</p>
+<pre data-lang="conf" class="language-conf "><code class="language-conf" data-lang="conf">tls-groups X25519MLKEM768:X25519:prime256v1
+</code></pre>
+<p>Redis 不会强制用户这么写，因为这是部署策略问题，不是 Redis 能替用户判断的事情。</p>
+<h2 id="redis-cli-he-redis-benchmark"><a class="zola-anchor" href="#redis-cli-he-redis-benchmark" aria-label="Anchor link for: redis-cli-he-redis-benchmark">redis-cli 和 redis-benchmark</a></h2>
+<p>只支持服务端配置还不够。测试和排查 TLS group 策略时，也需要 Redis 自带客户端能指定 group list。</p>
+<p>因此这次同时给 <code>redis-cli</code> 和 <code>redis-benchmark</code> 增加了：</p>
+<pre data-lang="bash" class="language-bash "><code class="language-bash" data-lang="bash">--tls-groups &lt;list&gt;
+</code></pre>
+<p>内部把它放进公共的 <code>cliSSLconfig</code>：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">typedef struct cliSSLconfig {
+    char *sni;
+    char *cacert;
+    char *cacertdir;
+    int skip_cert_verify;
+    char *cert;
+    char *key;
+    char *ciphers;
+    char *ciphersuites;
+    char *groups;
+} cliSSLconfig;
+</code></pre>
+<p>客户端侧也需要处理 OpenSSL API 兼容，但行为和服务端略有不同。</p>
+<p>服务端默认采用编译失败策略，是因为 <code>tls-groups</code> 是正式配置项，不能让用户误以为配置生效。命令行工具则更接近 <code>--tls-ciphersuites</code> 的行为：只有当前构建支持时，才展示并接受这个参数。</p>
+<p>所以 <code>cli_common.h</code> 里有独立的能力宏：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">#if defined(TLS_NO_GROUPS)
+#define CLI_TLS_SUPPORTS_GROUPS 0
+#elif defined(SSL_CTX_set1_groups_list)
+#define CLI_TLS_SUPPORTS_GROUPS 1
+#define cliSslCtxSetGroupsList(ctx, list) SSL_CTX_set1_groups_list((ctx), (list))
+#elif defined(SSL_CTX_set1_curves_list)
+#define CLI_TLS_SUPPORTS_GROUPS 1
+#define cliSslCtxSetGroupsList(ctx, list) SSL_CTX_set1_curves_list((ctx), (list))
+#else
+#define CLI_TLS_SUPPORTS_GROUPS 0
+#endif
+</code></pre>
+<p><code>redis-cli</code> 和 <code>redis-benchmark</code> 的参数解析、help 文案都被包在 <code>CLI_TLS_SUPPORTS_GROUPS</code> 下：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">#if CLI_TLS_SUPPORTS_GROUPS
+} else if (!strcmp(argv[i],&quot;--tls-groups&quot;) &amp;&amp; !lastarg) {
+    config.sslconfig.groups = argv[++i];
+}
+#endif
+</code></pre>
+<p>这样做的结果是：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">支持 OpenSSL named group API 的构建
+  -&gt; redis-cli &#x2F; redis-benchmark 接受 --tls-groups
+
+不支持或显式 TLS_NO_GROUPS 的构建
+  -&gt; help 不展示 --tls-groups
+  -&gt; 参数解析不接受 --tls-groups
+</code></pre>
+<p>客户端公共 TLS 初始化逻辑再根据 <code>config.groups</code> 设置 SSL context：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">#if CLI_TLS_SUPPORTS_GROUPS
+if (config.groups) {
+    if (!cliSslCtxSetGroupsList(ssl_ctx, config.groups)) {
+        *err = &quot;Error while configuring TLS groups&quot;;
+        goto error;
+    }
+}
+#endif
+</code></pre>
+<p>这里没有保留“不支持时返回 TLS groups are not supported”的运行时分支，因为在不支持的构建里，参数本身不会被解析进 <code>config.groups</code>。运行时 fallback 分支既不可达，也会让能力隐藏策略变得不一致。</p>
+<h2 id="ce-shi-she-ji"><a class="zola-anchor" href="#ce-shi-she-ji" aria-label="Anchor link for: ce-shi-she-ji">测试设计</a></h2>
+<p>这个功能的测试覆盖了几层。</p>
+<p>第一层是配置 introspection，确认 <code>tls-groups</code> 出现在 Redis 配置列表里：</p>
+<pre data-lang="tcl" class="language-tcl "><code class="language-tcl" data-lang="tcl">tls-protocols
+tls-ciphers
+tls-ciphersuites
+tls-groups
+tls-port
+</code></pre>
+<p>第二层是配置值校验：</p>
+<pre data-lang="tcl" class="language-tcl "><code class="language-tcl" data-lang="tcl">assert_equal {OK} [r CONFIG SET tls-groups &quot;prime256v1&quot;]
+
+catch {r CONFIG SET tls-groups &quot;invalid-group&quot;} e
+assert_match {*Unable to update TLS configuration*} $e
+
+r CONFIG SET tls-groups &quot;&quot;
+</code></pre>
+<p>这里 Redis 不自己解析 group name，但 OpenSSL 会在设置 SSL context 时校验。因此无效 group 应该导致 TLS configuration update 失败。</p>
+<p>第三层是 handshake 行为测试。为了让 group negotiation 的结果稳定可观察，测试强制使用 TLSv1.2 和一个 ECDHE cipher：</p>
+<pre data-lang="tcl" class="language-tcl "><code class="language-tcl" data-lang="tcl">set ecdhe_ciphers ECDHE-RSA-AES128-GCM-SHA256
+r CONFIG SET tls-protocols TLSv1.2
+r CONFIG SET tls-ciphers $ecdhe_ciphers
+r CONFIG SET tls-groups prime256v1
+</code></pre>
+<p>成功路径里，server 和 client 都允许 <code>prime256v1</code>：</p>
+<pre data-lang="tcl" class="language-tcl "><code class="language-tcl" data-lang="tcl">assert_equal {PONG} [tls_redis_cli [srv 0 host] [srv 0 port] prime256v1]
+</code></pre>
+<p>失败路径里，server 只允许 <code>prime256v1</code>，client 只允许 <code>secp384r1</code>：</p>
+<pre data-lang="tcl" class="language-tcl "><code class="language-tcl" data-lang="tcl">assert_equal 1 [catch {tls_redis_cli [srv 0 host] [srv 0 port] secp384r1} e]
+assert_match {*sslv3 alert handshake failure*} $e
+</code></pre>
+<p>这里有几个细节值得展开。</p>
+<p>最开始可以想到用 <code>openssl s_client</code> 做测试，但 <code>s_client</code> 的退出码和输出文本在不同 OpenSSL 版本、不同平台上并不完全稳定。用它来判断“握手成功 / 失败”容易让测试和 OpenSSL CLI 文案绑定。</p>
+<p>最终测试改成用 Redis 自己新增的 <code>redis-cli --tls-groups</code>。这样一方面验证了 server 的 <code>tls-groups</code>，另一方面也验证了 <code>redis-cli</code> 的同名参数，测试目标更直接。</p>
+<p>另外，失败路径不再只写一个负向断言，例如“输出里不能有 PONG”。负向断言太弱，因为很多错误都可能不包含 <code>PONG</code>。测试应该确认失败原因确实是 TLS group negotiation 导致的 handshake failure，所以匹配了具体错误：</p>
+<pre data-lang="tcl" class="language-tcl "><code class="language-tcl" data-lang="tcl">assert_match {*sslv3 alert handshake failure*} $e
+</code></pre>
+<p>成功路径也直接比较 <code>PONG</code>，没有额外 <code>string trim</code>。测试不应该隐藏输出格式变化；如果 <code>redis-cli</code> 返回的结果不是预期值，应该直接暴露出来。</p>
+<p>第四层是 <code>redis-benchmark</code> 集成测试，确认 benchmark 客户端能带 <code>--tls-groups</code> 正常连接并完成请求：</p>
+<pre data-lang="tcl" class="language-tcl "><code class="language-tcl" data-lang="tcl">set cmd [redisbenchmark $master_host $master_port \
+    &quot;-r 50 -t set -n 1000 --tls-groups prime256v1&quot;]
+common_bench_setup $cmd
+assert_match  {*calls=1000,*} [cmdstat set]
+</code></pre>
+<p>这覆盖了另一个 Redis 自带 TLS client 工具。</p>
+<h2 id="wen-dang-he-redis-conf"><a class="zola-anchor" href="#wen-dang-he-redis-conf" aria-label="Anchor link for: wen-dang-he-redis-conf">文档和 redis.conf</a></h2>
+<p>文档层面主要补了两处。</p>
+<p><code>redis.conf</code> 里增加示例：</p>
+<pre data-lang="conf" class="language-conf "><code class="language-conf" data-lang="conf"># Configure TLS group preferences. See the SSL_CTX_set1_groups_list(3ssl)
+# manpage for more information about the syntax of this string.
+#
+# tls-groups prime256v1
+</code></pre>
+<p><code>TLS.md</code> 里说明了：</p>
+<ul>
+<li><code>tls-groups</code> 控制 OpenSSL named groups；</li>
+<li>配置值直接传给 OpenSSL；</li>
+<li>Redis 不过滤 group name；</li>
+<li>client 和 server 必须至少有一个共同 group；</li>
+<li>需要 OpenSSL 1.0.2+ 的 <code>SSL_CTX_set1_curves_list()</code>，新版本也支持 <code>SSL_CTX_set1_groups_list()</code>；</li>
+<li>老 OpenSSL 默认编译失败；</li>
+<li>可以通过 <code>TLS_NO_GROUPS</code> 显式编译掉；</li>
+<li>编译掉后，设置 <code>tls-groups</code> 会导致 TLS context 配置失败；</li>
+<li><code>redis-cli</code> / <code>redis-benchmark</code> 只有在构建支持时才暴露 <code>--tls-groups</code>。</li>
+</ul>
+<p>这些说明很关键。TLS 策略配置如果只改代码不写清楚边界，用户很容易误解为 Redis 支持某个固定 group 集合，或者误以为配置只影响普通客户端连接。</p>
+<h2 id="ji-ge-she-ji-bian-jie"><a class="zola-anchor" href="#ji-ge-she-ji-bian-jie" aria-label="Anchor link for: ji-ge-she-ji-bian-jie">几个设计边界</a></h2>
+<h3 id="redis-bu-pan-duan-ju-ti-group-shi-fou-an-quan"><a class="zola-anchor" href="#redis-bu-pan-duan-ju-ti-group-shi-fou-an-quan" aria-label="Anchor link for: redis-bu-pan-duan-ju-ti-group-shi-fou-an-quan">Redis 不判断具体 group 是否“安全”</a></h3>
+<p>Redis 只负责把字符串传给 OpenSSL。比如：</p>
+<pre data-lang="conf" class="language-conf "><code class="language-conf" data-lang="conf">tls-groups X25519MLKEM768
+</code></pre>
+<p>如果当前 OpenSSL 支持这个 group，配置可以成功；如果不支持，配置失败。</p>
+<p>Redis 不维护安全推荐列表，也不判断用户是否应该配置 fallback group。这属于部署安全策略，不应该硬编码在 Redis 里。</p>
+<h3 id="dan-ge-group-shi-he-fa-pei-zhi"><a class="zola-anchor" href="#dan-ge-group-shi-he-fa-pei-zhi" aria-label="Anchor link for: dan-ge-group-shi-he-fa-pei-zhi">单个 group 是合法配置</a></h3>
+<p>只配置一个 group 没有问题：</p>
+<pre data-lang="conf" class="language-conf "><code class="language-conf" data-lang="conf">tls-groups prime256v1
+</code></pre>
+<p>它的语义就是只允许这个 group。风险是对端必须也支持它，否则 handshake 失败。</p>
+<p>这和只配置一个 cipher 类似，配置本身合法，但兼容性由部署方负责。</p>
+<h3 id="bian-yi-shi-bai-bi-jing-mo-hu-lue-geng-he-gua"><a class="zola-anchor" href="#bian-yi-shi-bai-bi-jing-mo-hu-lue-geng-he-gua" aria-label="Anchor link for: bian-yi-shi-bai-bi-jing-mo-hu-lue-geng-he-gua">编译失败比静默忽略更合适</a></h3>
+<p>TLS 配置是安全策略。对于安全策略来说，最危险的行为不是报错，而是用户以为策略生效了，但实际没有生效。</p>
+<p>因此服务端路径在没有 OpenSSL API 时默认编译失败。只有显式定义 <code>TLS_NO_GROUPS</code>，才允许构建出不支持该功能的 Redis。</p>
+<h3 id="cli-cai-yong-neng-li-yin-cang"><a class="zola-anchor" href="#cli-cai-yong-neng-li-yin-cang" aria-label="Anchor link for: cli-cai-yong-neng-li-yin-cang">CLI 采用能力隐藏</a></h3>
+<p><code>redis-cli</code> / <code>redis-benchmark</code> 是工具，不是 Redis server 配置项。它们跟随 <code>--tls-ciphersuites</code> 一类选项的模式：构建支持时展示并解析，不支持时隐藏。</p>
+<p>这避免了用户在不支持的构建里看到一个实际不可用的命令行参数。</p>
+<h3 id="ce-shi-jin-liang-yan-zheng-redis-xing-wei-er-bu-shi-openssl-cli-wen-an"><a class="zola-anchor" href="#ce-shi-jin-liang-yan-zheng-redis-xing-wei-er-bu-shi-openssl-cli-wen-an" aria-label="Anchor link for: ce-shi-jin-liang-yan-zheng-redis-xing-wei-er-bu-shi-openssl-cli-wen-an">测试尽量验证 Redis 行为，而不是 OpenSSL CLI 文案</a></h3>
+<p>TLS handshake 失败时，OpenSSL 不同版本的输出可能有差异。测试最好验证 Redis 工具链的行为，而不是依赖 <code>openssl s_client</code> 的退出码和展示文本。</p>
+<p>因此最终测试使用 <code>redis-cli --tls-groups</code> 发 <code>PING</code>，并在失败场景里匹配具体 handshake failure。</p>
+<h2 id="zui-zhong-xiao-guo"><a class="zola-anchor" href="#zui-zhong-xiao-guo" aria-label="Anchor link for: zui-zhong-xiao-guo">最终效果</a></h2>
+<p>合并后，Redis 可以这样配置 TLS named groups：</p>
+<pre data-lang="conf" class="language-conf "><code class="language-conf" data-lang="conf">tls-groups X25519:prime256v1
+</code></pre>
+<p>运行时可以修改：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">CONFIG SET tls-groups prime256v1
+CONFIG SET tls-groups &quot;&quot;
+</code></pre>
+<p>无效 group 会失败：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">CONFIG SET tls-groups invalid-group
+=&gt; Unable to update TLS configuration
+</code></pre>
+<p><code>redis-cli</code> 可以指定 client 侧 group list：</p>
+<pre data-lang="bash" class="language-bash "><code class="language-bash" data-lang="bash">src&#x2F;redis-cli \
+  --tls \
+  --insecure \
+  --tls-groups prime256v1 \
+  PING
+</code></pre>
+<p><code>redis-benchmark</code> 也可以指定：</p>
+<pre data-lang="bash" class="language-bash "><code class="language-bash" data-lang="bash">src&#x2F;redis-benchmark \
+  --tls \
+  --insecure \
+  --tls-groups prime256v1 \
+  -t set \
+  -n 1000
+</code></pre>
+<p>如果 client 和 server 没有共同 group，handshake 会失败。这不是 Redis 的额外限制，而是 TLS group negotiation 的自然结果。</p>
+<h2 id="zong-jie"><a class="zola-anchor" href="#zong-jie" aria-label="Anchor link for: zong-jie">总结</a></h2>
+<p><code>tls-groups</code> 看起来只是一个新配置项，但它涉及几类工程取舍：</p>
+<ul>
+<li>命名上选择 <code>groups</code>，避免把语义限制在传统 curves；</li>
+<li>配置值直接传给 OpenSSL，保留新 OpenSSL group 的可扩展性；</li>
+<li>服务端默认编译失败，避免 TLS 策略被静默忽略；</li>
+<li>通过 <code>TLS_NO_GROUPS</code> 提供显式 opt-out；</li>
+<li><code>redis-cli</code> / <code>redis-benchmark</code> 采用能力隐藏，保持命令行体验一致；</li>
+<li>测试使用 Redis 自带 CLI 验证真实行为，减少对 OpenSSL CLI 输出的依赖；</li>
+<li>failure case 匹配明确的 handshake failure，而不是只做弱负向断言。</li>
+</ul>
+<p>最终这个改动补齐了 Redis TLS 配置中的一个缺口，让协议版本、cipher、ciphersuite、named groups 这几类 TLS 策略都可以在 Redis 层配置，并且能通过 Redis 自带工具进行验证。</p>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/aliasjeff.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#wen-ti-bei-jing">问题背景</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#named-groups-shi-shen-me">Named Groups 是什么</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#wei-shen-me-jiao-tls-groups">为什么叫 tls-groups</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#pei-zhi-ceng-she-ji">配置层设计</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#openssl-api-jian-rong">OpenSSL API 兼容</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#ying-yong-dao-tls-context">应用到 TLS Context</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#redis-cli-he-redis-benchmark">redis-cli 和 redis-benchmark</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#ce-shi-she-ji">测试设计</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#wen-dang-he-redis-conf">文档和 redis.conf</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#ji-ge-she-ji-bian-jie">几个设计边界</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#redis-bu-pan-duan-ju-ti-group-shi-fou-an-quan">Redis 不判断具体 group 是否“安全”</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#dan-ge-group-shi-he-fa-pei-zhi">单个 group 是合法配置</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#bian-yi-shi-bai-bi-jing-mo-hu-lue-geng-he-gua">编译失败比静默忽略更合适</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#cli-cai-yong-neng-li-yin-cang">CLI 采用能力隐藏</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#ce-shi-jin-liang-yan-zheng-redis-xing-wei-er-bu-shi-openssl-cli-wen-an">测试尽量验证 Redis 行为，而不是 OpenSSL CLI 文案</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#zui-zhong-xiao-guo">最终效果</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-tls-groups-pei-zhi-de-shi-xian-cong-openssl-named-groups-dao-ce-shi-jian-rong-xing/#zong-jie">总结</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>
