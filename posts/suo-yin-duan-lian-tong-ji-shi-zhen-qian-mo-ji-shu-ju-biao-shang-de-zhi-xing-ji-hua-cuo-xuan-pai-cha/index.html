@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                索引断链 + 统计失真：千万级数据表上的执行计划错选排查
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="索引断链 + 统计失真：千万级数据表上的执行计划错选排查" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            索引断链 + 统计失真：千万级数据表上的执行计划错选排查
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2026-11-04</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/mysql/"
+                                       class="post-tag">MySQL</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/xing-neng-you-hua/"
+                                       class="post-tag">性能优化</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/man-cha-xun/"
+                                       class="post-tag">慢查询</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <h2 id="01-bei-jing-yi-zhang-cun-dan-mu-de-biao"><a class="zola-anchor" href="#01-bei-jing-yi-zhang-cun-dan-mu-de-biao" aria-label="Anchor link for: 01-bei-jing-yi-zhang-cun-dan-mu-de-biao">01 背景：一张存弹幕的表</a></h2>
+<p>我们的直播监控链路里，抓取端把直播间里的弹幕、礼物、进场这类互动消息原始报文落到 <code>tbRawDanmu</code>。表的核心语义：</p>
+<ul>
+<li>多租户，<code>appid</code> / <code>belong_biz_code</code> / <code>biz_code</code> 三列定位一个业务方；</li>
+<li>任务侧，<code>subscribe_id</code> 关联订阅（<code>tbSubscribe</code>），<code>task_id</code> 关联抓取任务；</li>
+<li>数据侧，<code>room_id</code> 是直播间标识，<code>msg_type</code> 区分 chat/gift/like/enter，<code>received_ts</code> 是入库时间；</li>
+<li>报文本体在 <code>raw_payload</code>（mediumtext），行非常宽。</li>
+</ul>
+<p>DDL 关键部分（省略若干列）：</p>
+<pre data-lang="sql" class="language-sql "><code class="language-sql" data-lang="sql">CREATE TABLE `tbRawDanmu` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `subscribe_id` bigint(20) unsigned NOT NULL DEFAULT &#x27;0&#x27;,
+  `sub_key` varchar(160) NOT NULL DEFAULT &#x27;&#x27;,
+  `appid` varchar(64) NOT NULL DEFAULT &#x27;xn&#x27;,
+  `belong_biz_code` varchar(64) NOT NULL DEFAULT &#x27;&#x27;,
+  `biz_code` varchar(64) NOT NULL DEFAULT &#x27;&#x27; COMMENT &#x27;业务=游戏简称&#x27;,
+  `platform` varchar(32) NOT NULL DEFAULT &#x27;&#x27;,
+  `room_id` varchar(64) NOT NULL DEFAULT &#x27;&#x27;,
+  `msg_type` varchar(24) NOT NULL DEFAULT &#x27;&#x27;,
+  `message_id` varchar(128) NOT NULL DEFAULT &#x27;&#x27; COMMENT &#x27;去重用&#x27;,
+  `content` text,
+  `raw_payload` mediumtext NOT NULL,
+  `received_ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_tenant_message_id` (`appid`,`belong_biz_code`,`biz_code`,
+      `platform`,`room_id`,`message_id`),
+  KEY `idx_task` (`task_id`),
+  KEY `idx_subscribe` (`subscribe_id`),
+  KEY `idx_room_type` (`room_id`,`msg_type`,`received_ts`),
+  KEY `idx_received_ts` (`received_ts`),
+  KEY `idx_tenant_time` (`appid`,`belong_biz_code`,`biz_code`,`received_ts`),
+  KEY `idx_agg_danmu_interact` (`appid`,`belong_biz_code`,`biz_code`,`platform`,
+      `room_id`,`msg_type`,`received_ts`,`mid`)
+) ENGINE=InnoDB AUTO_INCREMENT=53769296 DEFAULT CHARSET=utf8mb4
+  COMMENT=&#x27;原始-弹幕互动流&#x27;;
+</code></pre>
+<p>两个数字先记下。<code>AUTO_INCREMENT</code> 已经五千三百多万；这张表是抓取链路的落地端，<strong>写入持续高并发</strong>。这两个数字后面都会回来。</p>
+<p>出问题的查询是聚合任务里最常见的形态，按租户、订阅、房间加一个时间窗，把一场直播的弹幕拉出来：</p>
+<pre data-lang="sql" class="language-sql "><code class="language-sql" data-lang="sql">SELECT ...
+FROM tbRawDanmu
+WHERE appid = &#x27;xn&#x27;
+  AND belong_biz_code = &#x27;cr&#x27;
+  AND biz_code = &#x27;cr&#x27;
+  AND subscribe_id = 2076
+  AND room_id = &#x27;7703806420868926234&#x27;
+  AND received_ts &gt;= &#x27;2026-10-20 19:00:00&#x27;
+  AND received_ts &lt;= &#x27;2026-10-20 23:00:00&#x27;;
+</code></pre>
+<p>按直觉这不该是难题。这个房间整场直播也就 7 千行弹幕，<code>room_id</code> 一锁、时间窗一切，应该毫秒级出结果。</p>
+<h2 id="02-xian-xiang-zhi-xing-ji-hua-yu-zhi-jue-nan-yuan-bei-che"><a class="zola-anchor" href="#02-xian-xiang-zhi-xing-ji-hua-yu-zhi-jue-nan-yuan-bei-che" aria-label="Anchor link for: 02-xian-xiang-zhi-xing-ji-hua-yu-zhi-jue-nan-yuan-bei-che">02 现象：执行计划与直觉南辕北辙</a></h2>
+<p>线上表现是这条 SQL 反复触发 dbproxy 读超时。拿到慢日志和执行计划，第一眼就能看到不对劲，优化器选的索引不是我们以为的那个。关键列（节选，量级如实）：</p>
+<table><thead><tr><th>type</th><th>key</th><th>key_len</th><th>rows</th><th>filtered</th><th>Extra</th></tr></thead><tbody>
+<tr><td>range</td><td>uk_tenant_message_id</td><td>774</td><td>~26,000,000</td><td>0.03%</td><td>Using index condition; Using where</td></tr>
+</tbody></table>
+<p>把这一行逐列解码，信息量比看上去大，有三处反常。</p>
+<p><strong>key 是唯一键 <code>uk_tenant_message_id</code>，不是预期的 <code>idx_room_type</code>。</strong> 查询里根本没有 <code>message_id</code>，拿唯一键跑范围查询，怎么看都不像正路。</p>
+<p>rows 两千六百万，filtered 0.03%，两者相乘约 7,800。**这个乘积和真实的 7 千行对得上。**也就是说，优化器完全算得出走这条路之后最终只有万分之三的行能活下来，它知道这条路几乎全是无用功，还是选了它。它不是没看见，是账算错了。</p>
+<p><strong>Extra 同时出现 <code>Using index condition</code> 和 <code>Using where</code>。</strong> 前者说明 ICP（Index Condition Pushdown）在干活。这三个 Extra 很容易混，摆在一起看：</p>
+<table><thead><tr><th>Extra</th><th>层次</th><th>含义</th></tr></thead><tbody>
+<tr><td><code>Using index</code></td><td>覆盖索引</td><td>所需列全在索引里，不回表</td></tr>
+<tr><td><code>Using index condition</code></td><td>引擎层（ICP）</td><td>where 里作用在索引列上的条件被下推到存储引擎，索引内过滤，减少回表</td></tr>
+<tr><td><code>Using where</code></td><td>server 层</td><td>剩余条件在行读出来之后过滤</td></tr>
+</tbody></table>
+<p>对照到这条查询，分工正好是 <code>room_id</code> 在索引内走 ICP 过滤，<code>subscribe_id</code> 和时间窗回表后在 server 层滤。这也解释了这条 SQL 的死法，不是慢到跑不完，而是慢到刚好超时，千万级的扫描都发生在索引层，回表的只有 7 千行左右。</p>
+<h2 id="03-ti-jian-mei-ge-suo-yin-de-pi-pei-lian-duan-zai-na"><a class="zola-anchor" href="#03-ti-jian-mei-ge-suo-yin-de-pi-pei-lian-duan-zai-na" aria-label="Anchor link for: 03-ti-jian-mei-ge-suo-yin-de-pi-pei-lian-duan-zai-na">03 体检：每个索引的匹配链断在哪</a></h2>
+<p>要看懂优化器的选择，得先把每条候选路径能用到哪几列摆出来。MySQL range 优化器使用联合索引的规则一句话能说完，<strong>等值条件从索引最左列开始连续消耗列，遇到第一个没有等值条件的列，匹配链就断了</strong>。断点之后的列不能再参与区间定位，只能靠 ICP 在索引内过滤，或者回表后过滤。第一个范围条件（这里是 <code>received_ts</code>）可以接在等值前缀后面，但它之后的列同样退出定位。</p>
+<p>放到这张表的候选索引上逐个体检（✓ 能用于定位，◦ 只能 ICP/回表过滤，✗ 不在索引里）：</p>
+<table><thead><tr><th>索引</th><th>appid/belong/biz</th><th>subscribe_id</th><th>room_id</th><th>msg_type</th><th>received_ts</th><th>结论</th></tr></thead><tbody>
+<tr><td><code>uk_tenant_message_id</code></td><td>✓（3 列等值）</td><td>✗</td><td>◦（第 5 列，ICP）</td><td>—</td><td>✗</td><td>前缀定位到租户，<strong>platform 缺失，链条断</strong>，租户内全扫</td></tr>
+<tr><td><code>idx_room_type</code></td><td>✗</td><td>✗</td><td>✓（等值）</td><td>✗</td><td>◦（ICP）</td><td>定位到房间，<strong>msg_type 缺失，时间窗只能 ICP</strong></td></tr>
+<tr><td><code>idx_subscribe</code></td><td>✗</td><td>✓</td><td>✗</td><td>✗</td><td>✗</td><td>只能定位订阅，回表过滤其余</td></tr>
+<tr><td><code>idx_tenant_time</code></td><td>✓（3 列等值）</td><td>✗</td><td>✗</td><td>—</td><td>✓（范围）</td><td>定位到租户 × 时间窗，<strong>room_id 只能回表过滤</strong></td></tr>
+<tr><td><code>idx_agg_danmu_interact</code></td><td>✓（3 列等值）</td><td>✗</td><td>◦（ICP）</td><td>✗</td><td>✗</td><td>同 uk，platform 断链</td></tr>
+</tbody></table>
+<p>两个观察。</p>
+<p><strong>没有任何一个索引能完整吃下全部查询条件。</strong> 每条路径都是「用前几列定位，剩下的靠过滤」。所以这不是某一个索引设计错了，是索引族和查询形状错位了。</p>
+<p><strong>断裂点恰好是两个看起来人畜无害的字段。</strong> <code>uk</code> 和 <code>idx_agg_danmu_interact</code> 里，<code>platform</code> 排在 <code>room_id</code> 前面；<code>idx_room_type</code> 里，<code>msg_type</code> 排在 <code>received_ts</code> 前面。查询没传这两个字段，这些索引最值钱的后半段就全部作废。这两个字段进索引各有各的理由，去重键的唯一性、另一个聚合场景，索引为各自的场景而生，只是都不服务眼前这个查询。</p>
+<p>再从区间构造的角度看一眼 uk 那条路径。租户三列等值之后 <code>platform</code> 无条件，range 优化器构造出的区间就是 <code>(xn,cr,cr,-∞,...) ≤ key ≤ (xn,cr,cr,+∞,...)</code>，等于租户分区在索引上的全部两千多万条目，<code>room_id</code> 的等值条件只能作为 ICP 挂在这条大区间上。所谓的「用唯一键查询」，实际上是拿唯一键当了三列租户前缀索引用。</p>
+<h2 id="04-shou-yi-yong-key-len-ba-duan-lian-cong-tui-duan-bian-cheng-zheng-ju"><a class="zola-anchor" href="#04-shou-yi-yong-key-len-ba-duan-lian-cong-tui-duan-bian-cheng-zheng-ju" aria-label="Anchor link for: 04-shou-yi-yong-key-len-ba-duan-lian-cong-tui-duan-bian-cheng-zheng-ju">04 手艺：用 key_len 把断链从推断变成证据</a></h2>
+<p>排查这类问题有个成本极低的硬手艺，读 EXPLAIN 的 <code>key_len</code>，反推匹配链实际用了几列。</p>
+<p>key_len 是被用于定位的索引前缀的字节数，计算规则就几条。utf8mb4 下每字符至多 4 字节，varchar 的长度字节 1~2 个（这里都是 2），NOT NULL 不占 null 标志位，datetime（fsp=0）占 5 字节。于是：</p>
+<ul>
+<li><code>room_id</code> varchar(64)，64 × 4 + 2 = <strong>258</strong></li>
+<li>租户三列（各 varchar(64)），258 × 3 = <strong>774</strong></li>
+<li><code>idx_room_type</code> 三列全用，258 + (24 × 4 + 2) + 5 = <strong>361</strong></li>
+</ul>
+<p>对照线上执行计划，key 是 <code>uk_tenant_message_id</code>、key_len = 774，实锤只用了前三列等值，从 <code>platform</code> 开始全断，后面两千多万条目的扫描全靠 ICP 硬扛。反读也一样，看到 key_len = 258 说明 <code>idx_room_type</code> 只用上了 room_id，看到 361 才是三列完整匹配。</p>
+<p>key_len 的价值在于把「匹配链断裂」从推断变成了证据。看执行计划时顺手心算一遍，比盯着 rows 猜靠谱得多。</p>
+<h2 id="05-gen-yin-you-hua-qi-wei-shen-me-ba-cheng-ben-suan-fan-liao"><a class="zola-anchor" href="#05-gen-yin-you-hua-qi-wei-shen-me-ba-cheng-ben-suan-fan-liao" aria-label="Anchor link for: 05-gen-yin-you-hua-qi-wei-shen-me-ba-cheng-ben-suan-fan-liao">05 根因：优化器为什么把成本算反了</a></h2>
+<p>到这里事实已经清楚，正确答案（<code>idx_room_type</code>，约 7 千行）和优化器的选择（uk 租户前缀，约两千六百万行）差了四个数量级。真正值得搞懂的是，优化器手上的信息出了什么问题，让它觉得千万级扫描更便宜。</p>
+<h3 id="rows-gu-suan-de-liang-lei-lai-yuan"><a class="zola-anchor" href="#rows-gu-suan-de-liang-lei-lai-yuan" aria-label="Anchor link for: rows-gu-suan-de-liang-lei-lai-yuan">rows 估算的两类来源</a></h3>
+<p>优化器为每个候选索引估算 rows，再按成本模型折算，挑成本最低的那条。成本模型的常数就两张系统表，<code>mysql.server_cost</code>（行条件评估 <code>row_evaluate_cost</code>，默认 0.2）和 <code>mysql.engine_cost</code>（页 IO <code>io_block_read_cost</code>，默认 1.0），单位无量纲，只为比较。rows 的来源有两类：</p>
+<ul>
+<li><strong>index dive（records_in_range）</strong>，对具体的等值/范围区间，下潜到 B+ 树的边界页，数出区间内的记录数，通常很准；</li>
+<li><strong>索引统计（cardinality / stat_n_rows）</strong>，来自 InnoDB 的持久化统计信息，抽样估算。</li>
+</ul>
+<p>很多人到这里就放过了，dive 这么准怎么会错。问题在于 <strong>dive 不是精确 count</strong>。它只读区间边界页，用页内记录密度和树层级占比外推，而外推依赖的索引总行数 <code>stat_n_rows</code> 本身来自抽样统计。基线是抽样估出来的，抽样失真会原样传导进 dive 的结果。</p>
+<h3 id="chou-yang-tong-ji-zai-zhe-zhang-biao-shang-bi-ran-shi-zhen"><a class="zola-anchor" href="#chou-yang-tong-ji-zai-zhe-zhang-biao-shang-bi-ran-shi-zhen" aria-label="Anchor link for: chou-yang-tong-ji-zai-zhe-zhang-biao-shang-bi-ran-shi-zhen">抽样统计在这张表上必然失真</a></h3>
+<p>InnoDB 持久化统计默认只采约 20 个叶子页（<code>innodb_stats_persistent_sample_pages</code>），采样方式是从索引树根节点出发逐层随机下潜取叶子页；表中约 1/16 的行发生变更后自动触发重算（<code>innodb_stats_auto_recalc</code>）。放到 <code>tbRawDanmu</code> 上，两个因素叠加：</p>
+<ul>
+<li><strong>分布极度倾斜。</strong> 少数热门房间的弹幕占了全表绝大头，绝大多数房间是长尾。而在 <code>idx_room_type</code> 上，同一 <code>room_id</code> 的记录物理相邻，热门房间占据大量连续叶子页。随机采 20 个页，大概率整页整页落在热门房间内部，页内 <code>room_id</code> 几乎没有区分度，distinct 值数被低估，按总行数 / 基数外推的「单房间行数」被推高。一个 7 千行的房间，在失真画像里可能是个庞然大物。</li>
+<li><strong>写入持续高并发。</strong> 五千多万行的表，抓取高峰持续灌入，1/16 的变更阈值被反复越过，统计被频繁重算，每次抽样结果都不同。这就是「同一条 SQL 时快时慢、计划跳变」的经典来源，统计信息在两次重算之间给出的画面是不稳定的。</li>
+</ul>
+<h3 id="icp-rang-pi-lu-jing-de-zhang-mian-xian-de-bian-yi"><a class="zola-anchor" href="#icp-rang-pi-lu-jing-de-zhang-mian-xian-de-bian-yi" aria-label="Anchor link for: icp-rang-pi-lu-jing-de-zhang-mian-xian-de-bian-yi">ICP 让坏路径的账面显得便宜</a></h3>
+<p>ICP 本身是好东西，但它改变了成本记账。对 uk 这条路径，<code>room_id</code> 在索引内就能过滤，不满足的行不回表，账面就成了「range 扫描 + 极少量回表」。而成本模型按固定常数给每页和每行估价，不感知页在 buffer pool 里还是磁盘上，也不感知千万次条目判断在真实 CPU 上的开销。只要失真的统计把 <code>idx_room_type</code> 的 rows 估算抬得比这条账面还高，优化器就会理直气壮地选 uk。</p>
+<h3 id="you-hua-qi-bu-shi-chun-shi-xin-xi-bu-dui-cheng"><a class="zola-anchor" href="#you-hua-qi-bu-shi-chun-shi-xin-xi-bu-dui-cheng" aria-label="Anchor link for: you-hua-qi-bu-shi-chun-shi-xin-xi-bu-dui-cheng">优化器不是蠢，是信息不对称</a></h3>
+<p>三个因素叠起来。匹配链断裂决定了候选集里没有便宜的正路可走；倾斜加抽样让各候选的 rows 估算失真；ICP 的记账方式又让最差的路径看起来最便宜。优化器在错误的统计画像下做了自洽的选择，它不知道「这个 room_id 恰好只有 7 千行」这件事。</p>
+<p>一句话版本，<strong>查询形状与索引错位决定了候选集里没有完美解，统计失真又让它在几个次优解里挑了最差的那个。</strong></p>
+<h2 id="06-zheng-shi-bie-ji-zhao-xin-yan-zheng-ta"><a class="zola-anchor" href="#06-zheng-shi-bie-ji-zhao-xin-yan-zheng-ta" aria-label="Anchor link for: 06-zheng-shi-bie-ji-zhao-xin-yan-zheng-ta">06 证实：别急着信，验证它</a></h2>
+<p>上面的机制分析如果只凭「讲得通」就上线方案，和优化器犯的是同一类错误，在没验证的模型上做决策。我们用了三个手段交叉验证，这套流程值得复用。</p>
+<p><strong>1. ANALYZE TABLE 前后对比。</strong> <code>ANALYZE TABLE tbRawDanmu</code> 强制重算统计信息，立刻 EXPLAIN，计划随之改变，回到了 <code>idx_room_type</code>。「统计失真导致计划错选」这条因果链由此闭环，这是成本最低的一手实验。</p>
+<p><strong>2. optimizer trace 看估算现场。</strong></p>
+<pre data-lang="sql" class="language-sql "><code class="language-sql" data-lang="sql">SET optimizer_trace = &#x27;enabled=on&#x27;;
+-- 原样重跑业务查询
+SELECT ... ;
+SELECT TRACE FROM INFORMATION_SCHEMA.OPTIMIZER_TRACE\G
+</code></pre>
+<p>trace 里能看到优化器对每个候选索引构造的 range、估算的 rows 和成本，以及最终的选择理由。关键片段（节选整理）：</p>
+<pre data-lang="json" class="language-json "><code class="language-json" data-lang="json">&quot;potential_range_indices&quot;: [
+  { &quot;index&quot;: &quot;uk_tenant_message_id&quot;, &quot;usable&quot;: true },
+  { &quot;index&quot;: &quot;idx_room_type&quot;, &quot;usable&quot;: true },
+  ...
+],
+&quot;range_analysis&quot;: {
+  &quot;idx_room_type&quot;: {
+    &quot;ranges&quot;: [ &quot;7703806420868926234 &lt;= room_id &lt;= 7703806420868926234&quot; ],
+    &quot;rows&quot;: &lt;远大于 7000 的失真值&gt;,
+    &quot;cost&quot;: &lt;被抬高&gt;
+  },
+  &quot;uk_tenant_message_id&quot;: {
+    &quot;ranges&quot;: [ &quot;(xn,cr,cr) &lt;= (...) &lt;= (xn,cr,cr,+∞)&quot; ],
+    &quot;rows&quot;: ~26000000,
+    &quot;cost&quot;: &lt;因 ICP 回表极少而被压低&gt;
+  }
+}
+</code></pre>
+<p>trace 里 <code>idx_room_type</code> 的 rows 估算和真实 7 千的差距，就是失真的直接证据。</p>
+<p><strong>3. EXPLAIN ANALYZE，最硬的一锤。</strong> 8.0.18+ 的 EXPLAIN ANALYZE 会真实执行并给出「估算 vs 实际」行数，是检验执行计划最直接的手段。我们这套库还在 5.7 时代（DDL 里 <code>bigint(20)</code> 的显示宽度就是 5.7 的典型痕迹），是用前两个手段完成的定位。</p>
+<p>顺带一提，每条索引当时的 <code>stat_n_rows</code> 就存在 <code>mysql.innodb_index_stats</code> 表里，排查时可以直接查出来，和 <code>SHOW INDEX</code> 的 Cardinality 对着看，画像失真到什么程度一目了然。</p>
+<h2 id="07-zhi-xie-use-index-yi-ji-ta-de-zhen-shi-dai-jia"><a class="zola-anchor" href="#07-zhi-xie-use-index-yi-ji-ta-de-zhen-shi-dai-jia" aria-label="Anchor link for: 07-zhi-xie-use-index-yi-ji-ta-de-zhen-shi-dai-jia">07 止血：USE INDEX，以及它的真实代价</a></h2>
+<p>线上当下最快的止血是索引提示：</p>
+<pre data-lang="sql" class="language-sql "><code class="language-sql" data-lang="sql">SELECT ... FROM tbRawDanmu USE INDEX (idx_room_type)
+WHERE appid=&#x27;xn&#x27; AND belong_biz_code=&#x27;cr&#x27; AND biz_code=&#x27;cr&#x27;
+  AND subscribe_id=2076 AND room_id=&#x27;7703806420868926234&#x27;
+  AND received_ts &gt;= &#x27;...&#x27; AND received_ts &lt;= &#x27;...&#x27;;
+</code></pre>
+<p>作用机制很直接，<strong>剥夺优化器对其他索引的选择权</strong>。执行计划钉在「room_id 等值 range」上，rows 直接来自对这个具体区间的定位，不再依赖失真的统计画像。加上 hint 后，这条 SQL 从反复超时回到毫秒级。</p>
+<p>三个细节必须一起讲清楚。</p>
+<ul>
+<li><strong>USE INDEX 与 FORCE INDEX 的区别。</strong> <code>USE INDEX</code> 是「只在这些索引里挑」，但优化器仍可能判定全表扫描更便宜；<code>FORCE INDEX</code> 在此基础上把全表扫描当成最后手段，只有走不了具名索引时才用。能用 USE 解决就不要升级到 FORCE，留的余地越多越好。</li>
+<li><strong>hint 是把索引选择权从优化器手里拿回代码里，代价是 SQL 和索引名硬绑定。</strong> 将来索引改名或删除，语句会直接报 <code>ERROR 1176, Key 'xxx' doesn't exist in table</code>，查询失败而不是静默降级。响亮的失败至少可被发现，但 DDL 从此和 SQL 耦合，动索引必须联动排查。另一个方向的静默风险也要知道，USE INDEX 下优化器仍可能选全表扫描，计划可能在没人注意的时候变差，上线后要盯慢日志回归。</li>
+<li><strong>止血位就该待在止血位。</strong> hint 上线的同一天就要排期治本。长期靠 hint 活着的 SQL，早晚变成技术债里的暗雷。</li>
+</ul>
+<h2 id="08-zhi-ben-wei-yi-ge-cha-xun-xing-zhuang-she-ji-yi-ge-suo-yin"><a class="zola-anchor" href="#08-zhi-ben-wei-yi-ge-cha-xun-xing-zhuang-she-ji-yi-ge-suo-yin" aria-label="Anchor link for: 08-zhi-ben-wei-yi-ge-cha-xun-xing-zhuang-she-ji-yi-ge-suo-yin">08 治本：为一个查询形状设计一个索引</a></h2>
+<p>治本从联合索引设计的基本原则出发，<strong>等值列在前，范围列收尾</strong>。这个查询的形状是「两个等值（room_id、subscribe_id）加一个范围（received_ts）」，租户三列的选择性已经被 room_id 覆盖，于是答案几乎是唯一的：</p>
+<pre data-lang="sql" class="language-sql "><code class="language-sql" data-lang="sql">ALTER TABLE tbRawDanmu
+  ADD KEY idx_room_sub_time (room_id, subscribe_id, received_ts);
+</code></pre>
+<p>几个设计决策的理由。</p>
+<p><strong>为什么 subscribe_id 放在中间。</strong> 等值列之间的先后不影响这一条查询的效率，都是等值定位，影响的是查询族的覆盖面。<code>room_id</code> 打头，「按房间查全历史」的查询族都能复用；<code>subscribe_id</code> 居中且等值，不挡路；<code>received_ts</code> 收尾承接范围。也考虑过直接改造 <code>idx_room_type</code>（把 <code>msg_type</code> 挪走），可行，但那个索引还要服务「按房间 + 消息类型」的查询，动它牵连更广。</p>
+<p><strong>上线后怎么自证它工作。</strong> 还是 key_len。新索引三列全中应该是 258 + 8 + 5 = <strong>271</strong>（subscribe_id 是 bigint，8 字节）。EXPLAIN 出来 key 是 <code>idx_room_sub_time</code>、key_len = 271、rows 在几千量级，才算落地。</p>
+<p><strong>它比 hint 好在哪。</strong> 三列匹配链完整后，range 直接定位到「该房间 × 该订阅 × 时间窗」，扫描量从 <code>idx_room_type</code> 的「房间全历史加 ICP 滤时间」进一步收窄到时间窗本身。而且优化器对这个索引的估算模型更简单，等值前缀紧跟范围，比「三列租户前缀 + ICP」的画像稳定得多。统计信息恢复正常后，不需要 hint，它也会是成本上的赢家。</p>
+<p><strong>这张表上少回表格外值钱。</strong> <code>raw_payload</code> 是 mediumtext，行极宽，部分记录走溢出页。每次回表不只是「按主键找一行」，可能是「找一行再拖出一截溢出页」。定位做准、扫描量压下来，收益被宽行放大。</p>
+<p><strong>DDL 怎么上。</strong> 五千多万行的表，<code>ADD KEY</code> 在 5.7 是 INPLACE、允许并发 DML，但构建时长和 binlog / 主从延迟的风险都在，走 gh-ost（或低峰期加限流）。上线前用线上真实参数 EXPLAIN 验证，上线后摘掉 hint、回归观察。</p>
+<p><strong>统计信息维护要常态化。</strong> 索引解决的是「查询形状错位」，统计解决的是「优化器的画像失真」，两条都要做。给这张表调大采样页数（建表选项 <code>STATS_SAMPLE_PAGES</code>，比如 64 或 128，权衡 ANALYZE 的耗时），再加一个低峰期的定期 ANALYZE。这不是新发明，我们另一条弹幕聚合链路（<code>metrics_agg_live.go</code> 那次优化）就是这么配的，一个合适的索引加 ANALYZE 常态化，跑了很久没再出问题。</p>
+<p>顺带排除两个看起来也能治的方案。</p>
+<ul>
+<li><strong>MySQL 8.0 直方图。</strong> 直方图主要帮助<strong>没有索引</strong>的列的估算；<code>room_id</code> 上有索引，等值条件的估算走 dive，直方图在这个场景插不上手。别迷信「倾斜就上直方图」。</li>
+<li><strong>调用方把 platform 补进查询条件。</strong> 如果调用方确实知道 platform，<code>uk</code> / <code>idx_agg_danmu_interact</code> 的匹配链就能延长到 room_id，是零 DDL 的巧解。但它把正确性押在每个调用方的自觉上，索引设计的缺陷被转换成一条需要永葆青春的工程约定，不划算。可以作为新代码的规范，不作为存量链路的依赖。</li>
+</ul>
+<h2 id="09-fu-pan-neng-dai-zou-de-dong-xi"><a class="zola-anchor" href="#09-fu-pan-neng-dai-zou-de-dong-xi" aria-label="Anchor link for: 09-fu-pan-neng-dai-zou-de-dong-xi">09 复盘：能带走的东西</a></h2>
+<p>这次排查跑完，沉淀下来三条可迁移的清单。</p>
+<p><strong>慢 SQL 排查的顺序。</strong> 先 EXPLAIN 看 key 和 key_len（按 §04 的算法反推匹配链），再列候选索引的可用前缀表（§03 那张表），然后对比 rows 估算和业务直觉的数量级，最后才动 optimizer trace。大部分问题在前两步就能定位，trace 留给机制不明的硬骨头。</p>
+<p><strong>联合索引设计的三条军规。</strong> 等值列在前、范围列收尾；低选择性的可选条件（platform、msg_type 这种有时传有时不传的）不要卡在高选择性列中间；为查询族设计，而不是为单一查询堆列。这张表七个索引没有一个能完整服务眼前这个查询，就是「逐个需求各加各的」的代价。</p>
+<p><strong>高写入大表的统计健康度是运维项，不是背景噪音。</strong> 倾斜分布加高频写入的表，统计失真和计划抖动是常态而非意外。定期 ANALYZE 和合理的采样参数应该写进变更预案，而不是等超时了再想起它。</p>
+<p>最后是一句话版本。<strong>查询条件与索引形状错位（platform / msg_type 断裂匹配链）叠加倾斜数据下的抽样统计失真，优化器把成本算反，选了扫全租户的路径，dbproxy 超时。<code>USE INDEX</code> 把选择权拿回代码里止血，<code>(room_id, subscribe_id, received_ts)</code> 加统计信息维护才是根治。</strong> 优化器不蠢，它只是没有我们以为它有的那些信息。给它一个形状匹配的索引，再给它一张不失真的统计画像，多数时候它比我们想象的可靠。</p>
+<hr />
+<p>参考：MySQL 参考手册的 Range Optimization、Index Condition Pushdown、Persistent Statistics、Index Hints、Optimizer Trace 与 Optimizer Cost Model 相关章节。文中执行计划与 trace 为排查记录的节选整理。</p>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/aliasjeff.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/suo-yin-duan-lian-tong-ji-shi-zhen-qian-mo-ji-shu-ju-biao-shang-de-zhi-xing-ji-hua-cuo-xuan-pai-cha/#01-bei-jing-yi-zhang-cun-dan-mu-de-biao">01 背景：一张存弹幕的表</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/suo-yin-duan-lian-tong-ji-shi-zhen-qian-mo-ji-shu-ju-biao-shang-de-zhi-xing-ji-hua-cuo-xuan-pai-cha/#02-xian-xiang-zhi-xing-ji-hua-yu-zhi-jue-nan-yuan-bei-che">02 现象：执行计划与直觉南辕北辙</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/suo-yin-duan-lian-tong-ji-shi-zhen-qian-mo-ji-shu-ju-biao-shang-de-zhi-xing-ji-hua-cuo-xuan-pai-cha/#03-ti-jian-mei-ge-suo-yin-de-pi-pei-lian-duan-zai-na">03 体检：每个索引的匹配链断在哪</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/suo-yin-duan-lian-tong-ji-shi-zhen-qian-mo-ji-shu-ju-biao-shang-de-zhi-xing-ji-hua-cuo-xuan-pai-cha/#04-shou-yi-yong-key-len-ba-duan-lian-cong-tui-duan-bian-cheng-zheng-ju">04 手艺：用 key_len 把断链从推断变成证据</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/suo-yin-duan-lian-tong-ji-shi-zhen-qian-mo-ji-shu-ju-biao-shang-de-zhi-xing-ji-hua-cuo-xuan-pai-cha/#05-gen-yin-you-hua-qi-wei-shen-me-ba-cheng-ben-suan-fan-liao">05 根因：优化器为什么把成本算反了</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/suo-yin-duan-lian-tong-ji-shi-zhen-qian-mo-ji-shu-ju-biao-shang-de-zhi-xing-ji-hua-cuo-xuan-pai-cha/#rows-gu-suan-de-liang-lei-lai-yuan">rows 估算的两类来源</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/suo-yin-duan-lian-tong-ji-shi-zhen-qian-mo-ji-shu-ju-biao-shang-de-zhi-xing-ji-hua-cuo-xuan-pai-cha/#chou-yang-tong-ji-zai-zhe-zhang-biao-shang-bi-ran-shi-zhen">抽样统计在这张表上必然失真</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/suo-yin-duan-lian-tong-ji-shi-zhen-qian-mo-ji-shu-ju-biao-shang-de-zhi-xing-ji-hua-cuo-xuan-pai-cha/#icp-rang-pi-lu-jing-de-zhang-mian-xian-de-bian-yi">ICP 让坏路径的账面显得便宜</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/suo-yin-duan-lian-tong-ji-shi-zhen-qian-mo-ji-shu-ju-biao-shang-de-zhi-xing-ji-hua-cuo-xuan-pai-cha/#you-hua-qi-bu-shi-chun-shi-xin-xi-bu-dui-cheng">优化器不是蠢，是信息不对称</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/suo-yin-duan-lian-tong-ji-shi-zhen-qian-mo-ji-shu-ju-biao-shang-de-zhi-xing-ji-hua-cuo-xuan-pai-cha/#06-zheng-shi-bie-ji-zhao-xin-yan-zheng-ta">06 证实：别急着信，验证它</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/suo-yin-duan-lian-tong-ji-shi-zhen-qian-mo-ji-shu-ju-biao-shang-de-zhi-xing-ji-hua-cuo-xuan-pai-cha/#07-zhi-xie-use-index-yi-ji-ta-de-zhen-shi-dai-jia">07 止血：USE INDEX，以及它的真实代价</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/suo-yin-duan-lian-tong-ji-shi-zhen-qian-mo-ji-shu-ju-biao-shang-de-zhi-xing-ji-hua-cuo-xuan-pai-cha/#08-zhi-ben-wei-yi-ge-cha-xun-xing-zhuang-she-ji-yi-ge-suo-yin">08 治本：为一个查询形状设计一个索引</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/suo-yin-duan-lian-tong-ji-shi-zhen-qian-mo-ji-shu-ju-biao-shang-de-zhi-xing-ji-hua-cuo-xuan-pai-cha/#09-fu-pan-neng-dai-zou-de-dong-xi">09 复盘：能带走的东西</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

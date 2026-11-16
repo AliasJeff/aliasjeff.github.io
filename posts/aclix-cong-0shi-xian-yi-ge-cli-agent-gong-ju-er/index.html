@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                ACLIx：从0实现一个 CLI Agent 工具（二、多子智能体协作与状态管理）
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="ACLIx：从0实现一个 CLI Agent 工具（二、多子智能体协作与状态管理）" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            ACLIx：从0实现一个 CLI Agent 工具（二、多子智能体协作与状态管理）
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2026-03-28</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/ai/"
+                                       class="post-tag">AI</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/da-mo-xing-ying-yong/"
+                                       class="post-tag">大模型应用</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>本文为《ACLIx：从0实现一个 CLI Agent 工具》第二部分，重点剖析了多子智能体协作与状态管理、终端执行引擎与状态捕获、分层记忆系统、极简的模块化扩展、风险分级与人机协同、隐式快照与版本回滚等核心技术设计与实现。</p>
+<p>终端环境具有高度的自由度和破坏潜力，传统的单体 LLM 架构在处理跨文件修改、复杂命令调用以及长周期任务时，容易遭遇上下文超载、状态丢失以及系统安全风险。</p>
+<p>ACLIx 采用了一套基于主从编排（Master-Worker）、分层记忆、以及严格读写隔离的工程架构。本文将基于其底层代码实现，深度剖析 ACLIx 的核心技术设计、具体实现路径及工程上的取舍。</p>
+<hr />
+<h2 id="yi-agent-jia-gou-zhu-cong-bian-pai-yu-zi-yuan-diao-du"><a class="zola-anchor" href="#yi-agent-jia-gou-zhu-cong-bian-pai-yu-zi-yuan-diao-du" aria-label="Anchor link for: yi-agent-jia-gou-zhu-cong-bian-pai-yu-zi-yuan-diao-du">一、 Agent 架构：主从编排与资源调度</a></h2>
+<h3 id="1-she-ji-dong-ji"><a class="zola-anchor" href="#1-she-ji-dong-ji" aria-label="Anchor link for: 1-she-ji-dong-ji">1. 设计动机</a></h3>
+<p>单体智能体在处理需要深度探索和修改代码库的复杂任务时，往往会在一个 Prompt 中混杂规划、检索和执行的逻辑。这不仅会导致极高的 Token 消耗，还极易引发模型的幻觉。此外，并发的文件读写操作会导致代码库状态不一致。</p>
+<h3 id="2-he-xin-jia-gou-she-ji"><a class="zola-anchor" href="#2-he-xin-jia-gou-she-ji" aria-label="Anchor link for: 2-he-xin-jia-gou-she-ji">2. 核心架构设计</a></h3>
+<p>ACLIx 采用了 <strong>Master-Subagent（主从编排）</strong> 模式。主智能体（Master Orchestrator）负责与用户交互并规划任务，但不直接执行高风险的底层文件修改。当面临复杂任务时，主智能体通过调用内部工具 <code>agent</code>，生成并派发任务给特定的子智能体（Subagents）。</p>
+<h4 id="zi-zhi-neng-ti-de-zhuang-tai-ge-chi"><a class="zola-anchor" href="#zi-zhi-neng-ti-de-zhuang-tai-ge-chi" aria-label="Anchor link for: zi-zhi-neng-ti-de-zhuang-tai-ge-chi">子智能体的状态隔离</a></h4>
+<p>子智能体被设计为无状态（Stateless）和上下文隔离的执行单元。</p>
+<ul>
+<li><strong>不共享历史</strong>：子智能体无法访问主智能体的对话历史。主智能体必须在 <code>task</code> 参数中，将所有的必要上下文（如文件路径、代码片段、目标结构）一次性打包传递给子智能体。</li>
+<li><strong>单向信息流</strong>：子智能体执行完毕后，主智能体仅接收其生成的结构化文本摘要，而不会将其内部繁杂的思考过程（Reasoning）和工具调用明细混入主会话的上下文中。</li>
+</ul>
+<h4 id="dong-tai-jia-zai-yu-sheng-ming-zhou-qi-guan-li"><a class="zola-anchor" href="#dong-tai-jia-zai-yu-sheng-ming-zhou-qi-guan-li" aria-label="Anchor link for: dong-tai-jia-zai-yu-sheng-ming-zhou-qi-guan-li">动态加载与生命周期管理</a></h4>
+<p>子智能体不是硬编码的，而是基于文件系统动态加载的。</p>
+<ul>
+<li>通过扫描 <code>SUBAGENT.md</code> 文件获取子智能体的定义（包括 <code>name</code>、<code>mode</code>、<code>systemPrompt</code>、允许和禁止的工具列表）。</li>
+<li>支持 <strong>动态创建</strong>：主智能体可以通过 <code>file_write</code> 工具，在运行时的 <code>.aclix/subagents/auto_&lt;name&gt;/</code> 目录下动态写入新的 <code>SUBAGENT.md</code>。执行完毕后，系统引擎（<code>SubagentManager.cleanupDynamicSubagents</code>）会自动清理这些临时生成的智能体，确保系统无状态残留。</li>
+</ul>
+<h3 id="3-bing-fa-diao-du-yu-du-xie-suo-ji-zhi"><a class="zola-anchor" href="#3-bing-fa-diao-du-yu-du-xie-suo-ji-zhi" aria-label="Anchor link for: 3-bing-fa-diao-du-yu-du-xie-suo-ji-zhi">3. 并发调度与读写锁机制</a></h3>
+<p>为了防止多个智能体同时修改代码库引发冲突，<code>SubagentManager</code> 实现了一套严格的资源调度锁（<code>acquireSlot</code>）。</p>
+<ul>
+<li><strong>并发上限</strong>：系统硬编码了最大并发数为 3。超过此限制的调用将被拦截并抛出 <code>SUBAGENT_BUSY</code> 异常。</li>
+<li><strong>读写互斥锁</strong>：子智能体在元数据中定义了 <code>mode</code>（<code>read-only</code> 或 <code>read-write</code>）。调度器维护了一个 <code>writerActive</code> 状态位。</li>
+<li>当申请 <code>read-write</code> 槽位时，若已有写操作进行中，调用将被拒绝。</li>
+<li><code>read-only</code> 模式的子智能体（如代码阅读器、架构规划器）可以并发运行。</li>
+<li>通过闭包返回的 <code>release</code> 函数确保任务结束后正确释放槽位和写锁。</li>
+</ul>
+<hr />
+<h2 id="er-zhong-duan-zhi-xing-yin-qing-yu-zhuang-tai-bu-huo"><a class="zola-anchor" href="#er-zhong-duan-zhi-xing-yin-qing-yu-zhuang-tai-bu-huo" aria-label="Anchor link for: er-zhong-duan-zhi-xing-yin-qing-yu-zhuang-tai-bu-huo">二、 终端执行引擎与状态捕获</a></h2>
+<h3 id="1-she-ji-dong-ji-1"><a class="zola-anchor" href="#1-she-ji-dong-ji-1" aria-label="Anchor link for: 1-she-ji-dong-ji-1">1. 设计动机</a></h3>
+<p>在 Node.js 中通过 <code>exec</code> 或 <code>spawn</code> 执行 Shell 命令是无状态的。如果 LLM 生成了 <code>cd src</code> 或是 <code>export NODE_ENV=production</code> 的命令，当该进程退出后，这些状态就会丢失。下一次工具调用时，系统依然停留在原目录，这打破了 LLM 对“交互式终端”的心智模型。</p>
+<h3 id="2-zhuang-tai-ti-qu-shi-xian-state-marker"><a class="zola-anchor" href="#2-zhuang-tai-ti-qu-shi-xian-state-marker" aria-label="Anchor link for: 2-zhuang-tai-ti-qu-shi-xian-state-marker">2. 状态提取实现 (State Marker)</a></h3>
+<p>ACLIx 构建了一个自定义的执行 Harness（<code>services/executor/host.ts</code>），通过在命令执行前后注入探测脚本，强行捕获底层进程的状态变化。</p>
+<ul>
+<li>
+<p><strong>命令包装 (Command Wrapping)</strong>：</p>
+<p>当接收到命令（如 <code>cd dir &amp;&amp; npm run build</code>）时，系统并不直接执行，而是将其拼接为复合命令：</p>
+<pre><code>{ cd dir &amp;&amp; npm run build ; } ; _ACLI_RET=$? ; echo -e &quot;\n___ACLI_STATE_MARKER___&quot; ; node -e &quot;console.log(JSON.stringify({cwd: process.cwd(), env: process.env}))&quot; ; echo &quot;___ACLI_STATE_MARKER___&quot; ; exit $_ACLI_RET
+</code></pre>
+</li>
+<li>
+<p><strong>状态解析</strong>：命令执行完毕后，引擎利用正则匹配 <code>___ACLI_STATE_MARKER___</code> 之间的 JSON 字符串，解析出真实的 <code>cwd</code> 和 <code>env</code>，并将其更新到常驻内存的 <code>currentCwd</code> 和 <code>currentEnv</code> 中。</p>
+</li>
+<li>
+<p><strong>截断保护</strong>：对标准输出和标准错误进行长度限制（最大 10,000 字符，保留头部和尾部各 5,000 字符），防止如 <code>cat &lt;大文件&gt;</code> 或无限递归导致的内存溢出及 Token 爆炸。</p>
+</li>
+</ul>
+<hr />
+<h2 id="san-fen-ceng-ji-yi-xi-tong-cong-quan-liang-zhu-ru-dao-yu-yi-jian-suo"><a class="zola-anchor" href="#san-fen-ceng-ji-yi-xi-tong-cong-quan-liang-zhu-ru-dao-yu-yi-jian-suo" aria-label="Anchor link for: san-fen-ceng-ji-yi-xi-tong-cong-quan-liang-zhu-ru-dao-yu-yi-jian-suo">三、 分层记忆系统：从全量注入到语义检索</a></h2>
+<h3 id="1-she-ji-dong-ji-2"><a class="zola-anchor" href="#1-she-ji-dong-ji-2" aria-label="Anchor link for: 1-she-ji-dong-ji-2">1. 设计动机</a></h3>
+<p>LLM 的上下文窗口是有限的，且随着上下文变长，注意力机制会产生稀疏。系统必须能够在长周期对话中保留核心信息，同时丢弃冗余细节。</p>
+<h3 id="2-san-ceng-ji-yi-jia-gou"><a class="zola-anchor" href="#2-san-ceng-ji-yi-jia-gou" aria-label="Anchor link for: 2-san-ceng-ji-yi-jia-gou">2. 三层记忆架构</a></h3>
+<p>ACLIx 将上下文切分为短、中、长三层：</p>
+<h4 id="duan-qi-ji-yi"><a class="zola-anchor" href="#duan-qi-ji-yi" aria-label="Anchor link for: duan-qi-ji-yi">短期记忆</a></h4>
+<ul>
+<li><strong>机制</strong>：存储未压缩的近期对话。通过 <code>better-sqlite3</code> 以 WAL 模式持久化到本地 <code>sessions</code> 表中，支持断电和跨会话的状态恢复。</li>
+</ul>
+<h4 id="ya-suo-ji-yi"><a class="zola-anchor" href="#ya-suo-ji-yi" aria-label="Anchor link for: ya-suo-ji-yi">压缩记忆</a></h4>
+<ul>
+<li><strong>机制</strong>：滑动窗口摘要（<code>ContextCompressor</code>）。当 STM 中的消息数量超过阈值（如 40 条），系统触发滚动压缩。</li>
+<li><strong>断点安全算法</strong>：为了防止将成对的 <code>tool_call</code>（请求）和 <code>tool_result</code>（返回）截断，压缩器实现了 <code>findMaxSelfContainedEnd</code> 算法。该算法从后向前扫描，寻找一个“安全切分点”，确保被切分进压缩队列的消息中，所有的工具调用都已闭合。</li>
+<li><strong>执行</strong>：将安全的历史消息序列化，调用内部 LLM 实例生成结构化的 <code>[Historical Context Summary]</code>，并作为一个单条的 Assistant 消息替换原有的长序列。</li>
+</ul>
+<h4 id="chang-qi-ji-yi-ltm-yu-bm25-jian-suo"><a class="zola-anchor" href="#chang-qi-ji-yi-ltm-yu-bm25-jian-suo" aria-label="Anchor link for: chang-qi-ji-yi-ltm-yu-bm25-jian-suo">长期记忆 (LTM) 与 BM25 检索</a></h4>
+<ul>
+<li><strong>机制</strong>：持久化的用户级规范（<code>~/.aclix/ACLI.md</code>）和项目级规范（<code>./ACLI.md</code>）。</li>
+<li><strong>降级检索</strong>：初期，LTM 内容全量注入到系统提示词中。当 LTM 内容超出 3000 字符阈值时，触发本地检索机制。</li>
+<li><strong>自研 BM25 算法</strong>：为保证 CLI 工具的轻量化（不依赖复杂的向量数据库或外部 Embedding API），系统内置了基于 TF-IDF 变种的 BM25 算法。
+<ul>
+<li>使用 <code>Intl.Segmenter</code> 进行多语言（中英文）分词。</li>
+<li>通过 <code>chunkMarkdown</code> 函数将长 Markdown 按段落切分为固定大小（最大 800 字符）的 Chunk。</li>
+<li>计算当前用户 Query 与各个 Chunk 的相关度得分，仅保留得分最高的 Top-3 记忆片段。</li>
+<li><strong>上下文补充</strong>：在截断注入的提示词上方，系统会增加一条明确的 <code>&lt;warning&gt;</code>，告知 LLM 当前看到的是截断后的片段。如果需要修改记忆文件，必须先调用 <code>file_read</code> 工具读取全量内容，防止 LLM 基于片段信息盲目覆盖原文件。</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="si-ji-jian-de-mo-kuai-hua-kuo-zhan-ji-neng-skills-yu-gui-ze-rules"><a class="zola-anchor" href="#si-ji-jian-de-mo-kuai-hua-kuo-zhan-ji-neng-skills-yu-gui-ze-rules" aria-label="Anchor link for: si-ji-jian-de-mo-kuai-hua-kuo-zhan-ji-neng-skills-yu-gui-ze-rules">四、 极简的模块化扩展：技能 (Skills) 与规则 (Rules)</a></h2>
+<h3 id="1-she-ji-dong-ji-3"><a class="zola-anchor" href="#1-she-ji-dong-ji-3" aria-label="Anchor link for: 1-she-ji-dong-ji-3">1. 设计动机</a></h3>
+<p>若将所有的标准操作程序（SOP）和项目规范预置在系统提示词中，会导致提示词极度臃肿，系统指令的权重下降。</p>
+<h3 id="2-jian-jin-shi-pi-lu-she-ji"><a class="zola-anchor" href="#2-jian-jin-shi-pi-lu-she-ji" aria-label="Anchor link for: 2-jian-jin-shi-pi-lu-she-ji">2. 渐进式披露设计</a></h3>
+<p>ACLIx 采用基于文件系统的插件模型，并结合渐进式披露策略。</p>
+<ul>
+<li><strong>元数据提取</strong>：启动时，<code>SkillManager</code> 和 <code>RuleManager</code> 通过 <code>fast-glob</code> 遍历内建目录、用户目录及项目目录下的 <code>SKILL.md</code> 和 <code>RULE.md</code>。通过 <code>gray-matter</code> 解析其 YAML Frontmatter，提取 <code>name</code> 和 <code>description</code>。</li>
+<li><strong>浅层注入</strong>：在系统提示词的 <code>## SPECIALIZED SKILLS</code> 区块，仅注入所有可用技能的名称和简要描述的 XML 列表。</li>
+<li><strong>深层加载</strong>：在提示词中强制约定：若用户请求匹配某项技能描述，LLM 必须首先调用 <code>read_skill</code> 工具。当工具被调用时，系统才读取对应的 Markdown 文件正文，将其完整的 SOP 作为工具执行结果返回给 LLM。</li>
+<li><strong>收益</strong>：核心 Prompt 保持精简，同时赋予了系统无上限的可扩展性。用户只需在 <code>.aclix/skills/</code> 下新建 Markdown 文件，即可让智能体习得全新能力。</li>
+</ul>
+<hr />
+<h2 id="wu-feng-xian-fen-ji-yu-ren-ji-xie-tong-hitl"><a class="zola-anchor" href="#wu-feng-xian-fen-ji-yu-ren-ji-xie-tong-hitl" aria-label="Anchor link for: wu-feng-xian-fen-ji-yu-ren-ji-xie-tong-hitl">五、 风险分级与人机协同 (HITL)</a></h2>
+<p>终端智能体的最高法则是安全。系统构建了一套静态与动态结合的安全防线。</p>
+<h3 id="1-jing-tai-chou-xiang-yu-fa-shu-ast-ping-gu-qi"><a class="zola-anchor" href="#1-jing-tai-chou-xiang-yu-fa-shu-ast-ping-gu-qi" aria-label="Anchor link for: 1-jing-tai-chou-xiang-yu-fa-shu-ast-ping-gu-qi">1. 静态抽象语法树 (AST) 评估器</a></h3>
+<p>不能完全依赖大语言模型的自我审查（大模型容易遭受越狱攻击）。执行引擎在底层拦截所有 Shell 命令，并送入 <code>evaluateServerRiskFloor</code> 函数。</p>
+<ul>
+<li><strong>AST 解析</strong>：使用 <code>shell-quote</code> 将字符串命令解析为语法树。</li>
+<li><strong>控制流阻断</strong>：按照控制操作符（<code>;</code>, <code>&amp;&amp;</code>, <code>|</code>）将命令拆分为独立的执行块，忽略变量赋值（如 <code>FOO=bar</code>），精准定位到主命令（Main Command）。</li>
+<li><strong>启发式定级</strong>：
+<ul>
+<li><strong>高风险 (High)</strong>：命中 <code>mkfs</code>, <code>dd</code>, <code>shutdown</code> 等破坏性命令；命中带有 <code>-i</code> 参数的 <code>sed</code>；或者重定向目标不是 <code>/dev/null</code> 的操作；以及特征匹配的 Fork 炸弹（<code>:(){ :|:&amp; };:</code>）。</li>
+<li><strong>中风险 (Medium)</strong>：状态修改命令，如 <code>rm</code>, <code>mv</code>, <code>chmod</code>, 或是包管理器命令（<code>npm install</code>），网络请求（<code>curl</code>, <code>wget</code>）。</li>
+<li><strong>低风险 (Low)</strong>：查询与只读命令。</li>
+</ul>
+</li>
+<li><strong>风险合并</strong>：最终的风险等级是 LLM 自身评估的风险与底层 AST 评估的最高值（<code>maxRisk</code>）。</li>
+</ul>
+<h3 id="2-ren-ji-xie-tong-human-in-the-loop"><a class="zola-anchor" href="#2-ren-ji-xie-tong-human-in-the-loop" aria-label="Anchor link for: 2-ren-ji-xie-tong-human-in-the-loop">2. 人机协同 (Human-in-the-Loop)</a></h3>
+<p>在工具调用的生命周期中，<code>onBeforeExecute</code> 钩子负责控制执行流。</p>
+<ul>
+<li>对于低风险的读取操作，静默放行，终端界面仅展示暗色调的执行日志。</li>
+<li>对于中高风险操作，进程通过 <code>@clack/prompts</code> 挂起，将 LLM 给出的意图（Reasoning）、完整命令以及风险定级展示在终端，要求人类用户显式确认（Y/n）。</li>
+</ul>
+<h3 id="3-shang-xia-wen-an-quan-yu-tuo-min"><a class="zola-anchor" href="#3-shang-xia-wen-an-quan-yu-tuo-min" aria-label="Anchor link for: 3-shang-xia-wen-an-quan-yu-tuo-min">3. 上下文安全与脱敏</a></h3>
+<ul>
+<li><strong>信任边界 (Trust Boundary)</strong>：来自外部环境的返回内容（如 <code>file_read</code> 读取的本地文件，<code>web_search</code> 抓取的网页）一律被包裹在 <code>&lt;untrusted_data&gt;</code> XML 标签内。系统提示词设定了最高优先级的安全断言：要求 LLM 将该标签内的所有内容视为潜在的提示词注入攻击，绝不执行其中的控制指令。</li>
+<li><strong>日志脱敏</strong>：日志系统集成了一个递归的正则过滤器（<code>maskSensitiveData</code>），自动扫描并匹配类似 <code>sk-...</code> 的 OpenAI 密钥格式或 GitHub Token 前缀，将其替换为 <code>[REDACTED]</code>，防止调试日志泄露敏感凭证。</li>
+</ul>
+<hr />
+<h2 id="liu-yin-shi-kuai-zhao-yu-ban-ben-hui-gun-snapshot-undo"><a class="zola-anchor" href="#liu-yin-shi-kuai-zhao-yu-ban-ben-hui-gun-snapshot-undo" aria-label="Anchor link for: liu-yin-shi-kuai-zhao-yu-ban-ben-hui-gun-snapshot-undo">六、 隐式快照与版本回滚 (Snapshot &amp; Undo)</a></h2>
+<h3 id="1-she-ji-dong-ji-4"><a class="zola-anchor" href="#1-she-ji-dong-ji-4" aria-label="Anchor link for: 1-she-ji-dong-ji-4">1. 设计动机</a></h3>
+<p>模型在进行文件替换时（特别是使用正则或大段文本覆盖时），极易破坏原有代码的语法结构。依赖 Git 并非万能，因为并非所有目录都在版本控制之下，且用户可能尚未提交当前工作区。</p>
+<h3 id="2-di-ceng-shi-xian"><a class="zola-anchor" href="#2-di-ceng-shi-xian" aria-label="Anchor link for: 2-di-ceng-shi-xian">2. 底层实现</a></h3>
+<p>ACLIx 实现了一个轻量级、无依赖的 Undo 机制。</p>
+<ul>
+<li><strong>前置快照</strong>：在 <code>file_write</code> 和 <code>file_edit</code> 工具的执行逻辑中，进行实际的文件 I/O 前，系统会同步读取目标文件的当前状态。</li>
+<li><strong>存储引擎</strong>：将当前文件路径和内容作为一个 Snapshot 存入 SQLite 的 <code>file_snapshots</code> 表中。如果文件不存在（属于新建操作），则记录标记位 <code>is_new: 1</code>。</li>
+<li><strong>回滚逻辑</strong>：通过 <code>/undo</code> 斜杠命令，系统从数据库中 <code>pop</code> 出最新的一条记录。若 <code>is_new === 1</code>，执行删除（<code>unlink</code>）操作；否则重写原内容。整个过程对 LLM 是透明的，作为底层的防线保证了每一次修改都有“后悔药”。</li>
+</ul>
+<h3 id="3-zhi-neng-wen-jian-bian-ji-fuzzy-block-replace"><a class="zola-anchor" href="#3-zhi-neng-wen-jian-bian-ji-fuzzy-block-replace" aria-label="Anchor link for: 3-zhi-neng-wen-jian-bian-ji-fuzzy-block-replace">3. 智能文件编辑 (Fuzzy Block Replace)</a></h3>
+<p>对于文件修改，系统废弃了直接使用 <code>sed</code> 或要求 LLM 输出完整文件的低效做法，而是内置了 <code>file_edit</code> 工具。</p>
+<ul>
+<li><strong>匹配算法</strong>：LLM 仅需提供被替换的 <code>oldString</code> 和新的 <code>newString</code>。</li>
+<li><strong>容错处理</strong>：考虑到 LLM 输出的缩进经常不准确，底层的 <code>fuzzyBlockReplace</code> 算法会按行分割字符串，并忽略首尾的空白字符进行精准比对。</li>
+<li>如果完全匹配失败，算法会启动滑动窗口（Sliding Window），计算相似度最高的代码块，并在报错中返回该代码块的具体行号供 LLM 自我纠错（Self-Correction），显著提高了文件修改的成功率。</li>
+</ul>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/aliasjeff.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#yi-agent-jia-gou-zhu-cong-bian-pai-yu-zi-yuan-diao-du">一、 Agent 架构：主从编排与资源调度</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#1-she-ji-dong-ji">1. 设计动机</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#2-he-xin-jia-gou-she-ji">2. 核心架构设计</a>
+                            </li>
+
+                            
+                                <ul>
+                                    
+                                        <li>
+                                            <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#zi-zhi-neng-ti-de-zhuang-tai-ge-chi">子智能体的状态隔离</a>
+                                        </li>
+                                    
+                                        <li>
+                                            <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#dong-tai-jia-zai-yu-sheng-ming-zhou-qi-guan-li">动态加载与生命周期管理</a>
+                                        </li>
+                                    
+                                </ul>
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#3-bing-fa-diao-du-yu-du-xie-suo-ji-zhi">3. 并发调度与读写锁机制</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#er-zhong-duan-zhi-xing-yin-qing-yu-zhuang-tai-bu-huo">二、 终端执行引擎与状态捕获</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#1-she-ji-dong-ji-1">1. 设计动机</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#2-zhuang-tai-ti-qu-shi-xian-state-marker">2. 状态提取实现 (State Marker)</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#san-fen-ceng-ji-yi-xi-tong-cong-quan-liang-zhu-ru-dao-yu-yi-jian-suo">三、 分层记忆系统：从全量注入到语义检索</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#1-she-ji-dong-ji-2">1. 设计动机</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#2-san-ceng-ji-yi-jia-gou">2. 三层记忆架构</a>
+                            </li>
+
+                            
+                                <ul>
+                                    
+                                        <li>
+                                            <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#duan-qi-ji-yi">短期记忆</a>
+                                        </li>
+                                    
+                                        <li>
+                                            <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#ya-suo-ji-yi">压缩记忆</a>
+                                        </li>
+                                    
+                                        <li>
+                                            <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#chang-qi-ji-yi-ltm-yu-bm25-jian-suo">长期记忆 (LTM) 与 BM25 检索</a>
+                                        </li>
+                                    
+                                </ul>
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#si-ji-jian-de-mo-kuai-hua-kuo-zhan-ji-neng-skills-yu-gui-ze-rules">四、 极简的模块化扩展：技能 (Skills) 与规则 (Rules)</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#1-she-ji-dong-ji-3">1. 设计动机</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#2-jian-jin-shi-pi-lu-she-ji">2. 渐进式披露设计</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#wu-feng-xian-fen-ji-yu-ren-ji-xie-tong-hitl">五、 风险分级与人机协同 (HITL)</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#1-jing-tai-chou-xiang-yu-fa-shu-ast-ping-gu-qi">1. 静态抽象语法树 (AST) 评估器</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#2-ren-ji-xie-tong-human-in-the-loop">2. 人机协同 (Human-in-the-Loop)</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#3-shang-xia-wen-an-quan-yu-tuo-min">3. 上下文安全与脱敏</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#liu-yin-shi-kuai-zhao-yu-ban-ben-hui-gun-snapshot-undo">六、 隐式快照与版本回滚 (Snapshot &amp; Undo)</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#1-she-ji-dong-ji-4">1. 设计动机</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#2-di-ceng-shi-xian">2. 底层实现</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/aclix-cong-0shi-xian-yi-ge-cli-agent-gong-ju-er/#3-zhi-neng-wen-jian-bian-ji-fuzzy-block-replace">3. 智能文件编辑 (Fuzzy Block Replace)</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

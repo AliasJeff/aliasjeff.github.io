@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                系统性能问题总结和调优 (三) —— 数据库与分布式调用
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="系统性能问题总结和调优 (三) —— 数据库与分布式调用" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            系统性能问题总结和调优 (三) —— 数据库与分布式调用
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2026-04-21</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/xing-neng-diao-you/"
+                                       class="post-tag">性能调优</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/shu-ju-ku/"
+                                       class="post-tag">数据库</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/fen-bu-shi/"
+                                       class="post-tag">分布式</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/redis/"
+                                       class="post-tag">Redis</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <h2 id="yi-qian-yan"><a class="zola-anchor" href="#yi-qian-yan" aria-label="Anchor link for: yi-qian-yan">一、前言</a></h2>
+<p>在经历了前两篇文章中应用代码层面的算力优化、内存治理与并发控制后，我们往往会面临无论应用层如何通过多线程和非阻塞架构进行水平扩展，所有的请求最终都会汇聚到关系型数据库之上。同时，为了分摊计算压力和解耦业务，我们将单体应用拆分为微服务，却又引入了新的不可靠的物理网络与复杂的 <strong>RPC 通信链路</strong>。</p>
+<p>本文将深入业务架构，探讨数据库单点极限与分布式环境下的网络通信瓶颈。</p>
+<h2 id="er-shu-ju-ku-ping-jing"><a class="zola-anchor" href="#er-shu-ju-ku-ping-jing" aria-label="Anchor link for: er-shu-ju-ku-ping-jing">二、 数据库瓶颈</a></h2>
+<h3 id="2-1-wen-ti-chan-sheng-tiao-jian"><a class="zola-anchor" href="#2-1-wen-ti-chan-sheng-tiao-jian" aria-label="Anchor link for: 2-1-wen-ti-chan-sheng-tiao-jian">2.1 问题产生条件</a></h3>
+<p>关系型数据库（如 MySQL、PostgreSQL）由于需要保证严格的 ACID 事务特性，其内部充斥着复杂的锁机制、B+ 树索引维护以及预写日志（WAL）的磁盘刷盘操作。这注定了数据库在本质上是一个难以进行线性无限扩展的重型组件。</p>
+<p>当应用层的并发流量超出了数据库物理机硬件的承载极限（CPU、内存、磁盘 IOPS），或是发出了大量极度低效的查询指令时，数据库瓶颈（DB Bottleneck）便会全面爆发。</p>
+<p>在监控大盘上，其特征往往是：</p>
+<ul>
+<li>应用层的数据库连接池迅速被耗尽，大量请求抛出 <code>Connection Timeout</code> 异常。</li>
+<li>数据库服务器的 CPU 或磁盘 IO 持续飙升至 100%。</li>
+<li>慢查询（Slow SQL）日志疯狂爆屏，导致系统整体陷入瘫痪。</li>
+</ul>
+<h3 id="2-2-dian-xing-chang-jing-yu-zhi-ming-you-yin"><a class="zola-anchor" href="#2-2-dian-xing-chang-jing-yu-zhi-ming-you-yin" aria-label="Anchor link for: 2-2-dian-xing-chang-jing-yu-zhi-ming-you-yin">2.2 典型场景与致命诱因</a></h3>
+<p><strong>慢 SQL 与隐蔽的索引失效</strong>
+这是日常开发中最常见、也是破坏力最大的元凶。一条没有命中索引的 SQL（例如对非索引字段进行 <code>LIKE '%keyword'</code> 查询，或因隐式类型转换导致索引失效），会迫使数据库引擎放弃高效的 B+ 树搜索，转而进行灾难性的<strong>全表扫描（Full Table Scan）</strong>。哪怕表中只有几百万数据，一次全表扫描也会瞬间打满数据库磁盘 IO，并将 Buffer Pool 中的热点数据全部挤出，造成全局性能衰退。</p>
+<p><strong>锁表与行锁冲突的拥堵</strong>
+在并发写场景下，为了保证隔离性，数据库会进行加锁控制。如果一条 <code>UPDATE</code> 语句的 <code>WHERE</code> 条件没有命中索引，在 InnoDB 引擎中，它极有可能从行锁（Row Lock）直接升级为恐怖的表锁（Table Lock）。此外，多个事务如果对同一行热点数据（如秒杀商品的库存行）进行高频更新，底层数据库会陷入极其惨烈的锁等待甚至死锁之中。</p>
+<p><strong>漫长事务的毒药</strong>
+将耗时的 RPC 调用、复杂计算或外部接口请求包裹在一个大事务（<code>@Transactional</code>）中，是新手最容易犯的错误。外部操作的不可控延迟，会导致数据库的行级锁、连接以及 Undo Log 被长时间无意义地霸占。随着请求的涌入，数据库连接池瞬间枯竭，引发多米诺骨牌式的雪崩。</p>
+<h3 id="2-3-jie-jue-si-lu"><a class="zola-anchor" href="#2-3-jie-jue-si-lu" aria-label="Anchor link for: 2-3-jie-jue-si-lu">2.3 解决思路</a></h3>
+<p>治理数据库瓶颈的核心哲学是：<strong>将拦截前置，缩短事务周期，并进行物理维度的分而治之。</strong></p>
+<p><strong>2.3.1 流量的前置拦截</strong>
+数据库不是缓存，绝不能用它来硬抗高并发读流量。</p>
+<ul>
+<li><strong>缓存前置（Cache Aside）</strong>：引入 Redis 等缓存层，对于读多写少的业务，让 90% 的读流量在内存层被拦截。数据库仅作为兜底的持久化最终防线。</li>
+<li><strong>读写分离</strong>：利用数据库的主从复制特性，让主库（Master）专职处理极速的增删改事务，将海量的复杂只读查询引流至多个从库（Slave）。</li>
+</ul>
+<p><strong>2.3.2 SQL 优化与事务极简拆分</strong></p>
+<ul>
+<li><strong>Explain 执行计划审查</strong>：所有的 SQL 上线前必须经过 Explain 审查，确保核心查询实现<strong>索引覆盖（Covering Index）</strong>，杜绝回表，消除 <code>Using filesort</code> 的出现。</li>
+<li><strong>事务瘦身</strong>：将大事务开膛破肚。将发邮件、查三方接口等操作移出事务边界，确保事务中只包含最精简的 DML（写）操作，让锁的持有时间从百毫秒级降至亚毫秒级。</li>
+</ul>
+<p><strong>2.3.3 终极武器：打碎重组的分库分表</strong>
+当单表数据量飙升至千万级，B+ 树层级变高导致 IO 成本不可逆上升时，必须采用<strong>分库分表（Sharding）</strong>。通过哈希散列或时间切片，将庞大的数据山脉夷为平地，分散到多个物理隔离的数据库实例上，从根本上打破单机的 IO 和算力天花板。</p>
+<hr />
+<h2 id="san-wang-luo-yu-rpc-ping-jing"><a class="zola-anchor" href="#san-wang-luo-yu-rpc-ping-jing" aria-label="Anchor link for: san-wang-luo-yu-rpc-ping-jing">三、 网络与 RPC 瓶颈</a></h2>
+<p>在单体架构时代，方法调用发生在同一个 JVM 进程的内存中，耗时在纳秒级。但一旦迈入微服务时代，进程内的方法调用演变成了跨越物理网络的 RPC（Remote Procedure Call）。</p>
+<h3 id="3-1-wen-ti-chan-sheng-tiao-jian"><a class="zola-anchor" href="#3-1-wen-ti-chan-sheng-tiao-jian" aria-label="Anchor link for: 3-1-wen-ti-chan-sheng-tiao-jian">3.1 问题产生条件</a></h3>
+<p>分布式计算的第一谬误就是网络是可靠的，且延迟为零。当一个看似简单的用户请求，在后端需要跨越数个甚至十几个微服务才能完成拼装时，网络与 RPC 瓶颈（Distributed Latency）便悄然而生。</p>
+<p>这种瓶颈的诡异之处在于：<strong>单独去压测每一个微服务节点，CPU 都不高，响应速度都极快；但在用户的宏观视角看，整个接口的响应却极其缓慢。</strong> 通过分布式追踪系统（如 SkyWalking 或 Zipkin），你会看到调用链上累积了惊人的网络等待时延。</p>
+<h3 id="3-2-dian-xing-chang-jing"><a class="zola-anchor" href="#3-2-dian-xing-chang-jing" aria-label="Anchor link for: 3-2-dian-xing-chang-jing">3.2 典型场景</a></h3>
+<p><strong>调用链RPC 放大效应</strong>
+由于缺乏全局的架构视野，服务之间的依赖关系往往会演变成为深不见底的调用链：A 调用 B，B 调用 C，C 还要循环调用 D。哪怕每次网络传输（RTT）只有区区 10 毫秒，一层层叠加起来的串行延迟，也会轻易突破用户的忍耐极限。</p>
+<p><strong>沉重的序列化包袱</strong>
+在 HTTP/JSON 体系下，服务间传递的是庞大且包含大量冗余字符的文本协议。当面对批量数据传输时，序列化和反序列化不仅耗费巨大的 CPU 算力进行反射和字符串构建，庞大的 Payload 还会导致网络带宽被打满。</p>
+<p><strong>网络抖动与重试风暴</strong>
+机房之间的专线抖动、TCP 丢包重传屡见不鲜。一次微小的网络抖动，如果遭遇了不合理的超时与无限制重试配置，就会引发可怕的重试风暴，将原本脆弱的下游服务彻底打挂。</p>
+<h3 id="3-3-jie-jue-si-lu"><a class="zola-anchor" href="#3-3-jie-jue-si-lu" aria-label="Anchor link for: 3-3-jie-jue-si-lu">3.3 解决思路</a></h3>
+<p>面对分布式的延宕，优化的核心在于：<strong>并行化时间重叠，精简传输载体，以及缩短调用链路。</strong></p>
+<p><strong>3.3.1 串行改并行（Fan-out 模型）</strong>
+如果一个接口需要同时获取用户中心、商品中心、营销中心的数据，且三者互不依赖，严禁串行执行。必须利用并发编程（如 Java 的 <code>CompletableFuture</code> 或 Go 的协程）发起并发撒网。
+此时，整体耗时将取决于最慢的那一个接口（木桶效应），而非所有接口耗时的总和。</p>
+<script src=https://aliasjeff.github.io/js/mermaid.js></script>
+
+<pre class="mermaid">
+  gantt
+    title 串行 vs 并行 RPC 调用耗时对比
+    dateFormat  s
+    axisFormat  %S
+    
+
+    section 串行调用
+    调用用户服务 (30ms) :a1, 0, 3s
+    调用商品服务 (40ms) :a2, after a1, 4s
+    调用营销服务 (20ms) :a3, after a2, 2s
+    
+    section 并行调用(Fan-out)
+    调用用户服务 (30ms) :b1, 0, 3s
+    调用商品服务 (40ms) :b2, 0, 4s
+    调用营销服务 (20ms) :b3, 0, 2s
+</pre>
+<p><strong>3.3.2 协议压缩与拥抱二进制</strong></p>
+<ul>
+<li>对于内部高频 RPC 调用，坚决抛弃臃肿的 JSON，全面转向 <strong>gRPC、Dubbo</strong> 等基于 TCP 长连接的多路复用框架，配合 <strong>Protobuf 或 Hessian</strong> 二进制序列化协议。将序列化开销与网络带宽占用压缩至极致。</li>
+</ul>
+<p><strong>3.3.3 调用链裁剪与数据本地化</strong></p>
+<ul>
+<li>坚决避免超过 3 层的深度同步 RPC 调用。引入 BFF（Backend For Frontend）层，将多层级的调用转化为一层的门面聚合。</li>
+<li>对于极度高频访问且极少变更的字典类元数据，下游服务应建立<strong>本地只读缓存（Local Cache）</strong>，变跨进程网络调用为同进程内存访问，彻底抹除网络 IO。</li>
+</ul>
+<h2 id="si-xiao-jie"><a class="zola-anchor" href="#si-xiao-jie" aria-label="Anchor link for: si-xiao-jie">四、 小结</a></h2>
+<p>在本篇文章中，我们触碰到了系统性能的底盘。</p>
+<p>数据库瓶颈揭示了强一致性存储在面对海量并发时的脆弱，迫使我们运用拦截、优化、拆分的手段来保护这个核心堡垒；而微服务间的 RPC 瓶颈则让我们看清了分布式架构的隐性代价，学会了用并行化和压缩协议来对抗物理网络的延宕。</p>
+<p>至此，微观与中观层面的性能瓶颈已基本剖析完毕。但在真实世界的双十一大促、春晚红包等极端场景下，哪怕我们将单机、数据库和网络优化到了理论极限，系统依然可能面临崩溃。</p>
+<p>下一篇，我们将作为系列的收官之作，从宏观系统架构设计的维度，来谈谈如何化解全局压力，打破横向扩容的魔咒。</p>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/aliasjeff.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-san-shu-ju-ku-yu-fen-bu-shi-diao-yong/#yi-qian-yan">一、前言</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-san-shu-ju-ku-yu-fen-bu-shi-diao-yong/#er-shu-ju-ku-ping-jing">二、 数据库瓶颈</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-san-shu-ju-ku-yu-fen-bu-shi-diao-yong/#2-1-wen-ti-chan-sheng-tiao-jian">2.1 问题产生条件</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-san-shu-ju-ku-yu-fen-bu-shi-diao-yong/#2-2-dian-xing-chang-jing-yu-zhi-ming-you-yin">2.2 典型场景与致命诱因</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-san-shu-ju-ku-yu-fen-bu-shi-diao-yong/#2-3-jie-jue-si-lu">2.3 解决思路</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-san-shu-ju-ku-yu-fen-bu-shi-diao-yong/#san-wang-luo-yu-rpc-ping-jing">三、 网络与 RPC 瓶颈</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-san-shu-ju-ku-yu-fen-bu-shi-diao-yong/#3-1-wen-ti-chan-sheng-tiao-jian">3.1 问题产生条件</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-san-shu-ju-ku-yu-fen-bu-shi-diao-yong/#3-2-dian-xing-chang-jing">3.2 典型场景</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-san-shu-ju-ku-yu-fen-bu-shi-diao-yong/#3-3-jie-jue-si-lu">3.3 解决思路</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-san-shu-ju-ku-yu-fen-bu-shi-diao-yong/#si-xiao-jie">四、 小结</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

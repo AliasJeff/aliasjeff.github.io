@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                ACLIx: CLI Agent Tool
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="ACLIx: CLI Agent Tool" />
+        
+    
+
+    
+        
+            <meta property="og:description" content="一款命令行（CLI）AI 助手，能够智能执行 Shell 命令、编辑和管理代码库，并实现端到端的工作流自动化。" />
+        
+    
+
+    
+        
+            <meta name="description" content="一款命令行（CLI）AI 助手，能够智能执行 Shell 命令、编辑和管理代码库，并实现端到端的工作流自动化。" />
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            ACLIx: CLI Agent Tool
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <h3 id="1-agent-bian-pai">1. Agent 编排</h3>
+<p>采用 Master Orchestrator + ReAct 模式，将复杂任务拆分为多个专用子 Agent（如 Planner、Explorer、Executor）。各子 Agent 在隔离上下文中运行，并具备读写权限控制，避免冲突并优化 Token 使用。</p>
+<h3 id="2-gong-ju-tools">2. 工具（Tools）</h3>
+<p>提供一组原生工具用于与环境交互：
+shell、python、file_read、file_write、file_edit、glob、grep、ask_user、web_search、read_skill。</p>
+<h3 id="3-fen-ceng-ji-yi-xi-tong">3. 分层记忆系统</h3>
+<p>多层次上下文管理机制：</p>
+<ul>
+<li>长期记忆基于 Markdown 文件存储用户和项目级的持久信息。</li>
+<li>短期记忆基于 SQLite 记录会话历史并支持跨会话恢复。</li>
+<li>压缩记忆在超出 Token 限制时自动摘要历史内容以压缩上下文。</li>
+<li>BM25 检索根据查询动态召回最相关的 Top 3 记忆片段以提升效率与相关性。</li>
+</ul>
+<h3 id="4-ke-kuo-zhan-skills-yu-rules">4. 可扩展 Skills 与 Rules</h3>
+<p>基于文件系统的模块化插件架构：</p>
+<ul>
+<li>Skills 通过 SKILL.md 定义可复用的标准操作流程。</li>
+<li>Rules 通过 RULE.md 动态注入行为约束。</li>
+<li>渐进式加载机制仅在需要时引入相关规则或流程以避免上下文冗余。</li>
+</ul>
+<h3 id="5-an-quan-ji-zhi-yu-hitl">5. 安全机制与 HITL</h3>
+<ul>
+<li>命令风险评估通过 AST 分析命令并划分低中高风险且对中高风险操作要求用户确认。</li>
+<li>自动快照在文件修改前创建 SQLite 快照并支持通过 /undo 一键回滚。</li>
+<li>注入防护与数据脱敏通过 &lt;untrusted_data&gt; 包裹不可信输入并自动处理敏感信息。</li>
+</ul>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/projects/project-6/#1-agent-bian-pai">1. Agent 编排</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/projects/project-6/#2-gong-ju-tools">2. 工具（Tools）</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/projects/project-6/#3-fen-ceng-ji-yi-xi-tong">3. 分层记忆系统</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/projects/project-6/#4-ke-kuo-zhan-skills-yu-rules">4. 可扩展 Skills 与 Rules</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/projects/project-6/#5-an-quan-ji-zhi-yu-hitl">5. 安全机制与 HITL</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

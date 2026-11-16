@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                Redis SDS 结构解析
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="Redis SDS 结构解析" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            Redis SDS 结构解析
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2026-09-19</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/redis/"
+                                       class="post-tag">Redis</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/shu-ju-jie-gou/"
+                                       class="post-tag">数据结构</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/cyu-yan/"
+                                       class="post-tag">C语言</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>Redis 没有直接使用 C 语言的字符数组来表示字符串，而是自己实现了一套简单动态字符串（Simple Dynamic String，SDS）。SDS 既保留了 C 字符串使用方便的特点，又解决了传统 C 字符串在长度获取、二进制数据处理和频繁修改时的几个问题。</p>
+<p>本文从 SDS 的结构开始，结合源码说明 Redis 是如何完成字符串存储、扩容和缩短操作的。</p>
+<h2 id="shen-me-shi-sds"><a class="zola-anchor" href="#shen-me-shi-sds" aria-label="Anchor link for: shen-me-shi-sds">什么是 SDS</a></h2>
+<p>传统 C 字符串本质上是一个以空字符 <code>\0</code> 结尾的字符数组。它有一个天然限制：如果字符串内容本身包含 <code>\0</code>，C 字符串就会把它当成结束位置，后面的内容无法继续读取。这也是为什么 C 字符串不是二进制安全的。</p>
+<p>Redis 中，C 字符串主要用于字符串字面量，例如日志内容和错误信息。只要字符串需要被保存或修改，Redis 通常就会使用 SDS。</p>
+<p>例如客户端执行：</p>
+<pre data-lang="text" class="language-text "><code class="language-text" data-lang="text">redis&gt; SET msg &quot;hello world&quot;
+OK
+</code></pre>
+<p>Redis 会创建一个键值对：</p>
+<ul>
+<li>键是一个字符串对象，底层 SDS 保存着 <code>"msg"</code>；</li>
+<li>值也是一个字符串对象，底层 SDS 保存着 <code>"hello world"</code>。</li>
+</ul>
+<h2 id="wei-shen-me-shi-yong-sds"><a class="zola-anchor" href="#wei-shen-me-shi-yong-sds" aria-label="Anchor link for: wei-shen-me-shi-yong-sds">为什么使用 SDS</a></h2>
+<p>SDS 主要解决了传统 C 字符串的几个问题。</p>
+<h3 id="chang-shu-shi-jian-huo-qu-chang-du"><a class="zola-anchor" href="#chang-shu-shi-jian-huo-qu-chang-du" aria-label="Anchor link for: chang-shu-shi-jian-huo-qu-chang-du">常数时间获取长度</a></h3>
+<p>SDS 在头部保存字符串长度，不需要像 <code>strlen</code> 一样从头扫描到 <code>\0</code>，获取长度的复杂度是 <code>O(1)</code>。</p>
+<h3 id="er-jin-zhi-an-quan"><a class="zola-anchor" href="#er-jin-zhi-an-quan" aria-label="Anchor link for: er-jin-zhi-an-quan">二进制安全</a></h3>
+<p>SDS 通过长度字段判断有效内容，读写时不依赖 <code>\0</code>。因此即使字符串中间包含空字符，也不会被截断。</p>
+<h3 id="jian-rong-c-zi-fu-chuan"><a class="zola-anchor" href="#jian-rong-c-zi-fu-chuan" aria-label="Anchor link for: jian-rong-c-zi-fu-chuan">兼容 C 字符串</a></h3>
+<p>SDS 对上层暴露的不是头部结构体指针，而是直接指向字符数组 <code>buf</code> 的指针。<code>buf</code> 末尾仍然会保留一个 <code>\0</code>，因此保存文本时可以直接使用一部分 C 标准库字符串函数。</p>
+<h3 id="jian-shao-nei-cun-zhong-fen-pei"><a class="zola-anchor" href="#jian-shao-nei-cun-zhong-fen-pei" aria-label="Anchor link for: jian-shao-nei-cun-zhong-fen-pei">减少内存重分配</a></h3>
+<p>SDS 会在扩容时预留一部分空闲空间，在缩短字符串时也不会立即释放多余空间。这样可以减少连续追加或修改带来的内存分配次数。</p>
+<h3 id="shi-yong-rou-xing-shu-zu-lian-xu-cun-chu"><a class="zola-anchor" href="#shi-yong-rou-xing-shu-zu-lian-xu-cun-chu" aria-label="Anchor link for: shi-yong-rou-xing-shu-zu-lian-xu-cun-chu">使用柔性数组连续存储</a></h3>
+<p>字符串内容存放在结构体末尾的柔性数组中。头部和字符串内容处在同一块连续内存里，不需要再通过额外指针定位字符串，访问和管理都比较直接。</p>
+<h2 id="sds-de-shu-ju-jie-gou"><a class="zola-anchor" href="#sds-de-shu-ju-jie-gou" aria-label="Anchor link for: sds-de-shu-ju-jie-gou">SDS 的数据结构</a></h2>
+<p>现代 Redis 的 SDS 头部包含以下信息：</p>
+<ul>
+<li><code>len</code>：<code>buf</code> 中已经使用的字节数；</li>
+<li><code>alloc</code>：为 <code>buf</code> 分配的总容量，不包括头部和结尾的空字符；</li>
+<li><code>flags</code>：标记头部类型，低 3 位用于保存类型；</li>
+<li><code>buf[]</code>：实际保存字符串内容的柔性数组。</li>
+</ul>
+<p>Redis 根据字符串长度选择不同大小的头部类型：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">#define SDS_TYPE_5  0
+#define SDS_TYPE_8  1
+#define SDS_TYPE_16 2
+#define SDS_TYPE_32 3
+#define SDS_TYPE_64 4
+</code></pre>
+<p>各类型的头部大小如下：</p>
+<table><thead><tr><th>类型</th><th>长度范围</th><th><code>len</code> / <code>alloc</code> 字段</th><th>头部大小</th></tr></thead><tbody>
+<tr><td><code>sdshdr5</code></td><td><code>[0, 1 &lt;&lt; 5)</code></td><td>没有独立字段，长度放在 <code>flags</code> 高 5 位</td><td>1 字节</td></tr>
+<tr><td><code>sdshdr8</code></td><td><code>[1 &lt;&lt; 5, 1 &lt;&lt; 8)</code></td><td>各 1 字节</td><td>3 字节</td></tr>
+<tr><td><code>sdshdr16</code></td><td><code>[1 &lt;&lt; 8, 1 &lt;&lt; 16)</code></td><td>各 2 字节</td><td>5 字节</td></tr>
+<tr><td><code>sdshdr32</code></td><td><code>[1 &lt;&lt; 16, 1 &lt;&lt; 32)</code></td><td>各 4 字节</td><td>9 字节</td></tr>
+<tr><td><code>sdshdr64</code></td><td><code>[1 &lt;&lt; 32, 1 &lt;&lt; 64)</code></td><td>各 8 字节</td><td>17 字节</td></tr>
+</tbody></table>
+<p>SDS 本质上就是一个 <code>char *</code>，它指向 <code>buf</code> 的起始位置。头部位于这个指针之前，Redis 可以通过指针向前偏移找到头部，再根据 <code>flags</code> 判断当前使用的是哪一种头部。</p>
+<p><code>sdshdr5</code> 是一个特殊情况：它没有单独的 <code>len</code> 和 <code>alloc</code> 字段，而是使用 <code>flags</code> 的高 5 位保存字符串长度。由于它无法记录额外的空闲空间，追加内容时通常会切换到 <code>sdshdr8</code> 或更大的类型。</p>
+<h2 id="yi-ge-jian-hua-ban-sds"><a class="zola-anchor" href="#yi-ge-jian-hua-ban-sds" aria-label="Anchor link for: yi-ge-jian-hua-ban-sds">一个简化版 SDS</a></h2>
+<p>早期 Redis 版本中的 SDS 结构可以简化为下面这样：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">typedef char *sds;
+
+struct sdshdr {
+    &#x2F;&#x2F; buf 中已经使用的空间长度
+    int len;
+    &#x2F;&#x2F; buf 中剩余可用空间长度
+    int free;
+    &#x2F;&#x2F; 数据空间
+    char buf[];
+};
+</code></pre>
+<p>实际 Redis 源码使用了 <code>sdshdr5</code>、<code>sdshdr8</code>、<code>sdshdr16</code>、<code>sdshdr32</code> 和 <code>sdshdr64</code> 多种头部，以便在字符串较短时节省内存。上面的结构更适合理解 SDS 的基本思想。</p>
+<h3 id="huo-qu-chang-du-he-sheng-yu-kong-jian"><a class="zola-anchor" href="#huo-qu-chang-du-he-sheng-yu-kong-jian" aria-label="Anchor link for: huo-qu-chang-du-he-sheng-yu-kong-jian">获取长度和剩余空间</a></h3>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">static inline size_t sdslen(const sds s) {
+    struct sdshdr *sh = (void *)(s - sizeof(struct sdshdr));
+    return sh-&gt;len;
+}
+
+static inline size_t sdsavail(const sds s) {
+    struct sdshdr *sh = (void *)(s - sizeof(struct sdshdr));
+    return sh-&gt;free;
+}
+</code></pre>
+<p>这里利用了柔性数组和结构体连续分配的特性：<code>s</code> 指向 <code>buf</code>，向前移动一个头部大小，就可以得到头部地址。</p>
+<p>实际版本中，Redis 会先读取 <code>s[-1]</code> 得到 <code>flags</code>，再根据头部类型计算对应的头部大小。无论哪一种实现，核心思路都是一样的。</p>
+<h2 id="chuang-jian-sds"><a class="zola-anchor" href="#chuang-jian-sds" aria-label="Anchor link for: chuang-jian-sds">创建 SDS</a></h2>
+<p><code>sdsnewlen</code> 根据初始内容和长度分配一块连续内存，完成头部初始化后返回 <code>buf</code> 的地址，而不是返回头部地址。</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">sds sdsnewlen(const void *init, size_t initlen)
+{
+    struct sdshdr *sh;
+
+    if (init) {
+        &#x2F;&#x2F; zmalloc 不初始化分配出来的内存
+        sh = zmalloc(sizeof(struct sdshdr) + initlen + 1);
+    } else {
+        &#x2F;&#x2F; zcalloc 会把分配的内存初始化为 0
+        sh = zcalloc(sizeof(struct sdshdr) + initlen + 1);
+    }
+
+    if (sh == NULL)
+        return NULL;
+
+    sh-&gt;len = initlen;
+    sh-&gt;free = 0;
+
+    if (initlen &amp;&amp; init)
+        memcpy(sh-&gt;buf, init, initlen);
+
+    &#x2F;&#x2F; 保留 C 字符串结尾的空字符
+    sh-&gt;buf[initlen] = &#x27;\0&#x27;;
+
+    &#x2F;&#x2F; 返回 buf，而不是整个头部
+    return (char *)sh-&gt;buf;
+}
+</code></pre>
+<p>这里最后多分配的 1 个字节用于保存 <code>\0</code>。它不会参与 <code>sdslen</code> 返回的长度，因此不会影响 SDS 的二进制安全特性。</p>
+<h2 id="kong-jian-yu-fen-pei"><a class="zola-anchor" href="#kong-jian-yu-fen-pei" aria-label="Anchor link for: kong-jian-yu-fen-pei">空间预分配</a></h2>
+<p>对 SDS 进行追加或拷贝时，Redis 通常会先调用 <code>sdsMakeRoomFor</code> 检查剩余空间。</p>
+<p>如果当前空闲空间足以容纳新增内容，函数直接返回，不发生内存分配。否则，Redis 会按照下面的策略扩容：</p>
+<ul>
+<li>新长度小于 <code>1 MB</code> 时，分配约为新长度两倍的空间；</li>
+<li>新长度大于等于 <code>1 MB</code> 时，在新长度之外额外预留 <code>1 MB</code>。</li>
+</ul>
+<p>这是一种空间换时间的做法。短字符串追加时会有较明显的预留，长字符串则把额外空间控制在固定大小，避免一次性浪费过多内存。</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">sds sdsMakeRoomFor(sds s, size_t addlen) {
+    void *sh, *newsh;
+    size_t avail = sdsavail(s);
+    size_t len, newlen;
+    char type, oldtype = s[-1] &amp; SDS_TYPE_MASK;
+    int hdrlen;
+
+    &#x2F;&#x2F; 空间足够，直接返回
+    if (avail &gt;= addlen)
+        return s;
+
+    len = sdslen(s);
+    sh = (char *)s - sdsHdrSize(oldtype);
+    newlen = len + addlen;
+
+    if (newlen &lt; SDS_MAX_PREALLOC)
+        newlen *= 2;
+    else
+        newlen += SDS_MAX_PREALLOC;
+
+    type = sdsReqType(newlen);
+
+    &#x2F;&#x2F; sdshdr5 无法记录空闲空间，追加时不能继续使用它
+    if (type == SDS_TYPE_5)
+        type = SDS_TYPE_8;
+
+    hdrlen = sdsHdrSize(type);
+
+    if (oldtype == type) {
+        &#x2F;&#x2F; 头部大小不变，可以直接 realloc
+        newsh = s_realloc(sh, hdrlen + newlen + 1);
+        if (newsh == NULL)
+            return NULL;
+
+        s = (char *)newsh + hdrlen;
+    } else {
+        &#x2F;&#x2F; 头部类型变化，头部大小也变化，需要重新分配并搬迁数据
+        newsh = s_malloc(hdrlen + newlen + 1);
+        if (newsh == NULL)
+            return NULL;
+
+        memcpy((char *)newsh + hdrlen, s, len + 1);
+        s_free(sh);
+
+        s = (char *)newsh + hdrlen;
+        s[-1] = type;
+        sdssetlen(s, len);
+    }
+
+    sdssetalloc(s, newlen);
+    return s;
+}
+</code></pre>
+<p>这里有一个容易忽略的细节：字符串变长后，原来的头部类型可能无法存储新长度。例如 <code>sdshdr8</code> 无法继续表示超过 255 字节的容量。这时不仅要扩容，还要更换头部类型。</p>
+<p>如果头部类型没有变化，可以使用 <code>realloc</code>；如果头部大小变化，就必须申请新内存、复制字符串，再释放旧内存。</p>
+<h2 id="duo-xing-kong-jian-shi-fang"><a class="zola-anchor" href="#duo-xing-kong-jian-shi-fang" aria-label="Anchor link for: duo-xing-kong-jian-shi-fang">惰性空间释放</a></h2>
+<p>SDS 缩短时，Redis 通常不会立即释放多出来的空间，而是把它记录为空闲空间，留给后续追加操作使用。</p>
+<p>例如 <code>sdsclear</code> 会把字符串清空，但不会释放原来的缓冲区：</p>
+<pre data-lang="c" class="language-c "><code class="language-c" data-lang="c">void sdsclear(sds s)
+{
+    struct sdshdr *sh = (void *)(s - sizeof(struct sdshdr));
+
+    sh-&gt;free += sh-&gt;len;
+    sh-&gt;len = 0;
+    sh-&gt;buf[0] = &#x27;\0&#x27;;
+}
+</code></pre>
+<p>这个操作的复杂度是 <code>O(1)</code>。下一次追加内容时，只要不超过原有容量，就可以直接写入，不需要重新分配内存。</p>
+<h2 id="zong-jie"><a class="zola-anchor" href="#zong-jie" aria-label="Anchor link for: zong-jie">总结</a></h2>
+<p>SDS 的结构并不复杂，但它把 C 字符串几个常见的痛点处理得很实用：</p>
+<ul>
+<li>用 <code>len</code> 或等价字段在 <code>O(1)</code> 时间内获取长度；</li>
+<li>通过长度而不是 <code>\0</code> 判断有效内容，保证二进制安全；</li>
+<li>保留末尾的 <code>\0</code>，兼容一部分 C 字符串函数；</li>
+<li>通过空间预分配减少频繁扩容；</li>
+<li>通过惰性空间释放减少缩短字符串时的内存操作；</li>
+<li>通过多种头部类型，在功能和内存占用之间做平衡。</li>
+</ul>
+<p>SDS 对外表现为一个指向 <code>buf</code> 的字符指针，所以使用起来像 C 字符串；但 Redis 真正读取内容时依赖的是头部记录的长度，而不是结尾的 <code>\0</code>。这正是 SDS 兼容性、二进制安全和性能之间的平衡点。</p>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/aliasjeff.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-sds-jie-gou-jie-xi/#shen-me-shi-sds">什么是 SDS</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-sds-jie-gou-jie-xi/#wei-shen-me-shi-yong-sds">为什么使用 SDS</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redis-sds-jie-gou-jie-xi/#chang-shu-shi-jian-huo-qu-chang-du">常数时间获取长度</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redis-sds-jie-gou-jie-xi/#er-jin-zhi-an-quan">二进制安全</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redis-sds-jie-gou-jie-xi/#jian-rong-c-zi-fu-chuan">兼容 C 字符串</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redis-sds-jie-gou-jie-xi/#jian-shao-nei-cun-zhong-fen-pei">减少内存重分配</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redis-sds-jie-gou-jie-xi/#shi-yong-rou-xing-shu-zu-lian-xu-cun-chu">使用柔性数组连续存储</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-sds-jie-gou-jie-xi/#sds-de-shu-ju-jie-gou">SDS 的数据结构</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-sds-jie-gou-jie-xi/#yi-ge-jian-hua-ban-sds">一个简化版 SDS</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/redis-sds-jie-gou-jie-xi/#huo-qu-chang-du-he-sheng-yu-kong-jian">获取长度和剩余空间</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-sds-jie-gou-jie-xi/#chuang-jian-sds">创建 SDS</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-sds-jie-gou-jie-xi/#kong-jian-yu-fen-pei">空间预分配</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-sds-jie-gou-jie-xi/#duo-xing-kong-jian-shi-fang">惰性空间释放</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/redis-sds-jie-gou-jie-xi/#zong-jie">总结</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

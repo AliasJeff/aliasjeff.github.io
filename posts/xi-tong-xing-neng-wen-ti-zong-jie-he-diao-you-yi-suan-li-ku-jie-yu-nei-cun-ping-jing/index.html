@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                系统性能问题总结和调优 (一) —— 算力枯竭与内存瓶颈
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="系统性能问题总结和调优 (一) —— 算力枯竭与内存瓶颈" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            系统性能问题总结和调优 (一) —— 算力枯竭与内存瓶颈
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2026-04-17</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/xing-neng-diao-you/"
+                                       class="post-tag">性能调优</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/xi-tong-jia-gou/"
+                                       class="post-tag">系统架构</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <p>系统性能问题，追根溯源，本质是有限的物理硬件资源与不断膨胀的业务处理需求之间产生的不匹配状况。</p>
+<p>在当今的开发环境中，性能优化的概念早已突破了早期单纯改改 SQL、加机器的边界。在实际项目开发过程中，它呈现出泛化的态势，既包含理论层面的严格定义，也包含工程实践中各种异常迟缓现象的统称。今天我们从这两个维度出发，深入探讨 CPU 算力枯竭与内存泥沼中的性能难题。</p>
+<h2 id="yi-qian-yan"><a class="zola-anchor" href="#yi-qian-yan" aria-label="Anchor link for: yi-qian-yan">一、 前言</a></h2>
+<p>衡量系统性能主要聚焦于两个极其关键的指标：**吞吐量（Throughput）**与 <strong>延迟（Latency）</strong>。吞吐量反映了系统在单位时间内处理请求的数量，它是系统宏观承载能力的体现；而延迟则代表了单个请求从发出到收到响应所花费的时间，直接决定了微观的用户体验。在理想状态下，随着并发数的增加，吞吐量应呈线性增长，而延迟保持平稳。但当某一项核心资源达到饱和时，吞吐量就会触达天花板甚至断崖式下跌，同时延迟呈指数级剧增。这就要求我们在设计高并发系统时，必须精准识别出阻碍系统线性扩展的物理短板。</p>
+<h3 id="gong-cheng-shi-jian-fan-hua"><a class="zola-anchor" href="#gong-cheng-shi-jian-fan-hua" aria-label="Anchor link for: gong-cheng-shi-jian-fan-hua">工程实践泛化</a></h3>
+<p>在工程实践的一线场景中，开发者们面对的往往不是冰冷的理论图表，而是 CPU 使用率飙红、频繁触发 OOM（Out Of Memory）、进程假死等具体且血淋淋的线上故障。开发者通常将这些导致应用变慢、卡顿、无响应的情况，一概归类为性能问题。这其中涵盖了多个不同维度的系统性危机：</p>
+<ol>
+<li><strong>计算资源的榨干</strong>
+本质是 CPU 处理能力的枯竭。在面对海量请求或者复杂的业务逻辑时，如果代码执行了极度消耗算力的运算，后续的请求只能在内核调度队列中苦苦等待。</li>
+<li><strong>存储空间的失控</strong>
+本质是内存生命周期的管理混乱。当程序在内存中堆积了大量无法被回收的数据，或者频繁地触发垃圾回收（GC）机制时，会导致系统无法分配新的空间，甚至引发进程直接崩溃。</li>
+<li><strong>物理设备间的速度鸿沟</strong>
+本质是 IO 等待。极速的 CPU 在等待慢速的磁盘寻道或网络 RTT（往返时延）时，线程被迫大量挂起，系统陷入假死状态。</li>
+<li><strong>共享状态的并发争抢</strong>
+本质是人为的串行化。为了保障并发环境下的数据正确性，开发者引入了锁机制，导致在高并发洪峰下，多线程变成了低效的排队单行道。</li>
+</ol>
+<p>本文主要聚焦于单机内部最基础的两大物理资源极限：CPU 计算的过载与内存空间的溢出。</p>
+<h2 id="er-cpu-mi-ji-xing-wen-ti-dao-zhi-de-suan-li-ku-jie"><a class="zola-anchor" href="#er-cpu-mi-ji-xing-wen-ti-dao-zhi-de-suan-li-ku-jie" aria-label="Anchor link for: er-cpu-mi-ji-xing-wen-ti-dao-zhi-de-suan-li-ku-jie">二、 CPU 密集型问题导致的算力枯竭</a></h2>
+<h3 id="2-1-wen-ti-chan-sheng-tiao-jian"><a class="zola-anchor" href="#2-1-wen-ti-chan-sheng-tiao-jian" aria-label="Anchor link for: 2-1-wen-ti-chan-sheng-tiao-jian">2.1 问题产生条件</a></h3>
+<p>当系统需要执行大量的逻辑运算、数据处理或者复杂的控制流时，就为 CPU 密集型问题埋下了隐患。</p>
+<p>这里所说的计算耗尽，不仅仅局限于科学计算或图像处理，在通常被认为是 IO 密集型的 Web 服务中，一些隐蔽的不合理操作同样会榨干 CPU 资源。这种问题产生的根本条件，是单位时间内到达的计算指令数量，远远超出了 CPU 核心的处理能力。</p>
+<p>其最显著的特征是 <strong>CPU 使用率长期居高不下</strong>，同时伴随系统负载（Load Average）偏高。在 Java 等具备垃圾回收机制的语言中，有时还会伴随线程的**忙等待（Spinning）**或频繁的 GC 活动，即 CPU 看着很忙，但业务实际上没有有效产出。</p>
+<h3 id="2-2-dian-xing-chang-jing"><a class="zola-anchor" href="#2-2-dian-xing-chang-jing" aria-label="Anchor link for: 2-2-dian-xing-chang-jing">2.2 典型场景</a></h3>
+<p><strong>算法复杂度过高</strong>
+在日常开发中，算法时间复杂度失控是引发 CPU 飙升的最直接原因。例如在处理多表数据拼装时，开发者没有预先构建哈希映射，而是写了 O(n²) 甚至 O(n³) 的多重嵌套循环。当数据量处于测试环境时毫无波澜，一旦线上数据量膨胀，循环执行的指令次数将呈几何级数爆炸，瞬间让 CPU 陷入瘫痪。</p>
+<p><strong>过度序列化与 JSON 解析陷阱</strong>
+在当下的微服务架构中，大量的 JSON 报文充斥在 HTTP 或 RPC 调用的两端。尤其是当 JSON 结构极度深层庞大，且框架底层频繁使用反射操作、字符串截取与动态对象构建时，系统会消耗海量的时钟周期在无业务价值的格式转换上。</p>
+<p><strong>频繁对象创建倒逼 GC 压力</strong>
+这是一个经常被忽视的联动问题。短时间内在循环中大量创建生命周期极短的对象（如拼接长字符串不用 <code>StringBuilder</code>，或者反复解析巨型报文），会导致年轻代迅速被填满，进而触发高频的 Minor GC。垃圾回收线程在进行可达性分析和复制存活对象时，本身就是高度消耗 CPU 资源的。此时，真正用于业务计算的 CPU 时间被严重挤压。</p>
+<h3 id="2-3-jie-jue-si-lu"><a class="zola-anchor" href="#2-3-jie-jue-si-lu" aria-label="Anchor link for: 2-3-jie-jue-si-lu">2.3 解决思路</a></h3>
+<p>治理 CPU 密集型问题，核心心法是：<strong>减少不必要的计算，加速必须的计算。</strong></p>
+<p><strong>2.3.1 降维与整合处理</strong></p>
+<ul>
+<li><strong>算法优化（降复杂度）</strong>：这是投入产出比最高的手段。通过引入合适的数据结构，将高时间复杂度的操作降维。例如空间换时间，直接抹除冗余的计算量。</li>
+<li><strong>批处理替代单条处理</strong>：将来一条处理一条转化为攒一批处理一批，大幅摊薄函数调用栈及网络请求的上下文切换等固定开销。</li>
+</ul>
+<p><strong>2.3.2 压榨多核与对象复用</strong></p>
+<ul>
+<li><strong>并行计算</strong>：对于相互独立的子任务，利用多线程、并行流（如 Java 的 <code>parallelStream</code>）将其分发到多个核心执行。在极端场景下，甚至可调用底层硬件的 SIMD（单指令多数据流）指令集。</li>
+<li><strong>对象复用与池化</strong>：针对昂贵的创建开销，池化是经典的解决范式。通过连接池、线程池复用资源，或者在数据结构上实现对象复用，从根源上切断高频对象创建带来的 GC 连带惩罚。</li>
+</ul>
+<h2 id="san-nei-cun-ping-jing"><a class="zola-anchor" href="#san-nei-cun-ping-jing" aria-label="Anchor link for: san-nei-cun-ping-jing">三、 内存瓶颈</a></h2>
+<p>如果 CPU 是计算的引擎，内存就是数据的堆场。当对象生命周期的管理失去控制，或是无界的数据不断涌入，内存瓶颈（Memory Pressure）便应运而生。</p>
+<h3 id="3-1-wen-ti-chan-sheng-tiao-jian"><a class="zola-anchor" href="#3-1-wen-ti-chan-sheng-tiao-jian" aria-label="Anchor link for: 3-1-wen-ti-chan-sheng-tiao-jian">3.1 问题产生条件</a></h3>
+<p>当程序向操作系统申请的内存空间持续增长，且无法得到有效释放时，就为内存瓶颈埋下了隐患。</p>
+<p>内存问题的特征往往是隐蔽且滞后的。系统在刚启动时运行流畅，但随着时间推移，内存占用曲线呈阶梯式上涨。随后 <strong>GC 开始变得极其频繁</strong>（尤其是伴随着漫长 Stop-The-World 的 Full GC），最终往往以 <strong>OOM（Out Of Memory）</strong> 的惨烈崩溃告终。</p>
+<h3 id="3-2-dian-xing-chang-jing"><a class="zola-anchor" href="#3-2-dian-xing-chang-jing" aria-label="Anchor link for: 3-2-dian-xing-chang-jing">3.2 典型场景</a></h3>
+<p><strong>内存泄漏</strong>
+在带 GC 的高级语言中，内存泄漏通常是指：对象已经失去了业务语义上的使用价值，但由于底层代码的疏忽，依然被静态集合（如全局 <code>Map</code>）或未清理的 <code>ThreadLocal</code> 强引用。导致 GC 分析时认为这些对象依然存活而拒绝回收，它们将永远驻留内存。</p>
+<p><strong>大对象 / 长生命周期对象</strong>
+在处理导出报表或全表数据迁移时，一条缺乏 <code>limit</code> 的 SQL 可能会瞬间将几百万条记录加载到内存的 List 中。这些大对象会直接越过年轻代进入老年代，不仅占用巨大的连续空间，极易引发内存碎片，还会加速老年代的消耗导致重度 GC。</p>
+<p><strong>缓存无限增长（无淘汰策略）</strong>
+开发者为了提升查询性能，常常在本地使用原生的 <code>ConcurrentHashMap</code> 做数据缓存。但如果没有设计容量上限和淘汰机制，随着系统的长久运行，缓存的数据字典会像滚雪球一样越来越大，最终不可逆地吞噬掉所有剩余内存。</p>
+<h3 id="3-3-jie-jue-si-lu"><a class="zola-anchor" href="#3-3-jie-jue-si-lu" aria-label="Anchor link for: 3-3-jie-jue-si-lu">3.3 解决思路</a></h3>
+<p>解决内存问题，核心在于<strong>精细化的生命周期管理与内存边界的控制。</strong></p>
+<p><strong>3.3.1 生命周期精准约束与淘汰机制</strong></p>
+<ul>
+<li><strong>引入 LRU / TTL 缓存策略</strong>：坚决摒弃使用无界原生 Map 作为本地缓存的陋习。在工程实践中，必须引入如 Caffeine、Guava Cache 这样成熟的组件，并严格配置最大容量限制和基于时间/访问的淘汰机制。</li>
+<li><strong>使用弱引用 / 软引用</strong>：对于非必须的高速缓存数据，将对象的存亡决策权交还给 JVM。利用 <code>SoftReference</code> 或 <code>WeakReference</code>，让系统在濒临 OOM 之前自动抛弃这些边缘数据以保全核心运转。</li>
+</ul>
+<p><strong>3.3.2 避免全量加载，推行流式处理</strong>
+面对体积远远超过可用内存的海量数据集合，严禁一口吞。</p>
+<ul>
+<li><strong>分页与流式读取</strong>：无论是数据库查询还是大文件解析，都应采用游标（Cursor）或流式读取模型。每次仅在内存中驻留极少量当前处理的数据窗口，处理完一批即刻让其失去强引用。将空间复杂度从 O(n) 降维至 O(1)，使得内存占用始终保持在安全的低水位线上。</li>
+</ul>
+<h2 id="si-xiao-jie"><a class="zola-anchor" href="#si-xiao-jie" aria-label="Anchor link for: si-xiao-jie">四、 小结</a></h2>
+<p>本文作为系统性能问题探讨的第一篇，深度剖析了单机物理层面的两大微观瓶颈：算力枯竭（CPU 密集型）与空间失控（内存瓶颈）。</p>
+<p>我们总结了常见的解决范式。通过归纳，我们发现很多场景的解决思路有着内在的共性：比如解决 CPU 复杂度和降低 GC 压力，本质上都是通过对象复用和降维来消除底层的无谓内耗；而解决内存泄漏，则是为了保持系统生命周期的新陈代谢。</p>
+<p>然而，当我们在单机内部解决了算力与内存的危机后，系统往往又会被卡在与外部世界交互的通道上。当多线程开始激烈争夺同一份共享数据时，性能问题就会从资源的枯竭演变为秩序的混乱。</p>
+<p>后续文章，我们将离开单机计算的安逸环境，深入复杂的交互深水区，继续展开以下场景的分析：</p>
+<ul>
+<li>速度鸿沟导致的 IO 阻塞瓶颈</li>
+<li>并发场景下的锁竞争与排队枷锁</li>
+<li>架构深水区：关系型数据库的单点性能极限</li>
+<li>微服务架构演进中的网络、RPC 与架构设计瓶颈</li>
+</ul>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/aliasjeff.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-yi-suan-li-ku-jie-yu-nei-cun-ping-jing/#yi-qian-yan">一、 前言</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-yi-suan-li-ku-jie-yu-nei-cun-ping-jing/#gong-cheng-shi-jian-fan-hua">工程实践泛化</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-yi-suan-li-ku-jie-yu-nei-cun-ping-jing/#er-cpu-mi-ji-xing-wen-ti-dao-zhi-de-suan-li-ku-jie">二、 CPU 密集型问题导致的算力枯竭</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-yi-suan-li-ku-jie-yu-nei-cun-ping-jing/#2-1-wen-ti-chan-sheng-tiao-jian">2.1 问题产生条件</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-yi-suan-li-ku-jie-yu-nei-cun-ping-jing/#2-2-dian-xing-chang-jing">2.2 典型场景</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-yi-suan-li-ku-jie-yu-nei-cun-ping-jing/#2-3-jie-jue-si-lu">2.3 解决思路</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-yi-suan-li-ku-jie-yu-nei-cun-ping-jing/#san-nei-cun-ping-jing">三、 内存瓶颈</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-yi-suan-li-ku-jie-yu-nei-cun-ping-jing/#3-1-wen-ti-chan-sheng-tiao-jian">3.1 问题产生条件</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-yi-suan-li-ku-jie-yu-nei-cun-ping-jing/#3-2-dian-xing-chang-jing">3.2 典型场景</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-yi-suan-li-ku-jie-yu-nei-cun-ping-jing/#3-3-jie-jue-si-lu">3.3 解决思路</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/xi-tong-xing-neng-wen-ti-zong-jie-he-diao-you-yi-suan-li-ku-jie-yu-nei-cun-ping-jing/#si-xiao-jie">四、 小结</a>
+
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en" class="dark light">
+
+    <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="base" content="https:&#x2F;&#x2F;aliasjeff.github.io" />
+
+    
+
+    
+
+    
+    
+    
+        <title>
+            
+                记一次由本地缓存并发引发的线上 NPE 问题
+            
+        </title>
+
+        
+            <meta property="og:title"
+                  content="记一次由本地缓存并发引发的线上 NPE 问题" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+    
+        <link rel="icon"
+              type="image/png"
+              href="https://aliasjeff.github.io/code.svg" />
+    
+
+    
+    
+        <link href=https://aliasjeff.github.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+    
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/codeblock.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/toc.js></script>
+    
+
+    
+    
+        <script defer src=https://aliasjeff.github.io/js/note.js></script>
+    
+
+    
+
+    
+    
+
+
+    
+    
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/light.css" />
+        <link rel="stylesheet"
+              type="text/css"
+              href="https://aliasjeff.github.io/theme/dark.css"
+              media="(prefers-color-scheme: dark)" />
+    
+
+    <!-- Set the correct theme in the script -->
+
+    
+        <script src=https://aliasjeff.github.io/js/themetoggle.js></script>
+
+        
+            <script>
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme("dark");
+                } else {
+                    setTheme("light");
+                }
+            </script>
+        
+    
+
+
+    <link rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="https://aliasjeff.github.io/main.css" />
+
+    
+        
+            <link rel="stylesheet" href="https://aliasjeff.github.io/site-polish.css" />
+        
+    
+
+    
+        <script defer
+                src="https://aliasjeff.github.io/js/searchElasticlunr.min.js?h=3626c0ef99daa745b31e"></script></head>
+
+
+    <body>
+        <div class="left-content">
+            
+            
+        </div>
+
+        <div class="content">
+            <nav>
+    <div class="left-nav">
+        
+            <a href=https:&#x2F;&#x2F;aliasjeff.github.io>AliasJeff</a>
+        
+
+
+        <div class="socials">
+            
+                
+            
+            
+                <a rel='me' href="https:&#x2F;&#x2F;github.com&#x2F;AliasJeff&#x2F;" class="social">
+                    <img alt="github"
+                         src="https://aliasjeff.github.io/icons/social/github.svg" />
+                </a>
+            
+        </div>
+    </div>
+
+    <div class="right-nav">
+        
+            <a href=https://aliasjeff.github.io style="margin-right: 0.5em">Home</a>
+        
+            <a href=https://aliasjeff.github.io/posts style="margin-right: 0.5em">Posts</a>
+        
+            <a href=https://aliasjeff.github.io/papers style="margin-right: 0.5em">Papers</a>
+        
+            <a href=https://aliasjeff.github.io/about style="margin-right: 0.5em">About</a>
+        
+            <a href=https://aliasjeff.github.io/projects style="margin-right: 0.5em">Projects</a>
+        
+            <a href=https://aliasjeff.github.io/resume style="margin-right: 0.5em">Résumé</a>
+        
+            <a href=https://aliasjeff.github.io/tags style="margin-right: 0.5em">Tags</a>
+        
+
+        
+            <button id="search-button"
+                    class="search-button"
+                    title="$SHORTCUT to open search">
+                <img src="https://aliasjeff.github.io/icons/search.svg"
+                     alt="Search"
+                     class="search-icon" />
+            </button>
+
+            <div id="searchModal"
+                 class="search-modal js"
+                 role="dialog"
+                 aria-labelledby="modalTitle">
+                <div id="modal-content">
+                    <h1 id="modalTitle" class="page-header">
+                        Search
+                    </h1>
+                    <div id="searchBar">
+                        <input id="searchInput"
+                               role="combobox"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-expanded="false"
+                               aria-controls="results-container"
+                               placeholder="Search..." />
+                        <button id="clear-search" class="clear-button" title="Clear search">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="results-container">
+                        <div id="results-info">
+                            <span id="zero_results" style="display: none;">No results</span>
+                            <span id="one_result" style="display: none;">1 result</span>
+                            <span id="many_results" style="display: none;">$NUMBER results</span>
+                        </div>
+                        <div id="results" role="listbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+
+        
+    </div>
+</nav>
+
+
+            
+            
+    
+    <div class="visible-element-observer-root" data-selector="main article p">
+        <main>
+            <article>
+                <div class="title">
+                    
+                    
+    
+        <div class="page-header">
+            记一次由本地缓存并发引发的线上 NPE 问题
+        </div>
+    
+
+
+                    <div class="meta">
+                        
+                            Posted on <time>2026-04-14</time>
+                        
+
+
+                        
+
+                        
+
+                        
+
+                        
+                        
+
+                        
+                        
+
+                        
+                        
+                            <span class="tags-label">::</span>
+                            <span class="tags">
+                                    <a href="https://aliasjeff.github.io/tags/gao-bing-fa/"
+                                       class="post-tag">高并发</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/wen-ti-pai-cha/"
+                                       class="post-tag">问题排查</a>
+                                
+                                    <a href="https://aliasjeff.github.io/tags/springboot/"
+                                       class="post-tag">SpringBoot</a>
+                                
+                            </span>
+                        
+
+                        
+
+                    </div>
+                </div>
+
+                
+
+                <section class="body">
+                    <h2 id="yi-ben-di-huan-cun-dai-ma"><a class="zola-anchor" href="#yi-ben-di-huan-cun-dai-ma" aria-label="Anchor link for: yi-ben-di-huan-cun-dai-ma">一、本地缓存代码</a></h2>
+<p>简单来说，这段业务代码的作用是做了一个本地缓存。系统里有一张配置表，业务在读取配置时，为了减轻数据库查询压力并提升性能，希望能尽量走本地缓存。由于我们的业务场景对配置数据一致性的要求没有那么苛刻（集群环境下，节点间存在短暂的数据不一致是可以接受的），所以直接使用了 AI 写的一个极其简单的单机本地缓存方案。</p>
+<p>以下是出问题的原始代码：</p>
+<pre><code>@Component
+public class ConfigCache {
+
+    &#x2F;&#x2F; 使用了 static 和 final 修饰的 HashMap 作为本地缓存
+    private static final Map&lt;String, String&gt; CACHE = new HashMap&lt;&gt;();
+
+    @Autowired
+    private ConfigDAO configDAO;
+
+    &#x2F;&#x2F; Spring 容器启动后，初始化加载缓存
+    @PostConstruct
+    public void init() {
+        load();
+    }
+
+    &#x2F;&#x2F; 定时任务：每 5 分钟重新刷新一次本地缓存
+    @Scheduled(fixedDelay = 5 * 60 * 1000)
+    public void reload() {
+        load();
+    }
+
+    &#x2F;&#x2F; 上层业务调用的获取配置方法
+    public String get(String key) {
+        return CACHE.get(key);
+    }
+
+    &#x2F;&#x2F; 核心加载逻辑
+    private void load() {
+        List&lt;ConfigDO&gt; configs = configDAO.listAll();
+        CACHE.clear(); &#x2F;&#x2F; 问题点：先把缓存清空
+        for (ConfigDO config : configs) {
+            CACHE.put(config.getKey(), config.getValue()); &#x2F;&#x2F; 然后再循环 put 进去
+        }
+    }
+}
+</code></pre>
+<p>这段代码发布上线后，系统<strong>每隔几天就会出现一次 <code>NullPointerException</code>（空指针异常）</strong>，报错提示某一个配置没有拿到。而且诡异的是，每隔几天报错时，拿不到的配置 Key 都不一样，完全是随机的。</p>
+<hr />
+<h2 id="er-bing-fa-jing-tai-wen-ti"><a class="zola-anchor" href="#er-bing-fa-jing-tai-wen-ti" aria-label="Anchor link for: er-bing-fa-jing-tai-wen-ti">二、并发竞态问题</a></h2>
+<p>在这个场景中，存在两类线程在同时访问 <code>CACHE</code>：</p>
+<ol>
+<li><strong>写线程</strong>：后台的定时任务线程，每 5 分钟执行一次 <code>reload</code> 刷新。</li>
+<li><strong>读线程</strong>：前端大量的业务工作线程，高频调用 <code>get</code> 方法。</li>
+</ol>
+<p>问题就出在 <code>load()</code> 方法里：当定时任务线程执行了 <code>CACHE.clear()</code> 清空缓存，<strong>但还没有来得及把新数据全部 <code>put</code> 进去的这段微小时间窗口内</strong>，如果恰好有一个业务线程来调用 <code>get(key)</code>，它面对的必然是一个空空如也的 Map。</p>
+<p>结果显而易见：业务线程必定拿到一个 <code>null</code> 值。由于这个时间窗口很小，所以偶尔才会触发，并且每次触发时请求的 Key 都不固定。</p>
+<hr />
+<h2 id="san-jie-jue-fang-an"><a class="zola-anchor" href="#san-jie-jue-fang-an" aria-label="Anchor link for: san-jie-jue-fang-an">三、解决方案</a></h2>
+<h3 id="fang-an-1-jian-dan-cu-bao-di-jia-suo-bu-ke-qu"><a class="zola-anchor" href="#fang-an-1-jian-dan-cu-bao-di-jia-suo-bu-ke-qu" aria-label="Anchor link for: fang-an-1-jian-dan-cu-bao-di-jia-suo-bu-ke-qu">方案 1：简单粗暴地加锁（不可取）</a></h3>
+<p>简单在方法上加上 synchronized 互斥锁，这样确实能解决并发问题，但<strong>性能极差</strong>。我们既然用上了缓存，说明这里的请求量应该不小。如果在刷新缓存（查数据库 + 全量循环写入）的期间，所有的 <code>get</code> 读请求全都要被阻塞在这里等待，这绝对是一种极其低效的操作。</p>
+<h3 id="fang-an-2-yi-kong-jian-huan-shi-jian-tui-jian-fang-an"><a class="zola-anchor" href="#fang-an-2-yi-kong-jian-huan-shi-jian-tui-jian-fang-an" aria-label="Anchor link for: fang-an-2-yi-kong-jian-huan-shi-jian-tui-jian-fang-an">方案 2：以空间换时间（推荐方案）</a></h3>
+<p>我们在 <code>load</code> 时，不要去清理原有的 Map，而是<strong>直接开辟一个新空间，实例化一个新的 Map</strong>，把查出来的数据 <code>put</code> 到新 Map 里。等数据全都装载完毕之后，再把 <code>CACHE</code> 的引用瞬间指向这个新的 Map。</p>
+<p>这种思想在业界应用非常广泛。比如 <strong>MySQL 的 Online DDL</strong> 操作，大表增加字段直接改会锁表，它的底层解决方案就是重新开辟一块空间，把数据复制过去，数据复制完毕后只在切换新老表的瞬间加一段极短的锁。</p>
+<p>代码初步改造如下（注意：去掉了 <code>final</code> 关键字）：</p>
+<pre><code>&#x2F;&#x2F; 去掉 final，因为我们需要改变引用指向
+private static Map&lt;String, String&gt; CACHE = new HashMap&lt;&gt;();
+
+private void load() {
+    List&lt;ConfigDO&gt; configs = configDAO.listAll();
+    
+    &#x2F;&#x2F; 1. 新起一个局部 Map（开辟新空间）
+    Map&lt;String, String&gt; newCache = new HashMap&lt;&gt;(); 
+    
+    &#x2F;&#x2F; 2. 将数据装载到新 Map 中
+    for (ConfigDO config : configs) {
+        newCache.put(config.getKey(), config.getValue());
+    }
+    
+    &#x2F;&#x2F; 3. 瞬间切换引用（引用的赋值在 JVM 中是原子操作）
+    CACHE = newCache; 
+}
+</code></pre>
+<hr />
+<h2 id="si-wei-shen-me-yao-jia-volatile-guan-jian-zi"><a class="zola-anchor" href="#si-wei-shen-me-yao-jia-volatile-guan-jian-zi" aria-label="Anchor link for: si-wei-shen-me-yao-jia-volatile-guan-jian-zi">四、为什么要加 <code>volatile</code> 关键字？</a></h2>
+<p>定时任务是一个独立线程，业务 <code>get</code> 请求是另外的线程。在 Java 内存模型（JMM）中，<strong>线程之间的可见性生效时间是不可控的</strong>。因此，必须给 <code>CACHE</code> 加上 <code>volatile</code> 关键字：</p>
+<pre><code>private static volatile Map&lt;String, String&gt; CACHE = new HashMap&lt;&gt;();
+</code></pre>
+<p>不过，如果仅仅是为了保证可见性，在集群部署的情况下，各台机器刷新缓存的时间本来就很难保证完全一致（集群视角下一会儿读到老值，一会儿读到新值），所以单机用 <code>volatile</code> 去保证可见性并不是我们的主要矛盾。</p>
+<p><strong>但是，这里必须加 <code>volatile</code> 的核心目的，是为了防止指令重排序</strong></p>
+<p>在 <code>CACHE = newCache;</code> 这一步，在底层其实包含了内存分配、对象初始化和引用赋值等多步操作。如果没有 <code>volatile</code> 建立的内存屏障，编译器和 CPU 极有可能发生指令重排序，执行顺序可能变成：</p>
+<ol>
+<li>分配一个 Map 的内存空间。</li>
+<li><strong>提前把 <code>CACHE</code> 变量的引用指向这块内存。</strong></li>
+<li><strong>再去执行循环 <code>put</code> 的装载操作。</strong></li>
+</ol>
+<p>如果发生了重排序，<code>CACHE</code> 已经指向了新的内存地址，但这个新对象<strong>还没来得及把所有的值 put 进去</strong>。此时，如果一个高并发的业务 <code>get</code> 请求进来了，获取到了最新的引用，但去里面拿数据时，依然会拿到一个处于半初始化状态的空对象，最终引发 <code>null</code> 值异常</p>
+<p>这就是并发编程的极致复杂性。结合指令重排序，虽然出现这种情况的概率非常小，但是只要你的并发足够高，这基本上就可以看成是一个<strong>必然事件</strong>。所以，加 <code>volatile</code> 主要是为了避免读到空对象的情况。</p>
+<hr />
+<h2 id="wu-yan-zhan-tao-lun"><a class="zola-anchor" href="#wu-yan-zhan-tao-lun" aria-label="Anchor link for: wu-yan-zhan-tao-lun">五、延展讨论</a></h2>
+<p><strong>Q1：如果我们不采用引用替换的无锁方案，在这个场景下坚持使用锁机制，<code>ReentrantLock</code>、<code>ReentrantReadWriteLock</code> 或 <code>StampedLock</code> 该怎么选？有什么区别？</strong></p>
+<p><strong>答：</strong> 这三把锁都位于 <code>java.util.concurrent.locks</code> 包下，在这个一写多读、写耗时长的场景中表现各异：</p>
+<ol>
+<li><strong>ReentrantLock（可重入互斥锁）</strong>
+<ul>
+<li><strong>怎么用</strong>：在 <code>get</code> 和 <code>load</code> 方法里都加上同一把互斥锁。</li>
+<li><strong>优缺点</strong>：绝对线程安全，实现简单。但它是<strong>独占锁</strong>。不仅读写互斥，致命的是<strong>读读也互斥</strong>。这会导致高并发下的缓存读取全部串行化，性能极差。在这个场景下极不推荐。</li>
+</ul>
+</li>
+<li><strong>ReentrantReadWriteLock（可重入读写锁）</strong>
+<ul>
+<li><strong>怎么用</strong>：在 <code>get</code> 中加读锁，<code>load</code> 中加写锁。</li>
+<li><strong>优缺点</strong>：实现了读读共存，读写互斥。在平时，大量线程可以同时读取，读性能很高。但它的致命缺陷在于<strong>写锁阻塞读锁</strong>：当定时任务执行 <code>load</code>（包含耗时的查库+装载数据，可能耗时几十毫秒）拿到写锁时，<strong>所有的前端 <code>get</code> 读请求全部会被挂起阻塞</strong>。这意味着系统每 5 分钟就会经历一次接口响应时间（RT）的严重毛刺。另外在高并发读的情况下，容易引发“写线程饥饿”。</li>
+<li><strong>适用场景</strong>：读多写少、写操作耗时极短（微秒级）的场景。</li>
+</ul>
+</li>
+<li><strong>StampedLock（邮戳锁 / 乐观读写锁）</strong>
+<ul>
+<li><strong>怎么用</strong>：JDK 8 引入的并发神器。在 <code>get</code> 时优先尝试乐观读（<code>tryOptimisticRead</code>，不加锁，拿到一个 stamp 戳），读完后校验戳是否失效（期间有没有发生写操作），如果失效再降级为悲观读锁。<code>load</code> 依然加排他写锁。</li>
+<li><strong>优缺点</strong>：<strong>并发读取的性能天花板</strong> 它的乐观读完全不阻塞写线程，有效解决了写饥饿。缺点是 API 极其复杂，而且<strong>不可重入</strong>，使用不当易引发死循环。但在我们的场景下，当 <code>load</code> 耗时较长导致乐观读验证失败并降级为悲观读锁时，依然会被挂起，还是无法彻底消除 RT 抖动。</li>
+</ul>
+</li>
+</ol>
+<p><strong>总结</strong>：在当前这种 <strong>定时全量刷新且包含耗时 IO</strong> 的场景下，这三种锁都无法彻底避免前端请求的阻塞排队。因此，我们采用的 <strong>“局部新空间装载 + volatile 引用瞬间替换”</strong>（即 Copy-On-Write 思想）完美绕过了共享资源的竞争，是实现 0 阻塞、最高性能的最优解。</p>
+<p><strong>Q2：HashMap 本身不是线程安全的，这里有没有必要改成 ConcurrentHashMap？</strong></p>
+<p><strong>答：没必要。</strong></p>
+<p><code>ConcurrentHashMap</code> 主要解决的是并发写的安全问题。但在我们的场景中，真正的写操作（对 <code>newCache</code> 进行 <code>put</code>）永远只有定时任务这一个独立线程在局部变量上执行，压根不存在写并发的问题。而多线程读操作，读的是已经构建完毕的只读 Map，引用替换又是原子的。所以在这种“一写多读”且采用无锁替换的场景下，直接用普通的 <code>HashMap</code> 性能更好。</p>
+<p><strong>Q3：这里的 CACHE 变量到底有没有必要用 static 修饰？</strong></p>
+<p><strong>答：可以优化。</strong></p>
+<p>由于这个 <code>ConfigCache</code> 类已经打上了 Spring 的 <code>@Component</code> 注解，由 Spring 容器管理的 Bean 默认就是单例的。既然类的实例在全局只有一份，那它的成员变量自然也只有一份，所以加不加 <code>static</code> 在功能上效果是一样的。去掉 <code>static</code> 会更符合面向对象的规范。</p>
+<hr />
+<h2 id="liu-zui-zhong-you-hua-hou-de-dai-ma"><a class="zola-anchor" href="#liu-zui-zhong-you-hua-hou-de-dai-ma" aria-label="Anchor link for: liu-zui-zhong-you-hua-hou-de-dai-ma">六、 最终优化后的代码</a></h2>
+<p>经过深度推演，我们既保证了高性能（无锁并发读），又保证了线程安全（防止指令重排序）的最终健壮代码如下：</p>
+<pre><code>@Component
+public class ConfigCache {
+
+    &#x2F;&#x2F; 1. 去掉 static（依赖 Spring 单例）
+    &#x2F;&#x2F; 2. 加上 volatile 防止指令重排序引发的空对象泄露
+    private volatile Map&lt;String, String&gt; cache = new HashMap&lt;&gt;();
+
+    @Autowired
+    private ConfigDAO configDAO;
+
+    @PostConstruct
+    public void init() {
+        load();
+    }
+
+    @Scheduled(fixedDelay = 5 * 60 * 1000)
+    public void reload() {
+        load();
+    }
+
+    public String get(String key) {
+        return cache.get(key); &#x2F;&#x2F; 无锁高效读取
+    }
+
+    private void load() {
+        List&lt;ConfigDO&gt; configs = configDAO.listAll();
+        &#x2F;&#x2F; 空间换时间：局部作用域构建新对象
+        Map&lt;String, String&gt; newCache = new HashMap&lt;&gt;();
+        for (ConfigDO config : configs) {
+            newCache.put(config.getKey(), config.getValue());
+        }
+        &#x2F;&#x2F; 原子操作，瞬间替换引用
+        this.cache = newCache; 
+    }
+}
+</code></pre>
+<h3 id="jie-yu"><a class="zola-anchor" href="#jie-yu" aria-label="Anchor link for: jie-yu">结语</a></h3>
+<p>AI 虽然能极快地帮我们搭起代码骨架，但它往往只关注功能实现，很难感知到复杂的业务上下文和 JVM 底层细节。一段看似极其简单的 CRUD 缓存代码，如果不深入推敲，就会踩中并发竞态条件和指令重排序的坑。</p>
+
+                </section>
+            </article>
+        </main>
+    </div>
+
+
+
+            
+                
+            
+
+            
+                <div class="giscus">
+                </div>
+                <script src="https://giscus.app/client.js"
+        data-repo="AliasJeff/aliasjeff.github.io"
+        data-repo-id="R_kgDOQs_HFw"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQs_HF84C0Hvj"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+            
+        </div>
+
+        <div class="right-content">
+            
+    
+    
+        <div class="toc">
+    <div class="heading">
+        Table of Contents
+    </div>
+    <ul class="toc-list">
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ji-yi-ci-you-ben-di-huan-cun-bing-fa-yin-fa-de-xian-shang-npe-wen-ti/#yi-ben-di-huan-cun-dai-ma">一、本地缓存代码</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ji-yi-ci-you-ben-di-huan-cun-bing-fa-yin-fa-de-xian-shang-npe-wen-ti/#er-bing-fa-jing-tai-wen-ti">二、并发竞态问题</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ji-yi-ci-you-ben-di-huan-cun-bing-fa-yin-fa-de-xian-shang-npe-wen-ti/#san-jie-jue-fang-an">三、解决方案</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/ji-yi-ci-you-ben-di-huan-cun-bing-fa-yin-fa-de-xian-shang-npe-wen-ti/#fang-an-1-jian-dan-cu-bao-di-jia-suo-bu-ke-qu">方案 1：简单粗暴地加锁（不可取）</a>
+                            </li>
+
+                            
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/ji-yi-ci-you-ben-di-huan-cun-bing-fa-yin-fa-de-xian-shang-npe-wen-ti/#fang-an-2-yi-kong-jian-huan-shi-jian-tui-jian-fang-an">方案 2：以空间换时间（推荐方案）</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ji-yi-ci-you-ben-di-huan-cun-bing-fa-yin-fa-de-xian-shang-npe-wen-ti/#si-wei-shen-me-yao-jia-volatile-guan-jian-zi">四、为什么要加 volatile 关键字？</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ji-yi-ci-you-ben-di-huan-cun-bing-fa-yin-fa-de-xian-shang-npe-wen-ti/#wu-yan-zhan-tao-lun">五、延展讨论</a>
+
+                
+            </li>
+        
+            <li class="parent">
+                
+                <a href="https://aliasjeff.github.io/posts/ji-yi-ci-you-ben-di-huan-cun-bing-fa-yin-fa-de-xian-shang-npe-wen-ti/#liu-zui-zhong-you-hua-hou-de-dai-ma">六、 最终优化后的代码</a>
+
+                
+                    <ul>
+                        
+                            
+                            <li>
+                                <a href="https://aliasjeff.github.io/posts/ji-yi-ci-you-ben-di-huan-cun-bing-fa-yin-fa-de-xian-shang-npe-wen-ti/#jie-yu">结语</a>
+                            </li>
+
+                            
+                        
+                    </ul>
+                
+            </li>
+        
+    </ul>
+</div>
+
+    
+
+        </div>
+    </body>
+
+</html>
